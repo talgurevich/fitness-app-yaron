@@ -90,11 +90,10 @@ export default function DashboardPage() {
 
   if (status === 'loading') {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-blue-50">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" 
-               style={{animation: 'spin 1s linear infinite'}}></div>
-          <div className="text-xl font-medium text-gray-700">טוען...</div>
+          <div className="w-12 h-12 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin mb-4"></div>
+          <div className="text-lg font-medium text-gray-700">טוען...</div>
         </div>
       </div>
     )
@@ -168,250 +167,218 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-blue-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-lg border-b border-blue-200">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-4xl font-extrabold text-blue-900">
-                🏋️ לוח בקרה למאמן
-              </h1>
-              <p className="text-lg text-blue-700 mt-2 font-medium">
-                שלום <span className="text-blue-900">{session.user?.name || session.user?.email}</span>
-              </p>
+      <header className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-4 space-x-reverse">
+              <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold text-gray-900">
+                  לוח בקרה למאמן
+                </h1>
+                <p className="text-sm text-gray-500">
+                  {session.user?.name || session.user?.email}
+                </p>
+              </div>
             </div>
             <button
               onClick={() => signOut({ callbackUrl: '/' })}
-              className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold shadow-lg transition-colors"
-              style={{transform: 'translateY(0)', transition: 'all 0.2s ease'}}
-              onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-              onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
             >
-              התנתק
+              יציאה
             </button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-8 px-4">
-        <div className="space-y-8">
-          {/* Enhanced Stats Grid */}
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+          
+          {/* Google Calendar Card */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all duration-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3 space-x-reverse">
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900">יומן Google</h3>
+                  <p className="text-xs text-gray-500">סטטוס חיבור</p>
+                </div>
+              </div>
+              <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                isConnectedToGoogle 
+                  ? 'bg-gray-100 text-gray-800' 
+                  : 'bg-gray-50 text-gray-600'
+              }`}>
+                {isConnectedToGoogle ? 'מחובר' : 'לא מחובר'}
+              </div>
+            </div>
             
-            {/* Google Calendar Card */}
-            <div className="bg-white shadow-lg rounded-lg overflow-hidden border border-blue-100"
-                 style={{transition: 'all 0.3s ease', transform: 'translateY(0)'}}
-                 onMouseOver={(e) => {
-                   e.currentTarget.style.transform = 'translateY(-4px)'
-                   e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
-                 }}
-                 onMouseOut={(e) => {
-                   e.currentTarget.style.transform = 'translateY(0)'
-                   e.currentTarget.style.boxShadow = ''
-                 }}>
-              <div className="p-6">
-                <div className="flex items-center mb-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg">
-                      <span className="text-white text-2xl">📅</span>
-                    </div>
-                  </div>
-                  <div className="mr-4 flex-1">
-                    <h3 className="text-xl font-bold text-gray-900 mb-1">יומן Google</h3>
-                    <div className={`text-sm font-semibold px-3 py-1 rounded-full inline-block ${
-                      isConnectedToGoogle 
-                        ? 'bg-green-100 text-green-700' 
-                        : 'bg-red-100 text-red-700'
-                    }`}>
-                      {isConnectedToGoogle ? '✅ מחובר' : '❌ לא מחובר'}
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  {!isConnectedToGoogle ? (
-                    <button
-                      onClick={handleGoogleCalendarConnect}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-semibold shadow-lg transition-colors"
-                    >
-                      🔗 חבר יומן Google
-                    </button>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                        <div className="flex items-center text-green-700 text-sm font-medium">
-                          <span className="mr-2">✅</span>
-                          יומן מחובר בהצלחה
-                        </div>
-                      </div>
-                      <button
-                        onClick={testCalendarEvent}
-                        className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-semibold shadow-lg transition-colors"
-                      >
-                        🧪 בדוק יצירת אירוע
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Booking Link Card */}
-            <div className="bg-white shadow-lg rounded-lg overflow-hidden border border-green-100"
-                 style={{transition: 'all 0.3s ease', transform: 'translateY(0)'}}
-                 onMouseOver={(e) => {
-                   e.currentTarget.style.transform = 'translateY(-4px)'
-                   e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
-                 }}
-                 onMouseOut={(e) => {
-                   e.currentTarget.style.transform = 'translateY(0)'
-                   e.currentTarget.style.boxShadow = ''
-                 }}>
-              <div className="p-6">
-                <div className="flex items-center mb-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-16 h-16 bg-green-600 rounded-lg flex items-center justify-center shadow-lg">
-                      <span className="text-white text-2xl">🔗</span>
-                    </div>
-                  </div>
-                  <div className="mr-4 flex-1">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">קישור הזמנה</h3>
-                    <div className="bg-gray-100 p-3 rounded-lg border">
-                      <p className="text-sm text-gray-700 break-all font-mono">
-                        {bookingLink}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={copyBookingLink}
-                    className="bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-lg transition-colors"
-                  >
-                    📋 העתק
-                  </button>
-                  <Link
-                    href={bookingLink.replace(window.location.origin, '')}
-                    target="_blank"
-                    className="bg-gray-600 hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-lg transition-colors text-center"
-                  >
-                    👀 צפה
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            {/* Appointments Card */}
-            <div className="bg-white shadow-lg rounded-lg overflow-hidden border border-purple-100"
-                 style={{transition: 'all 0.3s ease', transform: 'translateY(0)'}}
-                 onMouseOver={(e) => {
-                   e.currentTarget.style.transform = 'translateY(-4px)'
-                   e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
-                 }}
-                 onMouseOut={(e) => {
-                   e.currentTarget.style.transform = 'translateY(0)'
-                   e.currentTarget.style.boxShadow = ''
-                 }}>
-              <div className="p-6">
-                <div className="flex items-center mb-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-16 h-16 bg-purple-600 rounded-lg flex items-center justify-center shadow-lg">
-                      <span className="text-white text-2xl">📊</span>
-                    </div>
-                  </div>
-                  <div className="mr-4 flex-1">
-                    <h3 className="text-xl font-bold text-gray-900 mb-1">הזמנות היום</h3>
-                    <div className="text-4xl font-extrabold text-purple-600">
-                      {appointmentsCount}
-                    </div>
-                  </div>
-                </div>
-                <Link 
-                  href="/availability"
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg font-semibold shadow-lg transition-colors text-center block"
+            <div className="mt-4">
+              {!isConnectedToGoogle ? (
+                <button
+                  onClick={handleGoogleCalendarConnect}
+                  className="w-full bg-gray-900 text-white text-sm font-medium py-2 px-4 rounded-lg hover:bg-gray-800 transition-colors"
                 >
-                  ⚙️ הגדרות זמינות
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Enhanced Recent Appointments */}
-          <div className="bg-white shadow-lg rounded-lg border border-gray-200">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">📋 הזמנות אחרונות</h2>
-                <div className="w-20 h-1 bg-blue-600 rounded-full"></div>
-              </div>
-              
-              {appointments.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-4xl">📅</span>
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">אין הזמנות עדיין</h3>
-                  <p className="text-gray-600 max-w-md mx-auto">
-                    שתף את קישור ההזמנה שלך עם לקוחות כדי להתחיל לקבל הזמנות
-                  </p>
-                </div>
+                  חיבור ליומן
+                </button>
               ) : (
-                <div className="space-y-4">
-                  {appointments.slice(0, 5).map((appointment: any) => (
-                    <div key={appointment.id} 
-                         className="flex justify-between items-center p-5 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
-                      <div className="flex items-center space-x-4 space-x-reverse">
-                        <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-lg">
-                          <span className="text-white font-bold text-lg">
-                            {appointment.clientName?.charAt(0) || 'C'}
-                          </span>
-                        </div>
-                        <div>
-                          <div className="font-bold text-gray-900 text-lg">{appointment.clientName}</div>
-                          <div className="text-sm text-gray-600">{appointment.clientEmail}</div>
-                          {appointment.clientPhone && (
-                            <div className="text-sm text-gray-600">{appointment.clientPhone}</div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="text-left flex items-center space-x-4 space-x-reverse">
-                        <div className="text-center">
-                          <div className="font-bold text-gray-900">
-                            {new Date(appointment.datetime).toLocaleDateString('he-IL')}
-                          </div>
-                          <div className="text-sm text-blue-600 font-semibold">
-                            {new Date(appointment.datetime).toLocaleTimeString('he-IL', { 
-                              hour: '2-digit', 
-                              minute: '2-digit' 
-                            })}
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => deleteAppointment(appointment.id, appointment.clientName)}
-                          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-lg transition-colors"
-                          title="מחק הזמנה"
-                        >
-                          🗑️ מחק
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <button
+                  onClick={testCalendarEvent}
+                  className="w-full bg-gray-100 text-gray-900 text-sm font-medium py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  בדוק חיבור
+                </button>
               )}
             </div>
           </div>
+
+          {/* Booking Link Card */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all duration-200">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3 space-x-reverse">
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900">קישור הזמנה</h3>
+                  <p className="text-xs text-gray-500">שיתוף עם לקוחות</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-gray-50 rounded-lg p-3 mb-4">
+              <p className="text-xs text-gray-600 font-mono break-all">
+                {bookingLink}
+              </p>
+            </div>
+            
+            <div className="flex space-x-2 space-x-reverse">
+              <button
+                onClick={copyBookingLink}
+                className="flex-1 bg-gray-900 text-white text-sm font-medium py-2 px-3 rounded-lg hover:bg-gray-800 transition-colors"
+              >
+                העתק
+              </button>
+              <Link
+                href={bookingLink.replace(window.location.origin, '')}
+                target="_blank"
+                className="flex-1 bg-gray-100 text-gray-900 text-sm font-medium py-2 px-3 rounded-lg hover:bg-gray-200 transition-colors text-center"
+              >
+                צפה
+              </Link>
+            </div>
+          </div>
+
+          {/* Appointments Card */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all duration-200">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3 space-x-reverse">
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900">הזמנות היום</h3>
+                  <p className="text-xs text-gray-500">סה"כ אימונים</p>
+                </div>
+              </div>
+              <div className="text-2xl font-bold text-gray-900">
+                {appointmentsCount}
+              </div>
+            </div>
+            
+            <Link 
+              href="/availability"
+              className="w-full bg-gray-100 text-gray-900 text-sm font-medium py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors text-center block"
+            >
+              הגדרות זמינות
+            </Link>
+          </div>
+        </div>
+
+        {/* Recent Appointments */}
+        <div className="bg-white rounded-xl border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">הזמנות אחרונות</h2>
+          </div>
+          
+          <div className="p-6">
+            {appointments.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-sm font-medium text-gray-900 mb-2">אין הזמנות</h3>
+                <p className="text-sm text-gray-500 max-w-sm mx-auto">
+                  שתף את קישור ההזמנה שלך עם לקוחות כדי להתחיל לקבל הזמנות
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {appointments.slice(0, 5).map((appointment: any) => (
+                  <div key={appointment.id} 
+                       className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100">
+                    <div className="flex items-center space-x-4 space-x-reverse">
+                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-medium text-gray-700">
+                          {appointment.clientName?.charAt(0) || 'C'}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{appointment.clientName}</p>
+                        <p className="text-xs text-gray-500">{appointment.clientEmail}</p>
+                        {appointment.clientPhone && (
+                          <p className="text-xs text-gray-500">{appointment.clientPhone}</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-4 space-x-reverse">
+                      <div className="text-left">
+                        <p className="text-sm font-medium text-gray-900">
+                          {new Date(appointment.datetime).toLocaleDateString('he-IL')}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(appointment.datetime).toLocaleTimeString('he-IL', { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => deleteAppointment(appointment.id, appointment.clientName)}
+                        className="inline-flex items-center p-2 border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors"
+                        title="מחק הזמנה"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </main>
-
-      {/* Add CSS animations */}
-      <style jsx>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-        .animate-spin {
-          animation: spin 1s linear infinite;
-        }
-      `}</style>
     </div>
   )
 }

@@ -44,14 +44,12 @@ export default function AvailabilitySettingsPage() {
     saturday: 'שבת'
   }
 
-  // Redirect if not authenticated
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/login')
     }
   }, [status, router])
 
-  // Load existing availability settings
   useEffect(() => {
     if (session) {
       loadAvailabilitySettings()
@@ -128,7 +126,7 @@ export default function AvailabilitySettingsPage() {
   }
 
   const removeTimeSlot = (day: string, index: number) => {
-    if (availability[day].length <= 1) return // Keep at least one slot
+    if (availability[day].length <= 1) return
     
     setAvailability(prev => ({
       ...prev,
@@ -148,10 +146,10 @@ export default function AvailabilitySettingsPage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-blue-50">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <div className="text-xl font-medium text-gray-700">טוען הגדרות זמינות...</div>
+          <div className="w-12 h-12 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin mb-4"></div>
+          <div className="text-lg font-medium text-gray-700">טוען הגדרות זמינות...</div>
         </div>
       </div>
     )
@@ -162,21 +160,29 @@ export default function AvailabilitySettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-blue-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-lg border-b border-blue-200">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
+      <header className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-4 space-x-reverse">
               <Link 
                 href="/dashboard"
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium text-sm mr-4 transition-colors"
+                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
               >
-                ← חזור לדשבורד
+                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                חזור
               </Link>
+              <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+                </svg>
+              </div>
               <div>
-                <h1 className="text-3xl font-bold text-blue-900">⚙️ הגדרות זמינות</h1>
-                <p className="text-blue-700 mt-1">הגדר את שעות הזמינות שלך ואת סוגי האימונים</p>
+                <h1 className="text-xl font-semibold text-gray-900">הגדרות זמינות</h1>
+                <p className="text-sm text-gray-500">הגדרת שעות עבודה ואימונים</p>
               </div>
             </div>
           </div>
@@ -184,42 +190,43 @@ export default function AvailabilitySettingsPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto py-8 px-4">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-8">
-          {/* Session Settings Card */}
-          <div className="bg-white shadow-lg rounded-lg border border-blue-100">
+          {/* Session Settings */}
+          <div className="bg-white rounded-xl border border-gray-200">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900">הגדרות אימון</h2>
+              <p className="text-sm text-gray-500">משך אימון והפסקות</p>
+            </div>
             <div className="p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                🎯 הגדרות אימון
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <label className="block text-sm font-semibold text-blue-900 mb-3">
-                    ⏱️ משך אימון (דקות)
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
+                    משך אימון
                   </label>
                   <select
                     value={sessionDuration}
                     onChange={(e) => setSessionDuration(Number(e.target.value))}
-                    className="w-full px-4 py-3 border border-blue-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-lg font-medium"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
                   >
                     <option value={30}>30 דקות</option>
                     <option value={45}>45 דקות</option>
-                    <option value={60}>60 דקות (המלצה)</option>
+                    <option value={60}>60 דקות</option>
                     <option value={90}>90 דקות</option>
                     <option value={120}>120 דקות</option>
                   </select>
                 </div>
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <label className="block text-sm font-semibold text-green-900 mb-3">
-                    ☕ הפסקה בין אימונים (דקות)
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
+                    הפסקה בין אימונים
                   </label>
                   <select
                     value={breakBetweenSessions}
                     onChange={(e) => setBreakBetweenSessions(Number(e.target.value))}
-                    className="w-full px-4 py-3 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 text-lg font-medium"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
                   >
                     <option value={0}>ללא הפסקה</option>
-                    <option value={15}>15 דקות (המלצה)</option>
+                    <option value={15}>15 דקות</option>
                     <option value={30}>30 דקות</option>
                     <option value={45}>45 דקות</option>
                     <option value={60}>60 דקות</option>
@@ -229,71 +236,74 @@ export default function AvailabilitySettingsPage() {
             </div>
           </div>
 
-          {/* Weekly Schedule Card */}
-          <div className="bg-white shadow-lg rounded-lg border border-blue-100">
+          {/* Weekly Schedule */}
+          <div className="bg-white rounded-xl border border-gray-200">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900">לוח שבועי</h2>
+              <p className="text-sm text-gray-500">הגדרת שעות עבודה לכל יום בשבוע</p>
+            </div>
             <div className="p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-                📅 לוח שבועי
-              </h2>
-              
               <div className="space-y-6">
                 {Object.entries(daysInHebrew).map(([dayKey, dayName]) => (
-                  <div key={dayKey} className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center">
-                        <h3 className="text-xl font-bold text-gray-900 mr-4">{dayName}</h3>
+                  <div key={dayKey} className="border border-gray-200 rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-t-lg">
+                      <div className="flex items-center space-x-3 space-x-reverse">
+                        <h3 className="text-sm font-semibold text-gray-900">{dayName}</h3>
                         <button
                           onClick={() => toggleDayAvailability(dayKey)}
-                          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                             availability[dayKey][0]?.isAvailable
-                              ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                              : 'bg-red-100 text-red-800 hover:bg-red-200'
+                              ? 'bg-gray-900 text-white'
+                              : 'bg-gray-200 text-gray-700'
                           }`}
                         >
-                          {availability[dayKey][0]?.isAvailable ? '✅ פעיל' : '❌ לא פעיל'}
+                          {availability[dayKey][0]?.isAvailable ? 'פעיל' : 'לא פעיל'}
                         </button>
                       </div>
                       {availability[dayKey][0]?.isAvailable && (
                         <button
                           onClick={() => addTimeSlot(dayKey)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-lg"
+                          className="inline-flex items-center px-3 py-1 border border-gray-300 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                         >
-                          + הוסף שעות
+                          <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                          </svg>
+                          הוסף שעות
                         </button>
                       )}
                     </div>
 
                     {availability[dayKey][0]?.isAvailable && (
-                      <div className="space-y-3">
+                      <div className="p-4 space-y-3">
                         {availability[dayKey].map((slot, index) => (
-                          <div key={index} className="flex items-center space-x-3 space-x-reverse bg-gray-50 p-4 rounded-lg border">
-                            <div className="flex items-center space-x-3 space-x-reverse flex-1">
-                              <div className="flex items-center space-x-2 space-x-reverse">
-                                <label className="text-sm font-semibold text-gray-700 min-w-8">מ:</label>
-                                <input
-                                  type="time"
-                                  value={slot.start}
-                                  onChange={(e) => updateDayAvailability(dayKey, index, 'start', e.target.value)}
-                                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium focus:ring-blue-500 focus:border-blue-500"
-                                />
-                              </div>
-                              <div className="flex items-center space-x-2 space-x-reverse">
-                                <label className="text-sm font-semibold text-gray-700 min-w-8">עד:</label>
-                                <input
-                                  type="time"
-                                  value={slot.end}
-                                  onChange={(e) => updateDayAvailability(dayKey, index, 'end', e.target.value)}
-                                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium focus:ring-blue-500 focus:border-blue-500"
-                                />
-                              </div>
+                          <div key={index} className="flex items-center space-x-3 space-x-reverse">
+                            <div className="flex items-center space-x-2 space-x-reverse">
+                              <label className="text-xs font-medium text-gray-600 w-8">מ:</label>
+                              <input
+                                type="time"
+                                value={slot.start}
+                                onChange={(e) => updateDayAvailability(dayKey, index, 'start', e.target.value)}
+                                className="px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-transparent"
+                              />
+                            </div>
+                            <div className="flex items-center space-x-2 space-x-reverse">
+                              <label className="text-xs font-medium text-gray-600 w-8">עד:</label>
+                              <input
+                                type="time"
+                                value={slot.end}
+                                onChange={(e) => updateDayAvailability(dayKey, index, 'end', e.target.value)}
+                                className="px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-transparent"
+                              />
                             </div>
                             {availability[dayKey].length > 1 && (
                               <button
                                 onClick={() => removeTimeSlot(dayKey, index)}
-                                className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
+                                className="inline-flex items-center p-1 text-gray-400 hover:text-gray-600 transition-colors"
                                 title="הסר שעות"
                               >
-                                🗑️
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
                               </button>
                             )}
                           </div>
@@ -307,37 +317,34 @@ export default function AvailabilitySettingsPage() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-between items-center bg-white shadow-lg rounded-lg border border-blue-100 p-6">
+          <div className="flex items-center justify-between bg-white rounded-xl border border-gray-200 p-6">
             <Link
               href="/dashboard"
-              className="bg-gray-500 hover:bg-gray-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors shadow-lg"
+              className="inline-flex items-center px-6 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
             >
               ביטול
             </Link>
             <button
               onClick={saveAvailabilitySettings}
               disabled={saving}
-              className={`px-8 py-3 rounded-lg font-semibold transition-colors shadow-lg ${
+              className={`inline-flex items-center px-6 py-2 rounded-lg text-sm font-medium transition-colors ${
                 saving
                   ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                  : 'bg-green-600 hover:bg-green-700 text-white'
+                  : 'bg-gray-900 text-white hover:bg-gray-800'
               }`}
             >
-              {saving ? '💾 שומר...' : '💾 שמור הגדרות'}
+              {saving ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-gray-300 border-t-white rounded-full animate-spin ml-2"></div>
+                  שומר...
+                </>
+              ) : (
+                'שמור הגדרות'
+              )}
             </button>
           </div>
         </div>
       </main>
-
-      {/* CSS Animations */}
-      <style jsx>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-        .animate-spin {
-          animation: spin 1s linear infinite;
-        }
-      `}</style>
     </div>
   )
 }
