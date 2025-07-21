@@ -4,6 +4,7 @@ import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import AvailabilitySettings from '@/components/AvailabilitySettings'
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
@@ -91,7 +92,7 @@ export default function DashboardPage() {
 
   if (status === 'loading') {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-screen bg-blue-50">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" 
                style={{animation: 'spin 1s linear infinite'}}></div>
@@ -404,49 +405,9 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      {/* Enhanced Modal */}
+      {/* Real Availability Settings Modal */}
       {showAvailabilitySettings && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-             style={{backdropFilter: 'blur(4px)'}}>
-          <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-auto"
-               style={{animation: 'fadeIn 0.3s ease-out'}}>
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-bold text-gray-900">
-                  ⚙️ הגדרות זמינות
-                </h3>
-                <button
-                  onClick={() => setShowAvailabilitySettings(false)}
-                  className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
-                >
-                  ✕
-                </button>
-              </div>
-              
-              <div className="space-y-4 mb-6">
-                <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-                  <p className="text-gray-700 text-center">
-                    כאן תוכל להגדיר את שעות הזמינות שלך ואת סוגי האימונים שאתה מציע.
-                  </p>
-                </div>
-                
-                <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
-                  <div className="flex items-center text-yellow-800">
-                    <span className="text-xl mr-2">⚠️</span>
-                    <p className="font-semibold">תכונה זו תהיה זמינה בקרוב...</p>
-                  </div>
-                </div>
-              </div>
-              
-              <button
-                onClick={() => setShowAvailabilitySettings(false)}
-                className="w-full bg-gray-600 hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-semibold shadow-lg transition-colors"
-              >
-                סגור
-              </button>
-            </div>
-          </div>
-        </div>
+        <AvailabilitySettings onClose={() => setShowAvailabilitySettings(false)} />
       )}
 
       {/* Add CSS animations */}
@@ -454,14 +415,9 @@ export default function DashboardPage() {
         @keyframes spin {
           to { transform: rotate(360deg); }
         }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: scale(0.95); }
-          to { opacity: 1; transform: scale(1); }
-        }
         .animate-spin {
           animation: spin 1s linear infinite;
         }
       `}</style>
     </div>
   )
-}

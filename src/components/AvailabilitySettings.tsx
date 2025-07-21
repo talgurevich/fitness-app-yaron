@@ -2,12 +2,14 @@
 'use client'
 import { useState, useEffect } from 'react'
 
-interface WorkingHours {
-  [day: string]: {
-    enabled: boolean
-    start: string
-    end: string
-  }
+interface TimeSlot {
+  start: string
+  end: string
+  isAvailable: boolean
+}
+
+interface DayAvailability {
+  [key: string]: TimeSlot[]
 }
 
 interface AvailabilitySettingsProps {
@@ -15,322 +17,289 @@ interface AvailabilitySettingsProps {
 }
 
 export default function AvailabilitySettings({ onClose }: AvailabilitySettingsProps) {
-  const [workingHours, setWorkingHours] = useState<WorkingHours>({
-    sunday: { enabled: true, start: '09:00', end: '17:00' },
-    monday: { enabled: true, start: '09:00', end: '17:00' },
-    tuesday: { enabled: true, start: '09:00', end: '17:00' },
-    wednesday: { enabled: true, start: '09:00', end: '17:00' },
-    thursday: { enabled: true, start: '09:00', end: '17:00' },
-    friday: { enabled: true, start: '09:00', end: '14:00' },
-    saturday: { enabled: false, start: '09:00', end: '17:00' }
+  const [availability, setAvailability] = useState<DayAvailability>({
+    sunday: [{ start: '09:00', end: '17:00', isAvailable: true }],
+    monday: [{ start: '09:00', end: '17:00', isAvailable: true }],
+    tuesday: [{ start: '09:00', end: '17:00', isAvailable: true }],
+    wednesday: [{ start: '09:00', end: '17:00', isAvailable: true }],
+    thursday: [{ start: '09:00', end: '17:00', isAvailable: true }],
+    friday: [{ start: '09:00', end: '13:00', isAvailable: true }],
+    saturday: [{ start: '10:00', end: '14:00', isAvailable: false }]
   })
-  
-  const [timezone, setTimezone] = useState('Asia/Jerusalem')
-  const [loading, setLoading] = useState(true)
+
+  const [sessionDuration, setSessionDuration] = useState(60)
+  const [breakBetweenSessions, setBreakBetweenSessions] = useState(15)
+  const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
 
-  const dayNames = {
+  const daysInHebrew = {
     sunday: 'ראשון',
     monday: 'שני',
-    tuesday: 'שלישי', 
+    tuesday: 'שלישי',
     wednesday: 'רביעי',
     thursday: 'חמישי',
     friday: 'שישי',
     saturday: 'שבת'
   }
 
+  // Load existing availability settings
   useEffect(() => {
-    fetchAvailability()
+    loadAvailabilitySettings()
   }, [])
 
-  const fetchAvailability = async () => {
+  const loadAvailabilitySettings = async () => {
+    setLoading(true)
     try {
       const response = await fetch('/api/trainer/availability')
       const data = await response.json()
       
-      if (data.workingHours) {
-        setWorkingHours({ ...workingHours, ...data.workingHours })
-      }
-      if (data.timezone) {
-        setTimezone(data.timezone)
+      if (data.success && data.availability) {
+        setAvailability(data.availability)
+        setSessionDuration(data.sessionDuration || 60)
+        setBreakBetweenSessions(data.breakBetweenSessions || 15)
       }
     } catch (error) {
-      console.error('Error fetching availability:', error)
-    } finally {
-      setLoading(false)
+      console.error('Error loading availability:', error)
     }
+    setLoading(false)
   }
 
-  const saveAvailability = async () => {
+  const saveAvailabilitySettings = async () => {
     setSaving(true)
     try {
       const response = await fetch('/api/trainer/availability', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ workingHours, timezone })
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          availability,
+          sessionDuration,
+          breakBetweenSessions
+        })
       })
 
       const data = await response.json()
       
       if (data.success) {
-        alert('זמינות עודכנה בהצלחה!')
+        alert('✅ הגדרות הזמינות נשמרו בהצלחה!')
         onClose()
       } else {
-        alert('שגיאה בעדכון הזמינות: ' + data.error)
+        alert('❌ שגיאה בשמירת ההגדרות: ' + data.error)
       }
     } catch (error) {
       console.error('Error saving availability:', error)
-      alert('שגיאה בשמירת הזמינות')
-    } finally {
-      setSaving(false)
+      alert('❌ שגיאה בשמירת ההגדרות')
     }
+    setSaving(false)
   }
 
-  const updateDayHours = (day: string, field: string, value: string | boolean) => {
-    setWorkingHours(prev => ({
+  const updateDayAvailability = (day: string, index: number, field: 'start' | 'end' | 'isAvailable', value: string | boolean) => {
+    setAvailability(prev => ({
       ...prev,
-      [day]: {
-        ...prev[day],
-        [field]: value
-      }
+      [day]: prev[day].map((slot, i) => 
+        i === index ? { ...slot, [field]: value } : slot
+      )
     }))
   }
 
-  const generateTimeOptions = () => {
-    const times = []
-    for (let hour = 6; hour <= 23; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
-        times.push(timeString)
-      }
-    }
-    return times
+  const addTimeSlot = (day: string) => {
+    const lastSlot = availability[day][availability[day].length - 1]
+    const newStartTime = lastSlot ? lastSlot.end : '09:00'
+    
+    setAvailability(prev => ({
+      ...prev,
+      [day]: [
+        ...prev[day],
+        { start: newStartTime, end: '17:00', isAvailable: true }
+      ]
+    }))
   }
 
-  const timeOptions = generateTimeOptions()
+  const removeTimeSlot = (day: string, index: number) => {
+    if (availability[day].length <= 1) return // Keep at least one slot
+    
+    setAvailability(prev => ({
+      ...prev,
+      [day]: prev[day].filter((_, i) => i !== index)
+    }))
+  }
+
+  const toggleDayAvailability = (day: string) => {
+    setAvailability(prev => ({
+      ...prev,
+      [day]: prev[day].map(slot => ({
+        ...slot,
+        isAvailable: !prev[day][0].isAvailable
+      }))
+    }))
+  }
 
   if (loading) {
     return (
-      <div style={{ 
-        position: 'fixed', 
-        inset: 0, 
-        backgroundColor: 'rgba(0, 0, 0, 0.5)', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        zIndex: 50
-      }}>
-        <div style={{ 
-          backgroundColor: 'white', 
-          padding: '2rem', 
-          borderRadius: '1rem',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
-        }}>
-          <div style={{ fontSize: '1.125rem', fontWeight: 'bold' }}>טוען...</div>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-700">טוען הגדרות זמינות...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div style={{ 
-      position: 'fixed', 
-      inset: 0, 
-      backgroundColor: 'rgba(0, 0, 0, 0.5)', 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center',
-      zIndex: 50,
-      padding: '1rem'
-    }}>
-      <div style={{ 
-        backgroundColor: 'white', 
-        borderRadius: '1rem',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-        maxWidth: '48rem',
-        width: '100%',
-        maxHeight: '90vh',
-        overflow: 'auto'
-      }}>
-        {/* Header */}
-        <div style={{ 
-          padding: '2rem 2rem 1rem 2rem',
-          borderBottom: '1px solid #e5e7eb'
-        }}>
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center' 
-          }}>
-            <h2 style={{ 
-              fontSize: '1.5rem', 
-              fontWeight: 'bold', 
-              color: '#111827' 
-            }}>
-              הגדרות זמינות
-            </h2>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-lg max-w-4xl w-full mx-auto my-8">
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">⚙️ הגדרות זמינות</h2>
             <button
               onClick={onClose}
-              style={{
-                backgroundColor: '#6b7280',
-                color: 'white',
-                border: 'none',
-                borderRadius: '50%',
-                width: '2rem',
-                height: '2rem',
-                cursor: 'pointer',
-                fontSize: '1rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
+              className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
             >
-              ×
+              ✕
             </button>
           </div>
-          <p style={{ color: '#6b7280', marginTop: '0.5rem' }}>
-            הגדר את השעות בהן אתה זמין לקבלת הזמנות
-          </p>
         </div>
 
-        {/* Content */}
-        <div style={{ padding: '2rem' }}>
-          {/* Days Configuration */}
-          <div style={{ marginBottom: '2rem' }}>
-            <h3 style={{ 
-              fontSize: '1.125rem', 
-              fontWeight: 'bold', 
-              marginBottom: '1rem',
-              color: '#111827'
-            }}>
-              שעות עבודה שבועיות
-            </h3>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {Object.entries(dayNames).map(([day, dayName]) => (
-                <div 
-                  key={day}
-                  style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '1rem',
-                    padding: '1rem',
-                    backgroundColor: '#f8f9fa',
-                    borderRadius: '0.5rem',
-                    border: '1px solid #e5e7eb'
-                  }}
+        <div className="p-6 max-h-96 overflow-y-auto">
+          {/* Session Settings */}
+          <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">🎯 הגדרות אימון</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  משך אימון (דקות)
+                </label>
+                <select
+                  value={sessionDuration}
+                  onChange={(e) => setSessionDuration(Number(e.target.value))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '0.5rem',
-                    minWidth: '6rem'
-                  }}>
-                    <input
-                      type="checkbox"
-                      checked={workingHours[day]?.enabled || false}
-                      onChange={(e) => updateDayHours(day, 'enabled', e.target.checked)}
-                      style={{ width: '1rem', height: '1rem' }}
-                    />
-                    <label style={{ 
-                      fontWeight: 'bold',
-                      color: workingHours[day]?.enabled ? '#111827' : '#6b7280'
-                    }}>
-                      {dayName}
-                    </label>
-                  </div>
-                  
-                  {workingHours[day]?.enabled && (
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '1rem',
-                      flex: 1
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <label style={{ fontSize: '0.875rem', color: '#6b7280' }}>מ:</label>
-                        <select
-                          value={workingHours[day]?.start || '09:00'}
-                          onChange={(e) => updateDayHours(day, 'start', e.target.value)}
-                          style={{
-                            padding: '0.5rem',
-                            border: '1px solid #d1d5db',
-                            borderRadius: '0.375rem',
-                            fontSize: '0.875rem'
-                          }}
-                        >
-                          {timeOptions.map(time => (
-                            <option key={time} value={time}>{time}</option>
-                          ))}
-                        </select>
-                      </div>
-                      
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <label style={{ fontSize: '0.875rem', color: '#6b7280' }}>עד:</label>
-                        <select
-                          value={workingHours[day]?.end || '17:00'}
-                          onChange={(e) => updateDayHours(day, 'end', e.target.value)}
-                          style={{
-                            padding: '0.5rem',
-                            border: '1px solid #d1d5db',
-                            borderRadius: '0.375rem',
-                            fontSize: '0.875rem'
-                          }}
-                        >
-                          {timeOptions.map(time => (
-                            <option key={time} value={time}>{time}</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+                  <option value={30}>30 דקות</option>
+                  <option value={45}>45 דקות</option>
+                  <option value={60}>60 דקות</option>
+                  <option value={90}>90 דקות</option>
+                  <option value={120}>120 דקות</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  הפסקה בין אימונים (דקות)
+                </label>
+                <select
+                  value={breakBetweenSessions}
+                  onChange={(e) => setBreakBetweenSessions(Number(e.target.value))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value={0}>ללא הפסקה</option>
+                  <option value={15}>15 דקות</option>
+                  <option value={30}>30 דקות</option>
+                  <option value={45}>45 דקות</option>
+                  <option value={60}>60 דקות</option>
+                </select>
+              </div>
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div style={{ 
-            display: 'flex', 
-            gap: '1rem',
-            justifyContent: 'flex-end',
-            borderTop: '1px solid #e5e7eb',
-            paddingTop: '1rem'
-          }}>
-            <button
-              onClick={onClose}
-              style={{
-                backgroundColor: '#6b7280',
-                color: 'white',
-                padding: '0.75rem 1.5rem',
-                border: 'none',
-                borderRadius: '0.5rem',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              ביטול
-            </button>
-            <button
-              onClick={saveAvailability}
-              disabled={saving}
-              style={{
-                backgroundColor: saving ? '#6b7280' : '#10b981',
-                color: 'white',
-                padding: '0.75rem 1.5rem',
-                border: 'none',
-                borderRadius: '0.5rem',
-                fontWeight: 'bold',
-                cursor: saving ? 'not-allowed' : 'pointer',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              {saving ? 'שומר...' : 'שמור זמינות'}
-            </button>
+          {/* Weekly Schedule */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">📅 לוח שבועי</h3>
+            
+            {Object.entries(daysInHebrew).map(([dayKey, dayName]) => (
+              <div key={dayKey} className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center">
+                    <h4 className="text-lg font-medium text-gray-900 mr-3">{dayName}</h4>
+                    <button
+                      onClick={() => toggleDayAvailability(dayKey)}
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        availability[dayKey][0]?.isAvailable
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-red-100 text-red-700'
+                      }`}
+                    >
+                      {availability[dayKey][0]?.isAvailable ? '✅ פעיל' : '❌ לא פעיל'}
+                    </button>
+                  </div>
+                  {availability[dayKey][0]?.isAvailable && (
+                    <button
+                      onClick={() => addTimeSlot(dayKey)}
+                      className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                    >
+                      + הוסף שעות
+                    </button>
+                  )}
+                </div>
+
+                {availability[dayKey][0]?.isAvailable && (
+                  <div className="space-y-2">
+                    {availability[dayKey].map((slot, index) => (
+                      <div key={index} className="flex items-center space-x-2 space-x-reverse bg-gray-50 p-3 rounded-lg">
+                        <div className="flex items-center space-x-2 space-x-reverse">
+                          <label className="text-sm font-medium text-gray-700">מ:</label>
+                          <input
+                            type="time"
+                            value={slot.start}
+                            onChange={(e) => updateDayAvailability(dayKey, index, 'start', e.target.value)}
+                            className="px-2 py-1 border border-gray-300 rounded text-sm"
+                          />
+                        </div>
+                        <div className="flex items-center space-x-2 space-x-reverse">
+                          <label className="text-sm font-medium text-gray-700">עד:</label>
+                          <input
+                            type="time"
+                            value={slot.end}
+                            onChange={(e) => updateDayAvailability(dayKey, index, 'end', e.target.value)}
+                            className="px-2 py-1 border border-gray-300 rounded text-sm"
+                          />
+                        </div>
+                        {availability[dayKey].length > 1 && (
+                          <button
+                            onClick={() => removeTimeSlot(dayKey, index)}
+                            className="text-red-600 hover:text-red-700 text-sm"
+                            title="הסר שעות"
+                          >
+                            🗑️
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
+
+        <div className="p-6 border-t border-gray-200 flex justify-between">
+          <button
+            onClick={onClose}
+            className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+          >
+            ביטול
+          </button>
+          <button
+            onClick={saveAvailabilitySettings}
+            disabled={saving}
+            className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+              saving
+                ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}
+          >
+            {saving ? '💾 שומר...' : '💾 שמור הגדרות'}
+          </button>
+        </div>
       </div>
+
+      <style jsx>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        .animate-spin {
+          animation: spin 1s linear infinite;
+        }
+      `}</style>
     </div>
   )
 }
