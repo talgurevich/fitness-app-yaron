@@ -4,14 +4,12 @@ import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import AvailabilitySettings from '@/components/AvailabilitySettings'
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [bookingLink, setBookingLink] = useState('')
   const [isConnectedToGoogle, setIsConnectedToGoogle] = useState(false)
-  const [showAvailabilitySettings, setShowAvailabilitySettings] = useState(false)
 
   const [appointments, setAppointments] = useState([])
   const [appointmentsCount, setAppointmentsCount] = useState(0)
@@ -329,12 +327,12 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </div>
-                <button 
-                  onClick={() => setShowAvailabilitySettings(true)}
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg font-semibold shadow-lg transition-colors"
+                <Link 
+                  href="/availability"
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg font-semibold shadow-lg transition-colors text-center block"
                 >
                   ⚙️ הגדרות זמינות
-                </button>
+                </Link>
               </div>
             </div>
           </div>
@@ -404,11 +402,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </main>
-
-      {/* Real Availability Settings Modal */}
-      {showAvailabilitySettings && (
-        <AvailabilitySettings onClose={() => setShowAvailabilitySettings(false)} />
-      )}
 
       {/* Add CSS animations */}
       <style jsx>{`
