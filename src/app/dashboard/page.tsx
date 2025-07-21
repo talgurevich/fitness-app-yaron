@@ -10,6 +10,7 @@ export default function DashboardPage() {
   const router = useRouter()
   const [bookingLink, setBookingLink] = useState('')
   const [isConnectedToGoogle, setIsConnectedToGoogle] = useState(false)
+  const [showAvailabilitySettings, setShowAvailabilitySettings] = useState(false)
 
   const [appointments, setAppointments] = useState([])
   const [appointmentsCount, setAppointmentsCount] = useState(0)
@@ -297,8 +298,11 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="mt-5">
-                  <button className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-md">
-                    צפה בכל ההזמנות
+                  <button 
+                    onClick={() => setShowAvailabilitySettings(true)}
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-md"
+                  >
+                    הגדרות זמינות
                   </button>
                 </div>
               </div>
@@ -362,9 +366,29 @@ export default function DashboardPage() {
 
       {/* Availability Settings Modal */}
       {showAvailabilitySettings && (
-        <AvailabilitySettings 
-          onClose={() => setShowAvailabilitySettings(false)} 
-        />
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">הגדרות זמינות</h3>
+              <div className="mt-2 px-7 py-3">
+                <p className="text-sm text-gray-500">
+                  כאן תוכל להגדיר את שעות הזמינות שלך ואת סוגי האימונים שאתה מציע.
+                </p>
+                <div className="mt-4">
+                  <p className="text-sm text-gray-600">תכונה זו תהיה זמינה בקרוב...</p>
+                </div>
+              </div>
+              <div className="items-center px-4 py-3">
+                <button
+                  onClick={() => setShowAvailabilitySettings(false)}
+                  className="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600"
+                >
+                  סגור
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
