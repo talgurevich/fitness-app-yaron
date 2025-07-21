@@ -40,9 +40,16 @@ export default function DashboardPage() {
 
   const fetchAppointments = async () => {
     try {
+      console.log('🔍 Fetching appointments...')
       const response = await fetch('/api/trainer/appointments')
       const data = await response.json()
+      
+      console.log('📋 Response:', data)
+      console.log('📊 Status:', response.status)
+      
       if (data.appointments) {
+        console.log('✅ Found appointments:', data.appointments.length)
+        console.log('📅 Appointments data:', data.appointments)
         setAppointments(data.appointments)
         
         const today = new Date().toDateString()
@@ -50,22 +57,29 @@ export default function DashboardPage() {
           new Date(apt.datetime).toDateString() === today
         ).length
         setAppointmentsCount(todayCount)
+        console.log('📈 Today count:', todayCount)
+      } else {
+        console.log('❌ No appointments in response')
+        console.log('🔍 Full response:', data)
       }
     } catch (error) {
-      console.error('Fetch appointments error:', error)
+      console.error('💥 Fetch appointments error:', error)
     }
   }
 
   useEffect(() => {
     const setupTrainer = async () => {
       try {
-        await fetch('/api/trainer/setup', {
+        console.log('🚀 Setting up trainer...')
+        const response = await fetch('/api/trainer/setup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({})
         })
+        const data = await response.json()
+        console.log('🎯 Trainer setup result:', data)
       } catch (error) {
-        console.error('Setup error:', error)
+        console.error('💥 Setup error:', error)
       }
     }
 
@@ -85,6 +99,7 @@ export default function DashboardPage() {
     if (session?.user?.email) {
       const slug = session.user.email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '-')
       setBookingLink(`${window.location.origin}/book/${slug}`)
+      console.log('🔗 Generated booking link:', `${window.location.origin}/book/${slug}`)
     }
   }, [session])
 
