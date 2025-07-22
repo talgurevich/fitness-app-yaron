@@ -16,8 +16,7 @@ export async function POST(request: NextRequest) {
       include: {
         trainer: {
           include: { 
-            user: true,
-            // Get the trainer's access token from their latest session
+            user: true
           }
         }
       }
@@ -27,10 +26,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Appointment not found' }, { status: 404 })
     }
 
-    // For now, we'll get the access token from the trainer's Google account
-    // In a real app, you'd store the refresh token and get a fresh access token
-    
-    // Get the trainer's access token (this is a simplified approach)
+    console.log('Found appointment for trainer:', appointment.trainer.user.email)
+
+    // Get the trainer's Google account access token
     const account = await prisma.account.findFirst({
       where: {
         userId: appointment.trainer.userId,
@@ -39,19 +37,28 @@ export async function POST(request: NextRequest) {
     })
 
     if (!account?.access_token) {
+      console.log('No Google access token found for trainer:', appointment.trainer.user.email)
       return NextResponse.json({ 
-        error: 'No Google access token found for trainer. Please reconnect Google Calendar.',
+        error: 'Trainer needs to connect Google Calendar. Please go to dashboard and click "חבר יומן Google".',
         needsReauth: true 
       }, { status: 400 })
     }
 
+    console.log('Using access token for calendar event creation')
+
     // Create calendar event
     const startTime = new Date(appointment.datetime)
-    const endTime = new Date(startTime.getTime() + appointment.duration * 60000)
+    const endTime = new Date(startTime.getTime() + (appointment.duration || 60) * 60000)
 
     const eventData = {
-      summary: `פגישת אימון עם ${appointment.clientName}`,
-      description: `לקוח: ${appointment.clientName}\nאימייל: ${appointment.clientEmail}${appointment.clientPhone ? `\nטלפון: ${appointment.clientPhone}` : ''}`,
+      summary: `🏋️ אימון עם ${appointment.clientName}`,
+      description: `אימון אישי
+      
+לקוח: ${appointment.clientName}
+אימייל: ${appointment.clientEmail}${appointment.clientPhone ? `
+טלפון: ${appointment.clientPhone}` : ''}
+
+הזמן באמצעות: Fitness Booking App`,
       start: {
         dateTime: startTime.toISOString(),
         timeZone: 'Asia/Jerusalem'
@@ -61,9 +68,22 @@ export async function POST(request: NextRequest) {
         timeZone: 'Asia/Jerusalem'
       },
       attendees: [
-        { email: appointment.clientEmail }
-      ]
+        { email: appointment.clientEmail, responseStatus: 'needsAction' }
+      ],
+      reminders: {
+        useDefault: false,
+        overrides: [
+          { method: 'email', minutes: 24 * 60 }, // 24 hours before
+          { method: 'popup', minutes: 30 }       // 30 minutes before
+        ]
+      }
     }
+
+    console.log('Creating calendar event with data:', {
+      summary: eventData.summary,
+      start: eventData.start,
+      end: eventData.end
+    })
 
     const calendarEvent = await createCalendarEvent(account.access_token, eventData)
 
@@ -73,18 +93,36 @@ export async function POST(request: NextRequest) {
       data: { googleEventId: calendarEvent.id }
     })
 
-    console.log('Calendar event created:', calendarEvent.id)
+    console.log('✅ Calendar event created successfully:', calendarEvent.id)
 
     return NextResponse.json({ 
       success: true, 
       eventId: calendarEvent.id,
-      eventLink: calendarEvent.htmlLink 
+      eventLink: calendarEvent.htmlLink,
+      message: 'Calendar event created successfully'
     })
 
   } catch (error) {
-    console.error('Create calendar event error:', error)
+    console.error('❌ Create calendar event error:', error)
+    
+    // Handle specific Google API errors
+    if (error.message?.includes('invalid_grant') || error.code === 401) {
+      return NextResponse.json({ 
+        error: 'Google authentication expired. Trainer needs to reconnect Google Calendar.',
+        needsReauth: true
+      }, { status: 401 })
+    }
+
+    if (error.message?.includes('insufficient permissions')) {
+      return NextResponse.json({ 
+        error: 'Insufficient permissions. Trainer needs to reconnect Google Calendar with proper permissions.',
+        needsReauth: true
+      }, { status: 403 })
+    }
+
     return NextResponse.json({ 
-      error: 'Failed to create calendar event: ' + error.message 
+      error: 'Failed to create calendar event: ' + error.message,
+      details: error.response?.data || error.toString()
     }, { status: 500 })
   }
 }

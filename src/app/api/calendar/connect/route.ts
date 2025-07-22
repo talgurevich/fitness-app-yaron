@@ -9,44 +9,54 @@ export async function GET(request: NextRequest) {
     const session = await getServerSession(authOptions)
     
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ 
+        error: 'Not authenticated',
+        needsGoogleAuth: true
+      }, { status: 401 })
     }
 
-    // Check if user has access token (signed in with Google)
+    // Check if user has Google access token
     if (!session.accessToken) {
       return NextResponse.json({ 
-        error: 'לא נמצא טוקן גישה. אנא התחבר עם Google כדי לגשת ליומן',
-        needsGoogleAuth: true 
+        error: 'No Google access token found. Please login with Google.',
+        needsGoogleAuth: true
       }, { status: 400 })
     }
 
-    try {
-      // Test the calendar connection by fetching calendar list
-      const calendar = getGoogleCalendar(session.accessToken as string)
-      const calendarList = await calendar.calendarList.list()
+    console.log('Testing calendar connection for:', session.user.email)
 
-      return NextResponse.json({ 
-        success: true, 
-        message: 'Google Calendar connected successfully',
-        calendars: calendarList.data.items?.map(cal => ({
-          id: cal.id,
-          summary: cal.summary
-        })) || []
-      })
+    // Test the connection by fetching calendar list
+    const calendar = getGoogleCalendar(session.accessToken as string)
+    const calendarList = await calendar.calendarList.list()
+    
+    const calendars = calendarList.data.items?.map(cal => ({
+      id: cal.id,
+      name: cal.summary,
+      primary: cal.primary
+    })) || []
 
-    } catch (calendarError) {
-      console.error('Calendar API error:', calendarError)
-      return NextResponse.json({ 
-        error: 'שגיאה בגישה ליומן Google. ייתכן שצריך להעניק הרשאות מחדש.',
-        needsReauth: true 
-      }, { status: 403 })
-    }
+    console.log('Successfully connected to Google Calendar. Found', calendars.length, 'calendars')
+
+    return NextResponse.json({ 
+      success: true,
+      message: 'Successfully connected to Google Calendar',
+      calendars: calendars
+    })
 
   } catch (error) {
     console.error('Calendar connection error:', error)
+    
+    // Check if it's an authentication error
+    if (error.message?.includes('invalid_grant') || error.code === 401) {
+      return NextResponse.json({ 
+        error: 'Google authentication expired. Please logout and login again with Google.',
+        needsReauth: true
+      }, { status: 401 })
+    }
+
     return NextResponse.json({ 
-      error: 'Failed to connect to Google Calendar',
-      success: false 
+      error: 'Failed to connect to Google Calendar: ' + error.message,
+      details: error.response?.data || error.toString()
     }, { status: 500 })
   }
 }
