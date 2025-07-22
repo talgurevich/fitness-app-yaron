@@ -41,40 +41,38 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   session: {
-    strategy: "jwt"
+    strategy: "database" // Changed from "jwt" to "database"
   },
   callbacks: {
-    async jwt({ token, user, account, profile }) {
-      // Store user role
-      if (user) {
-        token.role = user.role || "trainer"
-      }
-      
-      // Store access token in JWT for immediate use
-      if (account?.access_token) {
-        token.accessToken = account.access_token
-        token.refreshToken = account.refresh_token
-        token.expiresAt = account.expires_at
-      }
-      
-      return token
-    },
-    
-    async session({ session, token }) {
+    async session({ session, user }) {
       if (session.user) {
-        session.user.id = token.sub!
-        session.user.role = token.role as string
-        session.accessToken = token.accessToken as string
+        session.user.id = user.id
+        session.user.role = user.role || "trainer"
+        
+        // Get the user's Google access token
+        const account = await prisma.account.findFirst({
+          where: {
+            userId: user.id,
+            provider: 'google'
+          }
+        })
+        
+        if (account?.access_token) {
+          session.accessToken = account.access_token
+        }
       }
       return session
     },
 
     async signIn({ user, account, profile }) {
-      // For Google sign-ins, ensure we store all necessary data
+      // Allow all sign-ins
       if (account?.provider === "google") {
-        console.log("Google sign-in successful for:", user.email)
-        console.log("Access token received:", !!account.access_token)
-        console.log("Refresh token received:", !!account.refresh_token)
+        console.log("🔗 Google account connected:", {
+          email: user.email,
+          hasAccessToken: !!account.access_token,
+          hasRefreshToken: !!account.refresh_token,
+          scope: account.scope
+        })
       }
       return true
     }
@@ -83,13 +81,12 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
   events: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account }) {
       if (account?.provider === "google") {
-        console.log("🔗 Google account connected:", {
+        console.log("📅 Google authentication successful:", {
           email: user.email,
-          hasAccessToken: !!account.access_token,
-          hasRefreshToken: !!account.refresh_token,
-          scope: account.scope
+          accessToken: !!account.access_token,
+          refreshToken: !!account.refresh_token
         })
       }
     }
