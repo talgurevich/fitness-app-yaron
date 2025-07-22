@@ -3,11 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 
-interface TimeSlot {
-  time: string
-  available: boolean
-}
-
 interface BookingForm {
   name: string
   email: string
@@ -27,10 +22,12 @@ export default function BookingPage() {
   })
   const [isBooking, setIsBooking] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
-
-  // Mock trainer data - in real app this would come from API
-  const trainerName = trainerSlug.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase())
   
+  // Real data from API
+  const [trainerName, setTrainerName] = useState('')
+  const [availableSlots, setAvailableSlots] = useState<string[]>([])
+  const [loading, setLoading] = useState(false)
+
   // Generate next 7 days
   const getNext7Days = () => {
     const days = []
@@ -47,71 +44,52 @@ export default function BookingPage() {
     return days
   }
 
-  // Get day of week in English format for API compatibility
-  const getDayOfWeek = (date: string): string => {
-    const selectedDate = new Date(date)
-    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-    return days[selectedDate.getDay()]
-  }
-
-  // Get available time slots based on trainer's availability
-  const getTimeSlots = (date: string): TimeSlot[] => {
-    const dayOfWeek = getDayOfWeek(date)
+  // Fetch available slots for selected date
+  const fetchAvailableSlots = async (date: string) => {
+    if (!date) return
     
-    // Mock trainer availability - in real app this would come from API
-    const trainerAvailability = {
-      sunday: { enabled: true, start: '09:00', end: '17:00' },
-      monday: { enabled: true, start: '09:00', end: '17:00' },
-      tuesday: { enabled: true, start: '09:00', end: '17:00' },
-      wednesday: { enabled: true, start: '09:00', end: '17:00' },
-      thursday: { enabled: true, start: '09:00', end: '17:00' },
-      friday: { enabled: true, start: '09:00', end: '14:00' },
-      saturday: { enabled: false, start: '09:00', end: '17:00' }
-    }
-
-    const dayAvailability = trainerAvailability[dayOfWeek as keyof typeof trainerAvailability]
-    
-    if (!dayAvailability?.enabled) {
-      return [] // No slots available on this day
-    }
-
-    // Generate time slots between start and end times
-    const slots: TimeSlot[] = []
-    const startHour = parseInt(dayAvailability.start.split(':')[0])
-    const startMinute = parseInt(dayAvailability.start.split(':')[1])
-    const endHour = parseInt(dayAvailability.end.split(':')[0])
-    const endMinute = parseInt(dayAvailability.end.split(':')[1])
-    
-    for (let hour = startHour; hour < endHour || (hour === endHour && startMinute < endMinute); hour++) {
-      for (let minute = (hour === startHour ? startMinute : 0); minute < 60; minute += 60) {
-        if (hour === endHour && minute >= endMinute) break
-        
-        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
-        slots.push({
-          time: timeString,
-          // Randomly make some slots unavailable for demo (existing bookings)
-          available: Math.random() > 0.2
-        })
+    setLoading(true)
+    try {
+      const response = await fetch(`/api/trainer/available-slots?trainerSlug=${trainerSlug}&date=${date}`)
+      const data = await response.json()
+      
+      if (data.success) {
+        setAvailableSlots(data.availableSlots || [])
+        if (data.trainerName) {
+          setTrainerName(data.trainerName)
+        }
+      } else {
+        console.error('Error fetching slots:', data.error)
+        setAvailableSlots([])
       }
+    } catch (error) {
+      console.error('Error fetching available slots:', error)
+      setAvailableSlots([])
+    } finally {
+      setLoading(false)
     }
-    
-    return slots
   }
 
-  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([])
-
+  // Update slots when date changes
   useEffect(() => {
     if (selectedDate) {
-      setTimeSlots(getTimeSlots(selectedDate))
+      fetchAvailableSlots(selectedDate)
       setSelectedTime('') // Reset selected time when date changes
     }
-  }, [selectedDate])
+  }, [selectedDate, trainerSlug])
 
   // Set initial date to today
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0]
     setSelectedDate(today)
   }, [])
+
+  // Set fallback trainer name from slug if not loaded from API
+  useEffect(() => {
+    if (!trainerName && trainerSlug) {
+      setTrainerName(trainerSlug.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase()))
+    }
+  }, [trainerName, trainerSlug])
 
   const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -143,6 +121,8 @@ export default function BookingPage() {
           setShowSuccess(false)
           setBookingForm({ name: '', email: '', phone: '' })
           setSelectedTime('')
+          // Refresh available slots
+          fetchAvailableSlots(selectedDate)
         }, 3000)
       } else {
         alert('שגיאה ביצירת הזמנה: ' + result.error)
@@ -187,7 +167,7 @@ export default function BookingPage() {
             <div className="flex items-center space-x-3 space-x-reverse">
               <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2z" />
                 </svg>
               </div>
               <div>
@@ -238,7 +218,13 @@ export default function BookingPage() {
               {selectedDate && (
                 <div>
                   <h3 className="text-sm font-medium text-gray-900 mb-4">שעות זמינות</h3>
-                  {timeSlots.length === 0 ? (
+                  
+                  {loading ? (
+                    <div className="text-center py-8">
+                      <div className="w-12 h-12 border-4 border-gray-200 border-t-gray-600 rounded-full animate-spin mx-auto mb-4"></div>
+                      <p className="text-sm text-gray-500">טוען שעות זמינות...</p>
+                    </div>
+                  ) : availableSlots.length === 0 ? (
                     <div className="text-center py-8">
                       <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -249,20 +235,17 @@ export default function BookingPage() {
                     </div>
                   ) : (
                     <div className="grid grid-cols-3 gap-3">
-                      {timeSlots.map((slot) => (
+                      {availableSlots.map((slot) => (
                         <button
-                          key={slot.time}
-                          onClick={() => slot.available && setSelectedTime(slot.time)}
-                          disabled={!slot.available}
+                          key={slot}
+                          onClick={() => setSelectedTime(slot)}
                           className={`p-3 text-center rounded-lg border text-sm font-medium transition-colors ${
-                            selectedTime === slot.time
+                            selectedTime === slot
                               ? 'bg-gray-900 text-white border-gray-900'
-                              : slot.available
-                              ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
-                              : 'bg-gray-50 text-gray-400 border-gray-100 cursor-not-allowed'
+                              : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
                           }`}
                         >
-                          {slot.time}
+                          {slot}
                         </button>
                       ))}
                     </div>
