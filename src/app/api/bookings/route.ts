@@ -1,6 +1,7 @@
 // src/app/api/bookings/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { createCalendarEvent } from '@/lib/calendar'
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,23 +43,76 @@ export async function POST(request: NextRequest) {
     console.log('Created appointment:', appointment.id)
 
     // Try to create Google Calendar event automatically
+    let calendarEventId = null
+    let calendarEventLink = null
+    
     try {
-      const calendarResponse = await fetch(`${request.nextUrl.origin}/api/calendar/create-event`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ appointmentId: appointment.id })
+      console.log('Attempting to create calendar event...')
+      
+      // Get the trainer's Google account access token
+      const account = await prisma.account.findFirst({
+        where: {
+          userId: trainer.userId,
+          provider: 'google'
+        }
       })
-      
-      const calendarData = await calendarResponse.json()
-      
-      if (calendarData.success) {
-        console.log('Calendar event created successfully:', calendarData.eventId)
+
+      if (!account?.access_token) {
+        console.log('⚠️ No Google access token found for trainer. Calendar event not created.')
       } else {
-        console.log('Calendar event creation failed:', calendarData.error)
+        console.log('✅ Found Google access token, creating calendar event...')
+        
+        // Create calendar event directly
+        const startTime = new Date(appointment.datetime)
+        const endTime = new Date(startTime.getTime() + duration * 60000)
+
+        const eventData = {
+          summary: `🏋️ אימון עם ${appointment.clientName}`,
+          description: `אימון אישי
+          
+לקוח: ${appointment.clientName}
+אימייל: ${appointment.clientEmail}${appointment.clientPhone ? `
+טלפון: ${appointment.clientPhone}` : ''}
+
+הזמן באמצעות: Fitness Booking App`,
+          start: {
+            dateTime: startTime.toISOString(),
+            timeZone: 'Asia/Jerusalem'
+          },
+          end: {
+            dateTime: endTime.toISOString(),
+            timeZone: 'Asia/Jerusalem'
+          },
+          attendees: [
+            { email: appointment.clientEmail, responseStatus: 'needsAction' }
+          ],
+          reminders: {
+            useDefault: false,
+            overrides: [
+              { method: 'email', minutes: 24 * 60 }, // 24 hours before
+              { method: 'popup', minutes: 30 }       // 30 minutes before
+            ]
+          }
+        }
+
+        const calendarEvent = await createCalendarEvent(account.access_token, eventData)
+        
+        // Update appointment with Google Event ID
+        await prisma.appointment.update({
+          where: { id: appointment.id },
+          data: { googleEventId: calendarEvent.id }
+        })
+        
+        calendarEventId = calendarEvent.id
+        calendarEventLink = calendarEvent.htmlLink
+        
+        console.log('✅ Calendar event created successfully:', calendarEvent.id)
       }
+      
     } catch (calendarError) {
-      console.error('Calendar event creation error:', calendarError)
+      console.error('❌ Calendar event creation error:', calendarError)
       // Don't fail the booking if calendar creation fails
+      console.log('ℹ️ Booking created successfully but calendar event failed. This is OK.')
     }
 
     return NextResponse.json({ 
@@ -67,6 +121,11 @@ export async function POST(request: NextRequest) {
         id: appointment.id,
         datetime: appointment.datetime,
         clientName: appointment.clientName
+      },
+      calendar: {
+        eventCreated: !!calendarEventId,
+        eventId: calendarEventId,
+        eventLink: calendarEventLink
       }
     })
 
