@@ -1,11 +1,8 @@
 // src/app/api/trainer/availability/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
-import { authOptions } from '../../auth/[...nextauth]/route'
-
-// This would typically use your database
-// For now, we'll simulate with a simple storage mechanism
-// You should replace this with your actual database implementation
+import { authOptions } from '@/lib/auth' // Fixed import path
+import { prisma } from '@/lib/prisma'
 
 interface TimeSlot {
   start: string
@@ -24,10 +21,7 @@ interface AvailabilityData {
   updatedAt: string
 }
 
-// Temporary in-memory storage - replace with your database
-const availabilityStore = new Map<string, AvailabilityData>()
-
-// GET - Fetch trainer's availability settings
+// GET - Fetch trainer's availability settings (for authenticated trainer)
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -39,11 +33,19 @@ export async function GET(request: NextRequest) {
       }, { status: 401 })
     }
 
-    const trainerEmail = session.user.email
-    const availabilityData = availabilityStore.get(trainerEmail)
+    console.log('📅 Fetching availability for:', session.user.email)
 
-    if (!availabilityData) {
-      // Return default availability if none exists
+    // Get trainer from database
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      include: {
+        trainer: true
+      }
+    })
+
+    if (!user?.trainer) {
+      console.log('⚠️ No trainer profile found for:', session.user.email)
+      // Return default availability if no trainer profile exists
       const defaultAvailability: AvailabilityData = {
         availability: {
           sunday: [{ start: '09:00', end: '17:00', isAvailable: true }],
@@ -65,13 +67,47 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // Parse stored availability or use defaults
+    let availability = {}
+    let sessionDuration = 60
+    let breakBetweenSessions = 15
+
+    if (user.trainer.workingHours) {
+      try {
+        const parsed = JSON.parse(user.trainer.workingHours)
+        availability = parsed.availability || {}
+        sessionDuration = parsed.sessionDuration || 60
+        breakBetweenSessions = parsed.breakBetweenSessions || 15
+      } catch (e) {
+        console.log('Error parsing workingHours, using defaults')
+      }
+    }
+
+    // If no stored availability, use defaults
+    if (Object.keys(availability).length === 0) {
+      availability = {
+        sunday: [{ start: '09:00', end: '17:00', isAvailable: true }],
+        monday: [{ start: '09:00', end: '17:00', isAvailable: true }],
+        tuesday: [{ start: '09:00', end: '17:00', isAvailable: true }],
+        wednesday: [{ start: '09:00', end: '17:00', isAvailable: true }],
+        thursday: [{ start: '09:00', end: '17:00', isAvailable: true }],
+        friday: [{ start: '09:00', end: '13:00', isAvailable: true }],
+        saturday: [{ start: '10:00', end: '14:00', isAvailable: false }]
+      }
+    }
+
+    console.log('✅ Successfully fetched availability')
+
     return NextResponse.json({
       success: true,
-      ...availabilityData
+      availability,
+      sessionDuration,
+      breakBetweenSessions,
+      updatedAt: user.trainer.updatedAt.toISOString()
     })
 
   } catch (error) {
-    console.error('Error fetching availability:', error)
+    console.error('❌ Error fetching availability:', error)
     return NextResponse.json({ 
       success: false, 
       error: 'שגיאה בטעינת הגדרות הזמינות' 
@@ -93,6 +129,8 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const { availability, sessionDuration, breakBetweenSessions } = body
+
+    console.log('💾 Saving availability for:', session.user.email)
 
     // Validate the data
     if (!availability || typeof sessionDuration !== 'number' || typeof breakBetweenSessions !== 'number') {
@@ -138,29 +176,42 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const trainerEmail = session.user.email
-    const availabilityData: AvailabilityData = {
+    // Find or create trainer
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      include: { trainer: true }
+    })
+
+    if (!user) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'משתמש לא נמצא' 
+      }, { status: 404 })
+    }
+
+    // Store availability in JSON format
+    const availabilityData = {
       availability,
       sessionDuration,
       breakBetweenSessions,
       updatedAt: new Date().toISOString()
     }
 
-    // Save to temporary storage - replace with your database
-    availabilityStore.set(trainerEmail, availabilityData)
-
-    /* 
-    // Example of how you might save to a real database:
-    
-    await db.trainerAvailability.upsert({
-      where: { trainerEmail },
-      update: availabilityData,
+    // Update trainer record
+    await prisma.trainer.upsert({
+      where: { userId: user.id },
+      update: {
+        workingHours: JSON.stringify(availabilityData)
+      },
       create: {
-        trainerEmail,
-        ...availabilityData
+        userId: user.id,
+        bookingSlug: session.user.email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '-'),
+        workingHours: JSON.stringify(availabilityData),
+        timezone: 'Asia/Jerusalem'
       }
     })
-    */
+
+    console.log('✅ Availability saved successfully')
 
     return NextResponse.json({
       success: true,
@@ -168,43 +219,10 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error saving availability:', error)
+    console.error('❌ Error saving availability:', error)
     return NextResponse.json({ 
       success: false, 
       error: 'שגיאה בשמירת הגדרות הזמינות' 
     }, { status: 500 })
   }
-}
-
-// Helper function to generate available time slots for a specific day
-export function generateAvailableSlots(
-  dayAvailability: TimeSlot[], 
-  sessionDuration: number, 
-  breakBetweenSessions: number,
-  date: Date
-): string[] {
-  const slots: string[] = []
-  
-  for (const period of dayAvailability) {
-    if (!period.isAvailable) continue
-    
-    const [startHour, startMinute] = period.start.split(':').map(Number)
-    const [endHour, endMinute] = period.end.split(':').map(Number)
-    
-    const startTime = startHour * 60 + startMinute // Convert to minutes
-    const endTime = endHour * 60 + endMinute
-    
-    let currentTime = startTime
-    const slotDuration = sessionDuration + breakBetweenSessions
-    
-    while (currentTime + sessionDuration <= endTime) {
-      const hours = Math.floor(currentTime / 60)
-      const minutes = currentTime % 60
-      const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
-      slots.push(timeString)
-      currentTime += slotDuration
-    }
-  }
-  
-  return slots
 }
