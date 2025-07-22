@@ -2,6 +2,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createCalendarEvent } from '@/lib/calendar'
+import { Resend } from 'resend'
+import { getClientConfirmationEmail, getTrainerNotificationEmail } from '@/lib/email-templates'
+
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(request: NextRequest) {
   try {
@@ -115,6 +119,66 @@ export async function POST(request: NextRequest) {
       console.log('ℹ️ Booking created successfully but calendar event failed. This is OK.')
     }
 
+    // Send confirmation emails
+    let emailStatus = {
+      clientEmailSent: false,
+      trainerEmailSent: false,
+      errors: [] as string[]
+    }
+
+    if (process.env.RESEND_API_KEY) {
+      try {
+        console.log('📧 Sending confirmation emails...')
+
+        const emailData = {
+          clientName: appointment.clientName,
+          clientEmail: appointment.clientEmail,
+          clientPhone: appointment.clientPhone || undefined,
+          trainerName: trainer.user.name || trainer.user.email || 'המאמן',
+          trainerEmail: trainer.user.email!,
+          datetime: appointment.datetime,
+          duration: appointment.duration,
+          appointmentId: appointment.id,
+          calendarEventLink: calendarEventLink || undefined
+        }
+
+        // Send client confirmation email
+        try {
+          const clientEmail = getClientConfirmationEmail(emailData)
+          await resend.emails.send({
+            from: 'Fitness Booking <onboarding@resend.dev>', // Use your verified domain
+            ...clientEmail
+          })
+          emailStatus.clientEmailSent = true
+          console.log('✅ Client confirmation email sent to:', appointment.clientEmail)
+        } catch (clientEmailError) {
+          console.error('❌ Failed to send client email:', clientEmailError)
+          emailStatus.errors.push('Failed to send client confirmation email')
+        }
+
+        // Send trainer notification email
+        try {
+          const trainerEmail = getTrainerNotificationEmail(emailData)
+          await resend.emails.send({
+            from: 'Fitness Booking <onboarding@resend.dev>', // Use your verified domain
+            ...trainerEmail
+          })
+          emailStatus.trainerEmailSent = true
+          console.log('✅ Trainer notification email sent to:', trainer.user.email)
+        } catch (trainerEmailError) {
+          console.error('❌ Failed to send trainer email:', trainerEmailError)
+          emailStatus.errors.push('Failed to send trainer notification email')
+        }
+
+      } catch (generalEmailError) {
+        console.error('❌ General email error:', generalEmailError)
+        emailStatus.errors.push('Email service error')
+      }
+    } else {
+      console.log('⚠️ RESEND_API_KEY not found. Emails not sent.')
+      emailStatus.errors.push('Email service not configured')
+    }
+
     return NextResponse.json({ 
       success: true, 
       appointment: {
@@ -126,7 +190,8 @@ export async function POST(request: NextRequest) {
         eventCreated: !!calendarEventId,
         eventId: calendarEventId,
         eventLink: calendarEventLink
-      }
+      },
+      emails: emailStatus
     })
 
   } catch (error) {
