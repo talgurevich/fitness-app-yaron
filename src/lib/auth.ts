@@ -2,12 +2,12 @@
 import { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
-import { PrismaAdapter } from "@next-auth/prisma-adapter"
+import { CustomPrismaAdapter } from "./prisma-adapter"
 import { prisma } from "./prisma"
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
-  adapter: PrismaAdapter(prisma),
+  adapter: CustomPrismaAdapter(prisma), // Use our custom adapter
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
@@ -19,7 +19,7 @@ export const authOptions: NextAuthOptions = {
           prompt: "consent"
         }
       },
-      allowDangerousEmailAccountLinking: true // This allows linking existing accounts
+      allowDangerousEmailAccountLinking: true
     }),
     CredentialsProvider({
       name: "credentials", 
@@ -59,7 +59,7 @@ export const authOptions: NextAuthOptions = {
         
         if (account?.access_token) {
           session.accessToken = account.access_token
-          console.log('✅ Session created with Google access token')
+          console.log('✅ Session created with Google access token for:', user.email)
         }
       }
       return session
@@ -69,7 +69,8 @@ export const authOptions: NextAuthOptions = {
       console.log('🔐 Sign in attempt:', {
         provider: account?.provider,
         email: user.email,
-        hasAccessToken: !!account?.access_token
+        hasAccessToken: !!account?.access_token,
+        hasRefreshToken: !!account?.refresh_token
       })
       return true
     }
