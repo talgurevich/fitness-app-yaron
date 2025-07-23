@@ -1000,7 +1000,384 @@ export default function ClientProfilePage() {
           </div>
         )}
 
-        {/* Basic Information & Session History */}
+        {/* Appointments Section - Enhanced with Past/Future and Delete */}
+        <div style={{ 
+          backgroundColor: 'white',
+          border: '1px solid #e5e7eb',
+          borderRadius: '16px',
+          overflow: 'hidden',
+          marginBottom: '32px'
+        }}>
+          <div style={{ 
+            padding: '24px',
+            borderBottom: '1px solid #e5e7eb'
+          }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>
+              Session History & Upcoming Appointments
+            </h3>
+            <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0 0 0' }}>
+              {client.appointments?.length || 0} total appointments
+            </p>
+          </div>
+          
+          <div style={{ padding: '24px' }}>
+            {client.appointments && client.appointments.length > 0 ? (
+              (() => {
+                const now = new Date()
+                const futureAppointments = client.appointments
+                  .filter(app => new Date(app.datetime) > now)
+                  .sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime())
+                
+                const pastAppointments = client.appointments
+                  .filter(app => new Date(app.datetime) <= now)
+                  .sort((a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime())
+
+                return (
+                  <div>
+                    {/* Future Appointments */}
+                    {futureAppointments.length > 0 && (
+                      <div style={{ marginBottom: '32px' }}>
+                        <h4 style={{ 
+                          fontSize: '16px', 
+                          fontWeight: '600', 
+                          color: '#2563eb', 
+                          margin: '0 0 16px 0',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}>
+                          <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
+                          </svg>
+                          Upcoming Sessions ({futureAppointments.length})
+                        </h4>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                          {futureAppointments.map((appointment) => (
+                            <div 
+                              key={appointment.id} 
+                              style={{ 
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                padding: '16px',
+                                border: '1px solid #dbeafe',
+                                borderRadius: '8px',
+                                backgroundColor: '#eff6ff'
+                              }}
+                            >
+                              <div style={{ flex: 1 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
+                                  <p style={{ fontSize: '15px', fontWeight: '600', color: '#1e40af', margin: 0 }}>
+                                    {formatDateTime(appointment.datetime)}
+                                  </p>
+                                  <span style={{ 
+                                    ...getStatusColor(appointment.status),
+                                    padding: '2px 8px',
+                                    fontSize: '11px',
+                                    fontWeight: '600',
+                                    borderRadius: '4px'
+                                  }}>
+                                    {getStatusText(appointment.status)}
+                                  </span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '13px', color: '#6b7280' }}>
+                                  <span>⏱️ {appointment.duration} minutes</span>
+                                  {appointment.sessionPrice && (
+                                    <span>💰 ₪{appointment.sessionPrice}</span>
+                                  )}
+                                  {appointment.sessionNotes && (
+                                    <span>📝 Notes</span>
+                                  )}
+                                </div>
+                                {appointment.sessionNotes && (
+                                  <p style={{ 
+                                    fontSize: '12px', 
+                                    color: '#6b7280', 
+                                    margin: '8px 0 0 0',
+                                    fontStyle: 'italic',
+                                    background: '#f8fafc',
+                                    padding: '8px',
+                                    borderRadius: '4px'
+                                  }}>
+                                    "{appointment.sessionNotes}"
+                                  </p>
+                                )}
+                              </div>
+                              
+                              {/* Delete Button for Future Appointments */}
+                              {appointment.status !== 'cancelled' && (
+                                <button
+                                  onClick={() => handleDeleteAppointment(appointment.id)}
+                                  disabled={deletingAppointment === appointment.id}
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    padding: '8px 12px',
+                                    fontSize: '12px',
+                                    fontWeight: '500',
+                                    color: deletingAppointment === appointment.id ? '#9ca3af' : '#dc2626',
+                                    backgroundColor: deletingAppointment === appointment.id ? '#f3f4f6' : '#fef2f2',
+                                    border: '1px solid',
+                                    borderColor: deletingAppointment === appointment.id ? '#e5e7eb' : '#fecaca',
+                                    borderRadius: '6px',
+                                    cursor: deletingAppointment === appointment.id ? 'not-allowed' : 'pointer',
+                                    transition: 'all 0.2s',
+                                    marginLeft: '12px'
+                                  }}
+                                  onMouseOver={(e) => {
+                                    if (deletingAppointment !== appointment.id) {
+                                      e.currentTarget.style.backgroundColor = '#fee2e2'
+                                      e.currentTarget.style.borderColor = '#fca5a5'
+                                    }
+                                  }}
+                                  onMouseOut={(e) => {
+                                    if (deletingAppointment !== appointment.id) {
+                                      e.currentTarget.style.backgroundColor = '#fef2f2'
+                                      e.currentTarget.style.borderColor = '#fecaca'
+                                    }
+                                  }}
+                                >
+                                  {deletingAppointment === appointment.id ? (
+                                    <>
+                                      <div style={{ 
+                                        width: '12px', 
+                                        height: '12px', 
+                                        border: '2px solid #9ca3af', 
+                                        borderTop: '2px solid transparent',
+                                        borderRadius: '50%',
+                                        animation: 'spin 1s linear infinite'
+                                      }}></div>
+                                      Cancelling...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                      </svg>
+                                      Cancel
+                                    </>
+                                  )}
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Past Appointments */}
+                    {pastAppointments.length > 0 && (
+                      <div>
+                        <h4 style={{ 
+                          fontSize: '16px', 
+                          fontWeight: '600', 
+                          color: '#059669', 
+                          margin: '0 0 16px 0',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}>
+                          <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Session History ({pastAppointments.length})
+                        </h4>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                          {pastAppointments.slice(0, 10).map((appointment) => ( // Show last 10 sessions
+                            <div 
+                              key={appointment.id} 
+                              style={{ 
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                padding: '16px',
+                                border: '1px solid',
+                                borderColor: appointment.status === 'completed' ? '#d1fae5' : '#f3f4f6',
+                                borderRadius: '8px',
+                                backgroundColor: appointment.status === 'completed' ? '#f0fdf4' : '#f9fafb',
+                                opacity: appointment.status === 'cancelled' ? 0.6 : 1
+                              }}
+                            >
+                              <div style={{ flex: 1 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
+                                  <p style={{ fontSize: '15px', fontWeight: '600', color: '#111827', margin: 0 }}>
+                                    {formatDateTime(appointment.datetime)}
+                                  </p>
+                                  <span style={{ 
+                                    ...getStatusColor(appointment.status),
+                                    padding: '2px 8px',
+                                    fontSize: '11px',
+                                    fontWeight: '600',
+                                    borderRadius: '4px'
+                                  }}>
+                                    {getStatusText(appointment.status)}
+                                  </span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '13px', color: '#6b7280' }}>
+                                  <span>⏱️ {appointment.duration} minutes</span>
+                                  {appointment.sessionPrice && (
+                                    <span>💰 ₪{appointment.sessionPrice}</span>
+                                  )}
+                                  {appointment.sessionNotes && (
+                                    <span>📝 Notes</span>
+                                  )}
+                                </div>
+                                {appointment.sessionNotes && (
+                                  <p style={{ 
+                                    fontSize: '12px', 
+                                    color: '#6b7280', 
+                                    margin: '8px 0 0 0',
+                                    fontStyle: 'italic',
+                                    background: 'rgba(0,0,0,0.05)',
+                                    padding: '8px',
+                                    borderRadius: '4px'
+                                  }}>
+                                    "{appointment.sessionNotes}"
+                                  </p>
+                                )}
+                              </div>
+                              
+                              {/* Delete Button for Past Appointments (if needed for cleanup) */}
+                              <button
+                                onClick={() => handleDeleteAppointment(appointment.id)}
+                                disabled={deletingAppointment === appointment.id}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  padding: '6px 10px',
+                                  fontSize: '11px',
+                                  fontWeight: '500',
+                                  color: deletingAppointment === appointment.id ? '#9ca3af' : '#6b7280',
+                                  backgroundColor: 'transparent',
+                                  border: '1px solid',
+                                  borderColor: deletingAppointment === appointment.id ? '#e5e7eb' : '#d1d5db',
+                                  borderRadius: '4px',
+                                  cursor: deletingAppointment === appointment.id ? 'not-allowed' : 'pointer',
+                                  transition: 'all 0.2s',
+                                  marginLeft: '12px',
+                                  opacity: 0.7
+                                }}
+                                onMouseOver={(e) => {
+                                  if (deletingAppointment !== appointment.id) {
+                                    e.currentTarget.style.opacity = '1'
+                                    e.currentTarget.style.color = '#dc2626'
+                                    e.currentTarget.style.borderColor = '#fca5a5'
+                                  }
+                                }}
+                                onMouseOut={(e) => {
+                                  if (deletingAppointment !== appointment.id) {
+                                    e.currentTarget.style.opacity = '0.7'
+                                    e.currentTarget.style.color = '#6b7280'
+                                    e.currentTarget.style.borderColor = '#d1d5db'
+                                  }
+                                }}
+                              >
+                                {deletingAppointment === appointment.id ? (
+                                  <>
+                                    <div style={{ 
+                                      width: '10px', 
+                                      height: '10px', 
+                                      border: '1px solid #9ca3af', 
+                                      borderTop: '1px solid transparent',
+                                      borderRadius: '50%',
+                                      animation: 'spin 1s linear infinite'
+                                    }}></div>
+                                    Deleting...
+                                  </>
+                                ) : (
+                                  <>
+                                    <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                    Delete
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          ))}
+                          
+                          {pastAppointments.length > 10 && (
+                            <div style={{ 
+                              textAlign: 'center', 
+                              padding: '12px',
+                              color: '#6b7280',
+                              fontSize: '14px',
+                              fontStyle: 'italic'
+                            }}>
+                              Showing last 10 sessions • {pastAppointments.length - 10} more sessions in history
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {futureAppointments.length === 0 && pastAppointments.length === 0 && (
+                      <div style={{ 
+                        textAlign: 'center',
+                        padding: '40px 20px',
+                        color: '#6b7280'
+                      }}>
+                        <div style={{ 
+                          width: '48px', 
+                          height: '48px', 
+                          backgroundColor: '#f3f4f6', 
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          margin: '0 auto 16px'
+                        }}>
+                          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                        <p style={{ fontSize: '16px', fontWeight: '500', color: '#374151', margin: '0 0 8px 0' }}>
+                          No appointments yet
+                        </p>
+                        <p style={{ fontSize: '14px', margin: 0 }}>
+                          Book the first session with this client to see appointment history here.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )
+              })()
+            ) : (
+              <div style={{ 
+                textAlign: 'center',
+                padding: '40px 20px',
+                color: '#6b7280'
+              }}>
+                <div style={{ 
+                  width: '48px', 
+                  height: '48px', 
+                  backgroundColor: '#f3f4f6', 
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 16px'
+                }}>
+                  <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <p style={{ fontSize: '16px', fontWeight: '500', color: '#374151', margin: '0 0 8px 0' }}>
+                  No appointments yet
+                </p>
+                <p style={{ fontSize: '14px', margin: 0 }}>
+                  Book the first session with this client to see appointment history here.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Basic Information */}
         <div style={{ 
           backgroundColor: 'white',
           border: '1px solid #e5e7eb',
