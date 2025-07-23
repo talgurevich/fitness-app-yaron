@@ -1,13 +1,15 @@
-// src/app/login/page.tsx - Complete redesign with modern styling and small icons
+// src/app/login/page.tsx - Complete redesign with translations and language toggle
 'use client'
 import { signIn, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import Link from 'next/link'
+import LanguageToggle, { useTranslations } from '@/components/LanguageToggle'
 
 export default function LoginPage() {
   const { data: session } = useSession()
   const router = useRouter()
+  const { t } = useTranslations()
 
   useEffect(() => {
     if (session) {
@@ -28,7 +30,7 @@ export default function LoginPage() {
             animation: 'spin 1s linear infinite',
             margin: '0 auto 16px'
           }}></div>
-          <p style={{ color: '#6b7280', fontSize: '14px' }}>Redirecting to dashboard...</p>
+          <p style={{ color: '#6b7280', fontSize: '14px' }}>{t('redirecting')}</p>
         </div>
       </div>
     )
@@ -36,6 +38,16 @@ export default function LoginPage() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+      {/* Language Toggle - Top Right */}
+      <div style={{ 
+        position: 'absolute', 
+        top: '20px', 
+        right: '20px', 
+        zIndex: 10 
+      }}>
+        <LanguageToggle />
+      </div>
+
       {/* Background Pattern */}
       <div style={{
         position: 'absolute',
@@ -85,7 +97,7 @@ export default function LoginPage() {
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text'
           }}>
-            Trainer Dashboard
+            {t('trainer_dashboard')}
           </h1>
           
           <p style={{ 
@@ -94,7 +106,7 @@ export default function LoginPage() {
             margin: 0,
             maxWidth: '400px'
           }}>
-            Professional fitness scheduling platform for trainers
+            {t('professional_fitness')}
           </p>
         </div>
 
@@ -117,14 +129,14 @@ export default function LoginPage() {
               color: '#111827', 
               margin: '0 0 8px 0' 
             }}>
-              Welcome Back
+              {t('welcome_back')}
             </h2>
             <p style={{ 
               fontSize: '14px', 
               color: '#6b7280', 
               margin: 0 
             }}>
-              Sign in to access your trainer dashboard
+              {t('sign_in_access')}
             </p>
           </div>
 
@@ -171,7 +183,7 @@ export default function LoginPage() {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
-            Continue with Google
+            {t('continue_google')}
           </button>
 
           {/* Divider */}
@@ -191,7 +203,7 @@ export default function LoginPage() {
               color: '#9ca3af',
               fontWeight: '500'
             }}>
-              SECURE LOGIN
+              {t('secure_login')}
             </span>
             <div style={{ 
               flex: 1, 
@@ -213,14 +225,14 @@ export default function LoginPage() {
               color: '#374151', 
               margin: '0 0 12px 0' 
             }}>
-              What you'll get:
+              {t('what_youll_get')}
             </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {[
-                { icon: '📅', text: 'Calendar integration & scheduling' },
-                { icon: '👥', text: 'Client management system' },
-                { icon: '📊', text: 'Session tracking & analytics' },
-                { icon: '🔗', text: 'Personal booking link' }
+                { icon: '📅', text: t('calendar_integration') },
+                { icon: '👥', text: t('client_management') },
+                { icon: '📊', text: t('session_tracking') },
+                { icon: '🔗', text: t('personal_booking') }
               ].map((feature, index) => (
                 <div key={index} style={{ 
                   display: 'flex', 
@@ -263,7 +275,7 @@ export default function LoginPage() {
                 onMouseOver={(e) => e.currentTarget.style.textDecoration = 'underline'}
                 onMouseOut={(e) => e.currentTarget.style.textDecoration = 'none'}
               >
-                Terms of Service
+                {t('terms_service')}
               </Link>
               {' '}and{' '}
               <Link 
@@ -276,7 +288,7 @@ export default function LoginPage() {
                 onMouseOver={(e) => e.currentTarget.style.textDecoration = 'underline'}
                 onMouseOut={(e) => e.currentTarget.style.textDecoration = 'none'}
               >
-                Privacy Policy
+                {t('privacy_policy')}
               </Link>
             </p>
           </div>
@@ -291,9 +303,9 @@ export default function LoginPage() {
           justifyContent: 'center'
         }}>
           {[
-            { href: '/help', text: 'Help Center' },
-            { href: '/contact', text: 'Contact Us' },
-            { href: '/about', text: 'About' }
+            { href: '/help', text: t('help_center') },
+            { href: '/contact', text: t('contact_us') },
+            { href: '/about', text: t('about') }
           ].map((link, index) => (
             <Link
               key={index}
