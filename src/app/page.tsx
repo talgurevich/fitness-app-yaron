@@ -328,15 +328,33 @@ export default function HomePage() {
       {/* Main Content */}
       <main style={{ paddingTop: '64px' }}>
         
-        {/* Hero Section */}
+        {/* Hero Section with Large Background Image */}
         <section 
           ref={heroRef}
           className="hero-section"
           style={{
             transform: `translateY(${scrollY * 0.3}px)`,
-            opacity: Math.max(0, 1 - scrollY / 800)
+            opacity: Math.max(0, 1 - scrollY / 800),
+            backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.7), rgba(30, 41, 59, 0.8)), url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')`,
+            backgroundSize: `${100 + scrollY * 0.02}%`,
+            backgroundPosition: 'center',
+            backgroundAttachment: 'fixed'
           }}
         >
+          {/* Additional parallax overlay for depth */}
+          <div 
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: `radial-gradient(ellipse at center, transparent 0%, rgba(15, 23, 42, 0.3) 100%)`,
+              transform: `translateY(${scrollY * 0.1}px)`,
+              pointerEvents: 'none'
+            }}
+          />
+          
           <div className="hero-content">
             <div className="hero-badge">
               מערכת פשוטה למאמני כושר אישיים
@@ -786,7 +804,7 @@ export default function HomePage() {
           justify-content: center;
           text-align: center;
           position: relative;
-          background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.8));
+          /* Background handled inline for parallax */
         }
 
         .hero-content {
@@ -794,6 +812,13 @@ export default function HomePage() {
           margin: 0 auto;
           padding: 0 32px;
           animation: fadeInUp 1s ease;
+          position: relative;
+          z-index: 2;
+          background: rgba(15, 23, 42, 0.3);
+          backdrop-filter: blur(10px);
+          border-radius: 20px;
+          padding: 40px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .hero-badge {
@@ -1150,6 +1175,9 @@ export default function HomePage() {
         @media (max-width: 768px) {
           .hero-content {
             padding: 0 16px;
+            background: rgba(15, 23, 42, 0.6);
+            padding: 24px;
+            border-radius: 16px;
           }
 
           .container {
@@ -1179,6 +1207,11 @@ export default function HomePage() {
             width: 100%;
             max-width: 300px;
             justify-content: center;
+          }
+
+          /* Fix background attachment for mobile */
+          .hero-section {
+            background-attachment: scroll !important;
           }
         }
       `}</style>
