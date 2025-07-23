@@ -453,7 +453,29 @@ export default function HomePage() {
             </span>
           </div>
           <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
-            {t('copyright_2024') || '© 2024 FitnessPro. כל הזכויות שמורות.'}
+            © 2025{' '}
+            <a 
+              href="https://www.linkedin.com/in/talgurevich/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={{ 
+                color: '#3b82f6', 
+                textDecoration: 'none',
+                fontWeight: '500',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.color = '#2563eb'
+                e.currentTarget.style.textDecoration = 'underline'
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.color = '#3b82f6'
+                e.currentTarget.style.textDecoration = 'none'
+              }}
+            >
+              Tal Gurevich
+            </a>
+            {' '}• All rights reserved.
           </p>
         </div>
       </footer>
