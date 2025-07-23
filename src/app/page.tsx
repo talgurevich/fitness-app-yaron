@@ -43,7 +43,7 @@ export default function HomePage() {
                 FitnessPro
               </h1>
               <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>
-                מערכת הזמנות למאמני כושר
+                {t('fitness_booking_system') || 'מערכת הזמנות למאמני כושר'}
               </p>
             </div>
           </div>
@@ -98,7 +98,7 @@ export default function HomePage() {
               margin: '0 0 16px 0',
               lineHeight: '1.2'
             }}>
-              מערכת הזמנות מתקדמת
+              {t('advanced_booking_system') || 'מערכת הזמנות מתקדמת'}
             </h2>
             <h3 style={{ 
               fontSize: '32px', 
@@ -106,7 +106,7 @@ export default function HomePage() {
               margin: '0 0 24px 0',
               opacity: 0.9
             }}>
-              למאמני כושר 💪
+              {t('for_fitness_trainers') || 'למאמני כושר'} 💪
             </h3>
             <p style={{ 
               fontSize: '18px', 
@@ -116,8 +116,7 @@ export default function HomePage() {
               maxWidth: '600px',
               margin: '0 auto 40px auto'
             }}>
-              פלטפורמה מקצועית לניהול הזמנות עם חיבור ליומן Google ומעקב אחר לקוחות.
-              הפכו את ניהול האימונים שלכם לפשוט ויעיל יותר מתמיד.
+              {t('homepage_description') || 'פלטפורמה מקצועית לניהול הזמנות עם חיבור ליומן Google ומעקב אחר לקוחות. הפכו את ניהול האימונים שלכם לפשוט ויעיל יותר מתמיד.'}
             </p>
             <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link
@@ -157,10 +156,10 @@ export default function HomePage() {
             color: '#111827', 
             margin: '0 0 8px 0' 
           }}>
-            למה לבחור במערכת שלנו?
+            {t('why_choose_our_system') || 'למה לבחור במערכת שלנו?'}
           </h3>
           <p style={{ fontSize: '16px', color: '#6b7280', margin: 0 }}>
-            כל מה שמאמן כושר צריך במקום אחד
+            {t('everything_trainer_needs') || 'כל מה שמאמן כושר צריך במקום אחד'}
           </p>
         </div>
 
@@ -199,7 +198,7 @@ export default function HomePage() {
               color: '#111827', 
               margin: '0 0 16px 0' 
             }}>
-              חיבור ליומן Google
+              {t('google_calendar_integration') || 'חיבור ליומן Google'}
             </h4>
             <p style={{ 
               fontSize: '14px',
@@ -207,7 +206,7 @@ export default function HomePage() {
               lineHeight: '1.6', 
               margin: 0 
             }}>
-              סנכרון אוטומטי עם יומן Google שלכם. כל הזמנה חדשה תופיע מיד ביומן הפרטי שלכם עם כל הפרטים הרלוונטיים.
+              {t('google_calendar_description') || 'סנכרון אוטומטי עם יומן Google שלכם. כל הזמנה חדשה תופיע מיד ביומן הפרטי שלכם עם כל הפרטים הרלוונטיים.'}
             </p>
           </div>
 
@@ -239,7 +238,7 @@ export default function HomePage() {
               color: '#111827', 
               margin: '0 0 16px 0' 
             }}>
-              קישור הזמנה אישי
+              {t('personal_booking_link') || 'קישור הזמנה אישי'}
             </h4>
             <p style={{ 
               fontSize: '14px',
@@ -247,7 +246,7 @@ export default function HomePage() {
               lineHeight: '1.6', 
               margin: 0 
             }}>
-              כל מאמן מקבל קישור אישי ויוניק. שתפו אותו עם הלקוחות שלכם והם יוכלו להזמין פגישות ישירות ללא צורך ברישום.
+              {t('personal_link_description') || 'כל מאמן מקבל קישור אישי ויוניק. שתפו אותו עם הלקוחות שלכם והם יוכלו להזמין פגישות ישירות ללא צורך ברישום.'}
             </p>
           </div>
 
@@ -279,7 +278,7 @@ export default function HomePage() {
               color: '#111827', 
               margin: '0 0 16px 0' 
             }}>
-              ניהול מתקדם
+              {t('advanced_management') || 'ניהול מתקדם'}
             </h4>
             <p style={{ 
               fontSize: '14px',
@@ -287,7 +286,7 @@ export default function HomePage() {
               lineHeight: '1.6', 
               margin: 0 
             }}>
-              לוח בקרה מקצועי עם מעקב אחר כל ההזמנות, פרטי לקוחות, וניהול זמינות. הכל במקום אחד ונגיש.
+              {t('advanced_management_description') || 'לוח בקרה מקצועי עם מעקב אחר כל ההזמנות, פרטי לקוחות, וניהול זמינות. הכל במקום אחד ונגיש.'}
             </p>
           </div>
         </div>
@@ -316,7 +315,7 @@ export default function HomePage() {
               500+
             </div>
             <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
-              מאמנים רשומים
+              {t('registered_trainers') || 'מאמנים רשומים'}
             </p>
           </div>
 
@@ -337,7 +336,7 @@ export default function HomePage() {
               10K+
             </div>
             <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
-              אימונים בוצעו
+              {t('workouts_completed') || 'אימונים בוצעו'}
             </p>
           </div>
 
@@ -358,7 +357,7 @@ export default function HomePage() {
               98%
             </div>
             <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
-              שביעות רצון
+              {t('satisfaction_rate') || 'שביעות רצון'}
             </p>
           </div>
         </div>
@@ -377,7 +376,7 @@ export default function HomePage() {
             color: '#111827', 
             margin: '0 0 16px 0' 
           }}>
-            התחילו עוד היום! 🚀
+            {t('start_today') || 'התחילו עוד היום!'} 🚀
           </h3>
           <p style={{ 
             fontSize: '16px', 
@@ -387,7 +386,7 @@ export default function HomePage() {
             maxWidth: '600px',
             margin: '0 auto 32px auto'
           }}>
-            הצטרפו למאמנים רבים שכבר משתמשים במערכת ומנהלים את העסק שלהם ביעילות מקסימלית
+            {t('join_many_trainers') || 'הצטרפו למאמנים רבים שכבר משתמשים במערכת ומנהלים את העסק שלהם ביעילות מקסימלית'}
           </p>
           <Link
             href="/login"
@@ -418,7 +417,7 @@ export default function HomePage() {
             <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            הצטרפו עכשיו - בחינם
+            {t('join_now_free') || 'הצטרפו עכשיו - בחינם'}
           </Link>
         </div>
       </main>
@@ -454,7 +453,7 @@ export default function HomePage() {
             </span>
           </div>
           <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
-            © 2024 FitnessPro. כל הזכויות שמורות.
+            {t('copyright_2024') || '© 2024 FitnessPro. כל הזכויות שמורות.'}
           </p>
         </div>
       </footer>

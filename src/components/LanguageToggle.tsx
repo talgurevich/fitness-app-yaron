@@ -1,362 +1,249 @@
-// src/components/LanguageToggle.tsx - Modern styled language toggle
+// src/components/LanguageToggle.tsx
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, createContext, useContext, ReactNode } from 'react'
 
-export default function LanguageToggle() {
-  const [language, setLanguage] = useState('en')
-  
-  useEffect(() => {
-    // Get saved language from localStorage or default to English
-    const savedLang = localStorage.getItem('language') || 'en'
-    setLanguage(savedLang)
-    updateLanguage(savedLang)
-  }, [])
+type Language = 'he' | 'en'
 
-  const updateLanguage = (lang: string) => {
-    document.documentElement.lang = lang
-    document.documentElement.dir = lang === 'he' ? 'rtl' : 'ltr'
-    localStorage.setItem('language', lang)
+interface LanguageContextType {
+  language: Language
+  setLanguage: (lang: Language) => void
+  t: (key: string) => string
+}
+
+const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
+
+const translations = {
+  he: {
+    // Dashboard translations
+    'trainer_dashboard': 'לוח בקרה למאמן',
+    'set_availability': 'הגדרת זמינות',
+    'view_clients': 'צפייה בלקוחות',
+    'share_link': 'שיתוף קישור',
+    'sign_out': 'התנתקות',
+    'welcome_back_trainer': 'ברוכים השובים מאמן',
+    'business_today': 'איך העסק שלכם היום?',
+    'loading_dashboard': 'טוען לוח בקרה...',
     
-    // Dispatch custom event to notify other components
-    window.dispatchEvent(new CustomEvent('languageChanged', { 
-      detail: { language: lang } 
-    }))
+    // Homepage translations
+    'fitness_booking_system': 'מערכת הזמנות למאמני כושר',
+    'login': 'התחברות',
+    'advanced_booking_system': 'מערכת הזמנות מתקדמת',
+    'for_fitness_trainers': 'למאמני כושר',
+    'homepage_description': 'פלטפורמה מקצועית לניהול הזמנות עם חיבור ליומן Google ומעקב אחר לקוחות. הפכו את ניהול האימונים שלכם לפשוט ויעיל יותר מתמיד.',
+    'login_for_trainers': 'התחברות למאמנים',
+    'why_choose_our_system': 'למה לבחור במערכת שלנו?',
+    'everything_trainer_needs': 'כל מה שמאמן כושר צריך במקום אחד',
+    'google_calendar_integration': 'חיבור ליומן Google',
+    'google_calendar_description': 'סנכרון אוטומטי עם יומן Google שלכם. כל הזמנה חדשה תופיע מיד ביומן הפרטי שלכם עם כל הפרטים הרלוונטיים.',
+    'personal_booking_link': 'קישור הזמנה אישי',
+    'personal_link_description': 'כל מאמן מקבל קישור אישי ויוניק. שתפו אותו עם הלקוחות שלכם והם יוכלו להזמין פגישות ישירות ללא צורך ברישום.',
+    'advanced_management': 'ניהול מתקדם',
+    'advanced_management_description': 'לוח בקרה מקצועי עם מעקב אחר כל ההזמנות, פרטי לקוחות, וניהול זמינות. הכל במקום אחד ונגיש.',
+    'registered_trainers': 'מאמנים רשומים',
+    'workouts_completed': 'אימונים בוצעו',
+    'satisfaction_rate': 'שביעות רצון',
+    'start_today': 'התחילו עוד היום!',
+    'join_many_trainers': 'הצטרפו למאמנים רבים שכבר משתמשים במערכת ומנהלים את העסק שלהם ביעילות מקסימלית',
+    'join_now_free': 'הצטרפו עכשיו - בחינם',
+    'copyright_2024': '© 2024 FitnessPro. כל הזכויות שמורות.',
+    
+    // Login page translations
+    'continue_google': 'המשך עם Google',
+    'secure_login': 'התחברות מאובטחת',
+    'what_youll_get': 'מה תקבלו',
+    'calendar_integration': 'סנכרון יומן אוטומטי',
+    'client_management': 'ניהול לקוחות מתקדם',
+    'session_tracking': 'מעקב אחר אימונים',
+    'trainer_login': 'התחברות מאמנים',
+    'welcome_back': 'ברוכים השובים',
+    'sign_in_continue': 'התחברו כדי להמשיך',
+    'google_calendar_sync': 'סנכרון עם יומן Google',
+    'manage_appointments': 'ניהול הזמנות',
+    'track_clients': 'מעקב אחר לקוחות',
+    'easy_scheduling': 'תזמון קל ופשוט',
+    'professional_dashboard': 'לוח בקרה מקצועי',
+    'instant_notifications': 'התראות מיידיות',
+    'secure_data': 'נתונים מאובטחים',
+    'mobile_friendly': 'ידידותי לנייד',
+    'quick_setup': 'הגדרה מהירה',
+    'already_registered': 'כבר רשומים? נהדר!',
+    'new_here': 'חדשים כאן?',
+    'get_started': 'בואו נתחיל',
+    'loading': 'טוען...',
+    'error': 'שגיאה',
+    'try_again': 'נסו שוב',
+    'contact_support': 'צרו קשר עם התמיכה',
+    
+    // Booking page translations
+    'book_session_with': 'הזמן אימון עם',
+    'select_date_time': 'בחר תאריך ושעה המתאימים לך',
+    'booking_appointment': 'הזמנת אימון',
+    'select_time_start_training': 'בחר את הזמן המתאים לך ונתחיל להתאמן יחד!',
+    'click_desired_date_time': 'לחץ על התאריך והשעה הרצויים',
+    'date': 'תאריך',
+    'available_times': 'שעות זמינות',
+    'loading_available_times': 'טוען שעות זמינות...',
+    'no_available_times': 'אין שעות זמינות בתאריך זה',
+    'booking_details': 'פרטי ההזמנה',
+    'fill_details_complete': 'מלא את הפרטים כדי להשלים את ההזמנה',
+    'session_summary': 'סיכום הפגישה',
+    'time': 'שעה',
+    'trainer': 'מאמן',
+    'full_name': 'שם מלא',
+    'your_name': 'השם שלך',
+    'email_address': 'כתובת אימייל',
+    'phone_number': 'מספר טלפון',
+    'phone_placeholder': '050-1234567',
+    'sending_booking': 'שולח הזמנה...',
+    'book_session': 'הזמן אימון',
+    'booking_success': 'הזמנה נשלחה בהצלחה!',
+    'booking_success_message': 'ההזמנה שלך ל-',
+    'at_time': 'בשעה',
+    'sent_to_trainer': 'נשלחה למאמן',
+    'confirmation_email': 'תקבל אישור בקרוב למייל',
+    'booking_error': 'שגיאה ביצירת הזמנה'
+  },
+  en: {
+    // Dashboard translations
+    'trainer_dashboard': 'Trainer Dashboard',
+    'set_availability': 'Set Availability',
+    'view_clients': 'View Clients',
+    'share_link': 'Share Link',
+    'sign_out': 'Sign Out',
+    'welcome_back_trainer': 'Welcome Back Trainer',
+    'business_today': 'How\'s your business today?',
+    'loading_dashboard': 'Loading dashboard...',
+    
+    // Homepage translations
+    'fitness_booking_system': 'Fitness Trainer Booking System',
+    'login': 'Login',
+    'advanced_booking_system': 'Advanced Booking System',
+    'for_fitness_trainers': 'For Fitness Trainers',
+    'homepage_description': 'Professional platform for managing appointments with Google Calendar integration and client tracking. Make your training management simpler and more efficient than ever.',
+    'login_for_trainers': 'Login for Trainers',
+    'why_choose_our_system': 'Why Choose Our System?',
+    'everything_trainer_needs': 'Everything a fitness trainer needs in one place',
+    'google_calendar_integration': 'Google Calendar Integration',
+    'google_calendar_description': 'Automatic sync with your Google Calendar. Every new appointment appears instantly in your personal calendar with all relevant details.',
+    'personal_booking_link': 'Personal Booking Link',
+    'personal_link_description': 'Each trainer gets a unique personal link. Share it with your clients and they can book sessions directly without needing to register.',
+    'advanced_management': 'Advanced Management',
+    'advanced_management_description': 'Professional dashboard with tracking of all appointments, client details, and availability management. Everything in one accessible place.',
+    'registered_trainers': 'Registered Trainers',
+    'workouts_completed': 'Workouts Completed',
+    'satisfaction_rate': 'Satisfaction Rate',
+    'start_today': 'Start Today!',
+    'join_many_trainers': 'Join many trainers who are already using the system and managing their business with maximum efficiency',
+    'join_now_free': 'Join Now - Free',
+    'copyright_2024': '© 2024 FitnessPro. All rights reserved.',
+    
+    // Login page translations
+    'continue_google': 'Continue with Google',
+    'secure_login': 'Secure Login',
+    'what_youll_get': 'What You\'ll Get',
+    'calendar_integration': 'Automatic Calendar Sync',
+    'client_management': 'Advanced Client Management',
+    'session_tracking': 'Session Tracking',
+    'trainer_login': 'Trainer Login',
+    'welcome_back': 'Welcome Back',
+    'sign_in_continue': 'Sign in to continue',
+    'google_calendar_sync': 'Google Calendar Sync',
+    'manage_appointments': 'Manage Appointments',
+    'track_clients': 'Track Clients',
+    'easy_scheduling': 'Easy Scheduling',
+    'professional_dashboard': 'Professional Dashboard',
+    'instant_notifications': 'Instant Notifications',
+    'secure_data': 'Secure Data',
+    'mobile_friendly': 'Mobile Friendly',
+    'quick_setup': 'Quick Setup',
+    'already_registered': 'Already registered? Great!',
+    'new_here': 'New here?',
+    'get_started': 'Let\'s get started',
+    'loading': 'Loading...',
+    'error': 'Error',
+    'try_again': 'Try again',
+    'contact_support': 'Contact support',
+    
+    // Booking page translations
+    'book_session_with': 'Book Session with',
+    'select_date_time': 'Select a date and time that works for you',
+    'booking_appointment': 'Booking Appointment',
+    'select_time_start_training': 'Choose the time that suits you and let\'s start training together!',
+    'click_desired_date_time': 'Click on your desired date and time',
+    'date': 'Date',
+    'available_times': 'Available Times',
+    'loading_available_times': 'Loading available times...',
+    'no_available_times': 'No available times on this date',
+    'booking_details': 'Booking Details',
+    'fill_details_complete': 'Fill in the details to complete your booking',
+    'session_summary': 'Session Summary',
+    'time': 'Time',
+    'trainer': 'Trainer',
+    'full_name': 'Full Name',
+    'your_name': 'Your name',
+    'email_address': 'Email Address',
+    'phone_number': 'Phone Number',
+    'phone_placeholder': '555-123-4567',
+    'sending_booking': 'Sending booking...',
+    'book_session': 'Book Session',
+    'booking_success': 'Booking sent successfully!',
+    'booking_success_message': 'Your booking for',
+    'at_time': 'at',
+    'sent_to_trainer': 'has been sent to the trainer',
+    'confirmation_email': 'You will receive confirmation soon at',
+    'booking_error': 'Error creating booking'
   }
-  
-  const toggleLanguage = () => {
-    const newLang = language === 'he' ? 'en' : 'he'
-    setLanguage(newLang)
-    updateLanguage(newLang)
-    
-    // Reload page to apply translations
-    window.location.reload()
+}
+
+export function LanguageProvider({ children }: { children: ReactNode }) {
+  const [language, setLanguage] = useState<Language>('he')
+
+  const t = (key: string): string => {
+    return translations[language][key as keyof typeof translations[typeof language]] || key
   }
 
   return (
+    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+      {children}
+    </LanguageContext.Provider>
+  )
+}
+
+export function useTranslations() {
+  const context = useContext(LanguageContext)
+  if (context === undefined) {
+    throw new Error('useTranslations must be used within a LanguageProvider')
+  }
+  return context
+}
+
+export default function LanguageToggle() {
+  const { language, setLanguage } = useTranslations()
+
+  return (
     <button
-      onClick={toggleLanguage}
+      onClick={() => setLanguage(language === 'he' ? 'en' : 'he')}
       style={{
         display: 'inline-flex',
         alignItems: 'center',
         gap: '6px',
-        padding: '6px 10px',
-        fontSize: '12px',
+        padding: '8px 12px',
+        fontSize: '13px',
         fontWeight: '500',
-        color: '#6b7280',
-        backgroundColor: '#f9fafb',
-        border: '1px solid #e5e7eb',
+        color: '#374151',
+        backgroundColor: '#f3f4f6',
+        border: 'none',
         borderRadius: '6px',
         cursor: 'pointer',
-        transition: 'all 0.2s',
-        minWidth: '70px',
-        justifyContent: 'center'
+        transition: 'all 0.2s'
       }}
-      onMouseOver={(e) => {
-        e.currentTarget.style.backgroundColor = '#f3f4f6'
-        e.currentTarget.style.borderColor = '#d1d5db'
-      }}
-      onMouseOut={(e) => {
-        e.currentTarget.style.backgroundColor = '#f9fafb'
-        e.currentTarget.style.borderColor = '#e5e7eb'
-      }}
-      title={`Switch to ${language === 'he' ? 'English' : 'Hebrew'}`}
+      onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
+      onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
     >
-      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
       </svg>
       {language === 'he' ? 'EN' : 'עב'}
     </button>
   )
-}
-
-// Translation hook
-export function useTranslations() {
-  const [language, setLanguage] = useState('en')
-
-  useEffect(() => {
-    const savedLang = localStorage.getItem('language') || 'en'
-    setLanguage(savedLang)
-
-    const handleLanguageChange = (event: CustomEvent) => {
-      setLanguage(event.detail.language)
-    }
-
-    window.addEventListener('languageChanged', handleLanguageChange as EventListener)
-    return () => {
-      window.removeEventListener('languageChanged', handleLanguageChange as EventListener)
-    }
-  }, [])
-
-  const translations = {
-    en: {
-      // Login page
-      'trainer_dashboard': 'Trainer Dashboard',
-      'professional_fitness': 'Professional fitness scheduling platform for trainers',
-      'welcome_back': 'Welcome Back',
-      'sign_in_access': 'Sign in to access your trainer dashboard',
-      'continue_google': 'Continue with Google',
-      'secure_login': 'SECURE LOGIN',
-      'what_youll_get': 'What you\'ll get:',
-      'calendar_integration': 'Calendar integration & scheduling',
-      'client_management': 'Client management system',
-      'session_tracking': 'Session tracking & analytics',
-      'personal_booking': 'Personal booking link',
-      'terms_service': 'Terms of Service',
-      'privacy_policy': 'Privacy Policy',
-      'help_center': 'Help Center',
-      'contact_us': 'Contact Us',
-      'about': 'About',
-      'redirecting': 'Redirecting to dashboard...',
-
-      // Dashboard
-      'welcome_back_trainer': 'Welcome back!',
-      'business_today': 'Here\'s what\'s happening with your training business today',
-      'set_availability': 'Set Availability',
-      'view_clients': 'View Clients',
-      'todays_sessions': 'Today\'s Sessions',
-      'this_week': 'This Week',
-      'active_clients': 'Active Clients',
-      'upcoming_sessions': 'Upcoming Sessions',
-      'scheduled': 'scheduled',
-      'no_upcoming': 'No upcoming sessions',
-      'new_appointments': 'New appointments will appear here when clients book',
-      'share_booking_link': 'Share booking link',
-      'quick_actions': 'Quick Actions',
-      'manage_clients': 'Manage Clients',
-      'share_link': 'Share Link',
-      'sign_out': 'Sign Out',
-      'profile_info': 'Profile Info',
-      'name': 'Name',
-      'email': 'Email',
-      'booking_url': 'Booking URL',
-      'not_set': 'Not set',
-
-      // Clients
-      'client_management': 'Client Management',
-      'registered_clients': 'registered clients',
-      'dashboard': 'Dashboard',
-      'schedule_session': 'Schedule Session',
-      'your_clients': 'Your Clients',
-      'manage_relationships': 'Manage your client relationships and track their progress',
-      'total_clients': 'Total Clients',
-      'active_this_month': 'Active This Month',
-      'total_sessions': 'Total Sessions',
-      'client_directory': 'Client Directory',
-      'find_manage': 'Find and manage your clients',
-      'search_clients': 'Search clients by name or email...',
-      'no_clients_found': 'No clients found',
-      'no_clients_yet': 'No clients yet',
-      'no_match_search': 'No clients match your search. Try a different search term.',
-      'auto_added': 'Clients will be automatically added when they book sessions',
-      'share_booking': 'Share your booking link',
-      'joined': 'Joined',
-      'last': 'Last',
-      'goals': 'Goals',
-      'total': 'Total',
-      'done': 'Done',
-      'upcoming': 'Upcoming',
-
-      // Booking
-      'book_session': 'Book a session with',
-      'select_date_time': 'Select a date and time that works for you',
-      'select_date': 'Select Date',
-      'available_times': 'Available Times',
-      'loading_times': 'Loading available times...',
-      'no_times_available': 'No times available on this date',
-      'booking_details': 'Booking Details',
-      'session_summary': 'Session Summary:',
-      'date': 'Date',
-      'time': 'Time',
-      'trainer': 'Trainer',
-      'full_name': 'Full Name',
-      'your_name': 'Your name',
-      'email_address': 'Email Address',
-      'phone_number': 'Phone Number',
-      'book_session_btn': 'Book Session',
-      'sending_booking': 'Sending booking...',
-      'booking_sent': 'Booking sent successfully!',
-      'booking_confirmation': 'Your booking for {date} at {time} has been sent to the trainer',
-      'email_confirmation': 'You will receive confirmation shortly at: {email}',
-
-      // Availability
-      'availability_settings': 'Availability Settings',
-      'working_hours': 'Working hours and sessions',
-      'back': 'Back',
-      'session_settings': 'Session Settings',
-      'session_duration': 'Session Duration',
-      'break_between': 'Break Between Sessions',
-      'weekly_schedule': 'Weekly Schedule',
-      'working_hours_week': 'Set working hours for each day of the week',
-      'available': 'Available',
-      'unavailable': 'Unavailable',
-      'add_hours': 'Add Hours',
-      'from': 'From:',
-      'to': 'To:',
-      'remove_hours': 'Remove hours',
-      'cancel': 'Cancel',
-      'save_settings': 'Save Settings',
-      'saving': 'Saving...',
-      'settings_saved': 'Availability settings saved successfully!',
-      'error_saving': 'Error saving settings',
-
-      // Days
-      'sunday': 'Sunday',
-      'monday': 'Monday',
-      'tuesday': 'Tuesday',
-      'wednesday': 'Wednesday',
-      'thursday': 'Thursday',
-      'friday': 'Friday',
-      'saturday': 'Saturday',
-
-      // Status
-      'completed': 'Completed',
-      'booked': 'Scheduled',
-      'cancelled': 'Cancelled',
-      'active': 'Active',
-      'existing': 'Existing',
-      'new': 'New'
-    },
-    he: {
-      // Login page
-      'trainer_dashboard': 'מערכת המאמן',
-      'professional_fitness': 'פלטפורמה מקצועית לתיאום אימונים למאמנים',
-      'welcome_back': 'ברוכים השבים',
-      'sign_in_access': 'התחברו כדי לגשת למערכת המאמן שלכם',
-      'continue_google': 'המשך עם Google',
-      'secure_login': 'התחברות מאובטחת',
-      'what_youll_get': 'מה תקבלו:',
-      'calendar_integration': 'אינטגרציה עם יומן ותיאום',
-      'client_management': 'מערכת ניהול לקוחות',
-      'session_tracking': 'מעקב אחר אימונים וניתוחים',
-      'personal_booking': 'קישור הזמנה אישי',
-      'terms_service': 'תנאי השירות',
-      'privacy_policy': 'מדיניות פרטיות',
-      'help_center': 'מרכז עזרה',
-      'contact_us': 'צרו קשר',
-      'about': 'אודות',
-      'redirecting': 'מפנה לדשבורד...',
-
-      // Dashboard
-      'welcome_back_trainer': 'ברוכים השבים!',
-      'business_today': 'הנה מה שקורה עם עסק האימונים שלכם היום',
-      'set_availability': 'הגדר זמינות',
-      'view_clients': 'צפה בלקוחות',
-      'todays_sessions': 'אימוני היום',
-      'this_week': 'השבוע',
-      'active_clients': 'לקוחות פעילים',
-      'upcoming_sessions': 'אימונים קרובים',
-      'scheduled': 'מתוזמנים',
-      'no_upcoming': 'אין אימונים קרובים',
-      'new_appointments': 'פגישות חדשות יופיעו כאן כשלקוחות יזמינו',
-      'share_booking_link': 'שתף קישור הזמנה',
-      'quick_actions': 'פעולות מהירות',
-      'manage_clients': 'נהל לקוחות',
-      'share_link': 'שתף קישור',
-      'sign_out': 'התנתק',
-      'profile_info': 'פרטי פרופיל',
-      'name': 'שם',
-      'email': 'אימייל',
-      'booking_url': 'כתובת הזמנה',
-      'not_set': 'לא הוגדר',
-
-      // Clients
-      'client_management': 'ניהול לקוחות',
-      'registered_clients': 'לקוחות רשומים',
-      'dashboard': 'דשבורד',
-      'schedule_session': 'תזמן אימון',
-      'your_clients': 'הלקוחות שלכם',
-      'manage_relationships': 'נהלו את יחסי הלקוחות שלכם ועקבו אחר ההתקדמות',
-      'total_clients': 'סך לקוחות',
-      'active_this_month': 'פעילים החודש',
-      'total_sessions': 'סך אימונים',
-      'client_directory': 'ספריית לקוחות',
-      'find_manage': 'מצאו ונהלו את הלקוחות שלכם',
-      'search_clients': 'חפש לקוחות לפי שם או אימייל...',
-      'no_clients_found': 'לא נמצאו לקוחות',
-      'no_clients_yet': 'עדיין אין לקוחות',
-      'no_match_search': 'אין לקוחות התואמים לחיפוש. נסו מילת חיפוש אחרת.',
-      'auto_added': 'לקוחות יתווספו אוטומטית כשהם יזמינו אימונים',
-      'share_booking': 'שתפו את קישור ההזמנה שלכם',
-      'joined': 'הצטרף',
-      'last': 'אחרון',
-      'goals': 'מטרות',
-      'total': 'סך הכל',
-      'done': 'בוצע',
-      'upcoming': 'קרוב',
-
-      // Booking
-      'book_session': 'הזמן אימון עם',
-      'select_date_time': 'בחר תאריך ושעה המתאימים לך',
-      'select_date': 'בחר תאריך',
-      'available_times': 'שעות זמינות',
-      'loading_times': 'טוען שעות זמינות...',
-      'no_times_available': 'אין שעות זמינות בתאריך זה',
-      'booking_details': 'פרטי ההזמנה',
-      'session_summary': 'סיכום הפגישה:',
-      'date': 'תאריך',
-      'time': 'שעה',
-      'trainer': 'מאמן',
-      'full_name': 'שם מלא',
-      'your_name': 'השם שלך',
-      'email_address': 'כתובת אימייל',
-      'phone_number': 'מספר טלפון',
-      'book_session_btn': 'הזמן אימון',
-      'sending_booking': 'שולח הזמנה...',
-      'booking_sent': 'ההזמנה נשלחה בהצלחה!',
-      'booking_confirmation': 'ההזמנה שלך ל-{date} בשעה {time} נשלחה למאמן',
-      'email_confirmation': 'תקבל אישור בקרוב למייל: {email}',
-
-      // Availability
-      'availability_settings': 'הגדרות זמינות',
-      'working_hours': 'שעות עבודה ואימונים',
-      'back': 'חזור',
-      'session_settings': 'הגדרות אימון',
-      'session_duration': 'משך אימון',
-      'break_between': 'הפסקה בין אימונים',
-      'weekly_schedule': 'לוח שבועי',
-      'working_hours_week': 'הגדרת שעות עבודה לכל יום בשבוע',
-      'available': 'זמין',
-      'unavailable': 'לא זמין',
-      'add_hours': 'הוסף שעות',
-      'from': 'מ:',
-      'to': 'עד:',
-      'remove_hours': 'הסר שעות',
-      'cancel': 'ביטול',
-      'save_settings': 'שמור הגדרות',
-      'saving': 'שומר...',
-      'settings_saved': 'הגדרות הזמינות נשמרו בהצלחה!',
-      'error_saving': 'שגיאה בשמירת ההגדרות',
-
-      // Days
-      'sunday': 'ראשון',
-      'monday': 'שני',
-      'tuesday': 'שלישי',
-      'wednesday': 'רביעי',
-      'thursday': 'חמישי',
-      'friday': 'שישי',
-      'saturday': 'שבת',
-
-      // Status
-      'completed': 'הושלם',
-      'booked': 'מתוזמן',
-      'cancelled': 'בוטל',
-      'active': 'פעיל',
-      'existing': 'קיים',
-      'new': 'חדש'
-    }
-  }
-
-  const t = (key: string, params?: Record<string, string>) => {
-    let text = translations[language as keyof typeof translations]?.[key as keyof typeof translations.en] || key
-    
-    if (params) {
-      Object.keys(params).forEach(param => {
-        text = text.replace(`{${param}}`, params[param])
-      })
-    }
-    
-    return text
-  }
-
-  return { t, language }
 }

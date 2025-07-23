@@ -1,6 +1,18 @@
+// src/app/providers.tsx
 'use client'
 import { SessionProvider } from 'next-auth/react'
+import { LanguageProvider } from '@/components/LanguageToggle'
 
-export function Providers({ children }: { children: React.ReactNode }) {
-  return <SessionProvider>{children}</SessionProvider>
+interface ProvidersProps {
+  children: React.ReactNode
+}
+
+export default function Providers({ children }: ProvidersProps) {
+  return (
+    <SessionProvider>
+      <LanguageProvider>
+        {children}
+      </LanguageProvider>
+    </SessionProvider>
+  )
 }

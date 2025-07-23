@@ -1,7 +1,8 @@
-// src/app/book/[trainerSlug]/page.tsx - Fixed icon sizes
+// src/app/book/[trainerSlug]/page.tsx - Updated with translation support
 'use client'
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
+import LanguageToggle, { useTranslations } from '@/components/LanguageToggle'
 
 interface BookingForm {
   name: string
@@ -12,6 +13,7 @@ interface BookingForm {
 export default function BookingPage() {
   const params = useParams()
   const trainerSlug = params.trainerSlug as string
+  const { t } = useTranslations()
   
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
@@ -125,11 +127,11 @@ export default function BookingPage() {
           fetchAvailableSlots(selectedDate)
         }, 3000)
       } else {
-        alert('שגיאה ביצירת הזמנה: ' + result.error)
+        alert(t('booking_error') + ': ' + result.error)
       }
     } catch (error) {
       console.error('Booking error:', error)
-      alert('שגיאה ביצירת הזמנה')
+      alert(t('booking_error'))
     } finally {
       setIsBooking(false)
     }
@@ -139,19 +141,38 @@ export default function BookingPage() {
 
   if (showSuccess) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center max-w-md w-full">
-          <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+        <div style={{ 
+          backgroundColor: 'white',
+          border: '1px solid #e5e7eb',
+          borderRadius: '16px',
+          padding: '48px 32px',
+          textAlign: 'center',
+          maxWidth: '400px',
+          width: '100%'
+        }}>
+          <div style={{ 
+            width: '64px', 
+            height: '64px', 
+            backgroundColor: '#f0fdf4', 
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 24px'
+          }}>
+            <svg width="24" height="24" fill="none" stroke="#16a34a" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">הזמנה נשלחה בהצלחה!</h2>
-          <p className="text-gray-600 mb-4">
-            ההזמנה שלך ל-{new Date(selectedDate).toLocaleDateString('he-IL')} בשעה {selectedTime} נשלחה למאמן
+          <h2 style={{ fontSize: '24px', fontWeight: '600', color: '#111827', margin: '0 0 16px 0' }}>
+            {t('booking_success')} ✅
+          </h2>
+          <p style={{ fontSize: '16px', color: '#6b7280', margin: '0 0 16px 0', lineHeight: '1.5' }}>
+            {t('booking_success_message')} {new Date(selectedDate).toLocaleDateString('he-IL')} {t('at_time')} {selectedTime} {t('sent_to_trainer')}
           </p>
-          <p className="text-sm text-gray-500">
-            תקבל אישור בקרוב למייל: {bookingForm.email}
+          <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0 }}>
+            {t('confirmation_email')}: <strong>{bookingForm.email}</strong>
           </p>
         </div>
       </div>
@@ -159,56 +180,140 @@ export default function BookingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16">
-            <div className="flex items-center space-x-3 space-x-reverse">
-              <div className="w-6 h-6 bg-gray-900 rounded-lg flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <div>
-                <h1 className="text-xl font-semibold text-gray-900">
-                  הזמן אימון עם {trainerName}
-                </h1>
-                <p className="text-sm text-gray-500">
-                  בחר תאריך ושעה המתאימים לך
-                </p>
-              </div>
+    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+      {/* Header - matches dashboard exactly */}
+      <header style={{ 
+        backgroundColor: 'white', 
+        borderBottom: '1px solid #e5e7eb',
+        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
+      }}>
+        <div style={{ 
+          maxWidth: '1280px', 
+          margin: '0 auto', 
+          padding: '0 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          height: '64px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ 
+              width: '32px', 
+              height: '32px', 
+              backgroundColor: '#3b82f6', 
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <svg width="18" height="18" fill="white" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
+              </svg>
             </div>
+            <div>
+              <h1 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>
+                {t('book_session_with')} {trainerName}
+              </h1>
+              <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>
+                {t('select_date_time')}
+              </p>
+            </div>
+          </div>
+          
+          {/* Language Toggle */}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <LanguageToggle />
           </div>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* Main Content */}
+      <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 16px' }}>
+        
+        {/* Hero Section */}
+        <div style={{ 
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          borderRadius: '16px',
+          padding: '32px',
+          marginBottom: '32px',
+          color: 'white',
+          textAlign: 'center'
+        }}>
+          <h2 style={{ fontSize: '28px', fontWeight: '700', margin: '0 0 8px 0' }}>
+            📅 {t('booking_appointment')}
+          </h2>
+          <p style={{ fontSize: '16px', opacity: 0.9, margin: 0 }}>
+            {t('select_time_start_training')}
+          </p>
+        </div>
+
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+          gap: '32px'
+        }}>
           
           {/* Date & Time Selection */}
-          <div className="bg-white rounded-xl border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">בחר תאריך ושעה</h2>
+          <div style={{ 
+            backgroundColor: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '16px',
+            overflow: 'hidden'
+          }}>
+            <div style={{ 
+              padding: '24px',
+              borderBottom: '1px solid #e5e7eb'
+            }}>
+              <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: '0 0 8px 0' }}>
+                {t('select_date_time')}
+              </h3>
+              <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
+                {t('click_desired_date_time')}
+              </p>
             </div>
-            <div className="p-6">
+            
+            <div style={{ padding: '24px' }}>
               {/* Date Selection */}
-              <div className="mb-8">
-                <h3 className="text-sm font-medium text-gray-900 mb-4">תאריך</h3>
-                <div className="grid grid-cols-7 gap-2">
+              <div style={{ marginBottom: '32px' }}>
+                <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#111827', margin: '0 0 16px 0' }}>
+                  {t('date')} 📅
+                </h4>
+                <div style={{ 
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(7, 1fr)',
+                  gap: '8px'
+                }}>
                   {days.map((day) => (
                     <button
                       key={day.date}
                       onClick={() => setSelectedDate(day.date)}
-                      className={`p-3 text-center rounded-lg border transition-colors ${
-                        selectedDate === day.date
-                          ? 'bg-gray-900 text-white border-gray-900'
-                          : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
-                      }`}
+                      style={{
+                        padding: '12px 4px',
+                        textAlign: 'center',
+                        borderRadius: '8px',
+                        border: selectedDate === day.date ? '2px solid #3b82f6' : '1px solid #e5e7eb',
+                        backgroundColor: selectedDate === day.date ? '#eff6ff' : 'white',
+                        color: selectedDate === day.date ? '#1e40af' : '#374151',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        fontSize: '12px'
+                      }}
+                      onMouseOver={(e) => {
+                        if (selectedDate !== day.date) {
+                          e.currentTarget.style.backgroundColor = '#f9fafb'
+                          e.currentTarget.style.borderColor = '#d1d5db'
+                        }
+                      }}
+                      onMouseOut={(e) => {
+                        if (selectedDate !== day.date) {
+                          e.currentTarget.style.backgroundColor = 'white'
+                          e.currentTarget.style.borderColor = '#e5e7eb'
+                        }
+                      }}
                     >
-                      <div className="text-xs opacity-75">{day.dayName}</div>
-                      <div className="font-semibold">{day.dayNum}</div>
-                      <div className="text-xs opacity-75">{day.month}</div>
+                      <div style={{ opacity: 0.75, marginBottom: '2px' }}>{day.dayName}</div>
+                      <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{day.dayNum}</div>
+                      <div style={{ opacity: 0.75, fontSize: '10px' }}>{day.month}</div>
                     </button>
                   ))}
                 </div>
@@ -217,33 +322,77 @@ export default function BookingPage() {
               {/* Time Selection */}
               {selectedDate && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-900 mb-4">שעות זמינות</h3>
+                  <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#111827', margin: '0 0 16px 0' }}>
+                    {t('available_times')} ⏰
+                  </h4>
                   
                   {loading ? (
-                    <div className="text-center py-8">
-                      <div className="w-4 h-4 border-4 border-gray-200 border-t-gray-600 rounded-full animate-spin mx-auto mb-4"></div>
-                      <p className="text-sm text-gray-500">טוען שעות זמינות...</p>
+                    <div style={{ textAlign: 'center', padding: '32px 0' }}>
+                      <div style={{ 
+                        width: '20px', 
+                        height: '20px', 
+                        border: '2px solid #e5e7eb', 
+                        borderTop: '2px solid #3b82f6',
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite',
+                        margin: '0 auto 16px'
+                      }}></div>
+                      <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>{t('loading_available_times')}</p>
                     </div>
                   ) : availableSlots.length === 0 ? (
-                    <div className="text-center py-8">
-                      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div style={{ textAlign: 'center', padding: '32px 0' }}>
+                      <div style={{ 
+                        width: '48px', 
+                        height: '48px', 
+                        backgroundColor: '#f3f4f6', 
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 16px'
+                      }}>
+                        <svg width="20" height="20" fill="none" stroke="#9ca3af" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       </div>
-                      <p className="text-sm text-gray-500">אין שעות זמינות בתאריך זה</p>
+                      <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
+                        {t('no_available_times')}
+                      </p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-3 gap-3">
+                    <div style={{ 
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))',
+                      gap: '8px'
+                    }}>
                       {availableSlots.map((slot) => (
                         <button
                           key={slot}
                           onClick={() => setSelectedTime(slot)}
-                          className={`p-3 text-center rounded-lg border text-sm font-medium transition-colors ${
-                            selectedTime === slot
-                              ? 'bg-gray-900 text-white border-gray-900'
-                              : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
-                          }`}
+                          style={{
+                            padding: '12px 8px',
+                            textAlign: 'center',
+                            borderRadius: '8px',
+                            border: selectedTime === slot ? '2px solid #16a34a' : '1px solid #e5e7eb',
+                            backgroundColor: selectedTime === slot ? '#f0fdf4' : 'white',
+                            color: selectedTime === slot ? '#15803d' : '#374151',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseOver={(e) => {
+                            if (selectedTime !== slot) {
+                              e.currentTarget.style.backgroundColor = '#f9fafb'
+                              e.currentTarget.style.borderColor = '#d1d5db'
+                            }
+                          }}
+                          onMouseOut={(e) => {
+                            if (selectedTime !== slot) {
+                              e.currentTarget.style.backgroundColor = 'white'
+                              e.currentTarget.style.borderColor = '#e5e7eb'
+                            }
+                          }}
                         >
                           {slot}
                         </button>
@@ -256,17 +405,39 @@ export default function BookingPage() {
           </div>
 
           {/* Booking Form */}
-          <div className="bg-white rounded-xl border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">פרטי ההזמנה</h2>
+          <div style={{ 
+            backgroundColor: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '16px',
+            overflow: 'hidden'
+          }}>
+            <div style={{ 
+              padding: '24px',
+              borderBottom: '1px solid #e5e7eb'
+            }}>
+              <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: '0 0 8px 0' }}>
+                {t('booking_details')}
+              </h3>
+              <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
+                {t('fill_details_complete')}
+              </p>
             </div>
-            <div className="p-6">
+            
+            <div style={{ padding: '24px' }}>
               {selectedDate && selectedTime && (
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
-                  <h3 className="text-sm font-medium text-gray-900 mb-2">סיכום הפגישה:</h3>
-                  <div className="space-y-1 text-sm text-gray-600">
-                    <p>
-                      <span className="font-medium">תאריך:</span>{' '}
+                <div style={{ 
+                  backgroundColor: '#f0f9ff',
+                  border: '1px solid #bae6fd',
+                  borderRadius: '12px',
+                  padding: '16px',
+                  marginBottom: '24px'
+                }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#0c4a6e', margin: '0 0 12px 0' }}>
+                    📋 {t('session_summary')}:
+                  </h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <p style={{ fontSize: '14px', color: '#0369a1', margin: 0 }}>
+                      <strong>{t('date')}:</strong>{' '}
                       {new Date(selectedDate).toLocaleDateString('he-IL', { 
                         weekday: 'long', 
                         year: 'numeric', 
@@ -274,70 +445,131 @@ export default function BookingPage() {
                         day: 'numeric' 
                       })}
                     </p>
-                    <p><span className="font-medium">שעה:</span> {selectedTime}</p>
-                    <p><span className="font-medium">מאמן:</span> {trainerName}</p>
+                    <p style={{ fontSize: '14px', color: '#0369a1', margin: 0 }}>
+                      <strong>{t('time')}:</strong> {selectedTime}
+                    </p>
+                    <p style={{ fontSize: '14px', color: '#0369a1', margin: 0 }}>
+                      <strong>{t('trainer')}:</strong> {trainerName}
+                    </p>
                   </div>
                 </div>
               )}
 
-              <form onSubmit={handleBooking} className="space-y-4">
+              <form onSubmit={handleBooking} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">
-                    שם מלא *
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
+                    {t('full_name')} *
                   </label>
                   <input
                     type="text"
                     required
                     value={bookingForm.name}
                     onChange={(e) => setBookingForm(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                    placeholder="השם שלך"
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      backgroundColor: 'white',
+                      color: '#111827'
+                    }}
+                    placeholder={t('your_name')}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">
-                    כתובת אימייל *
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
+                    {t('email_address')} *
                   </label>
                   <input
                     type="email"
                     required
                     value={bookingForm.email}
                     onChange={(e) => setBookingForm(prev => ({ ...prev, email: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      backgroundColor: 'white',
+                      color: '#111827'
+                    }}
                     placeholder="your@email.com"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">
-                    מספר טלפון
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
+                    {t('phone_number')}
                   </label>
                   <input
                     type="tel"
                     value={bookingForm.phone}
                     onChange={(e) => setBookingForm(prev => ({ ...prev, phone: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                    placeholder="050-1234567"
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      backgroundColor: 'white',
+                      color: '#111827'
+                    }}
+                    placeholder={t('phone_placeholder')}
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={!selectedDate || !selectedTime || !bookingForm.name || !bookingForm.email || isBooking}
-                  className={`w-full py-3 px-4 rounded-lg text-sm font-medium transition-colors ${
-                    (!selectedDate || !selectedTime || !bookingForm.name || !bookingForm.email || isBooking)
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-gray-900 text-white hover:bg-gray-800'
-                  }`}
+                  style={{
+                    width: '100%',
+                    padding: '16px 24px',
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    border: 'none',
+                    cursor: (!selectedDate || !selectedTime || !bookingForm.name || !bookingForm.email || isBooking) ? 'not-allowed' : 'pointer',
+                    backgroundColor: (!selectedDate || !selectedTime || !bookingForm.name || !bookingForm.email || isBooking) ? '#9ca3af' : '#16a34a',
+                    color: 'white',
+                    transition: 'all 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}
+                  onMouseOver={(e) => {
+                    if (!(!selectedDate || !selectedTime || !bookingForm.name || !bookingForm.email || isBooking)) {
+                      e.currentTarget.style.backgroundColor = '#15803d'
+                    }
+                  }}
+                  onMouseOut={(e) => {
+                    if (!(!selectedDate || !selectedTime || !bookingForm.name || !bookingForm.email || isBooking)) {
+                      e.currentTarget.style.backgroundColor = '#16a34a'
+                    }
+                  }}
                 >
                   {isBooking ? (
-                    <div className="flex items-center justify-center">
-                      <div className="w-4 h-4 border-2 border-gray-300 border-t-white rounded-full animate-spin ml-2"></div>
-                      שולח הזמנה...
-                    </div>
+                    <>
+                      <div style={{ 
+                        width: '16px', 
+                        height: '16px', 
+                        border: '2px solid white', 
+                        borderTop: '2px solid transparent',
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite'
+                      }}></div>
+                      {t('sending_booking')}
+                    </>
                   ) : (
-                    'הזמן אימון'
+                    <>
+                      <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
+                      </svg>
+                      {t('book_session')} 💪
+                    </>
                   )}
                 </button>
               </form>
@@ -345,6 +577,12 @@ export default function BookingPage() {
           </div>
         </div>
       </main>
+
+      <style jsx>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   )
 }
