@@ -1,260 +1,463 @@
+// src/app/page.tsx - Updated to match dashboard design system
 'use client'
 import Link from 'next/link'
+import LanguageToggle, { useTranslations } from '@/components/LanguageToggle'
 
 export default function HomePage() {
+  const { t } = useTranslations()
+
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'white' }}>
-      {/* Hero Section */}
-      <section style={{ 
-        position: 'relative', 
-        backgroundColor: 'black', 
-        color: 'white', 
-        overflow: 'hidden',
-        padding: '6rem 1rem'
+    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+      {/* Header - matches dashboard exactly */}
+      <header style={{ 
+        backgroundColor: 'white', 
+        borderBottom: '1px solid #e5e7eb',
+        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
       }}>
-        <div style={{ maxWidth: '72rem', margin: '0 auto', textAlign: 'center' }}>
-          <h1 style={{ 
-            fontSize: '3.75rem', 
-            fontWeight: 'bold', 
-            marginBottom: '2rem', 
-            lineHeight: '1.2' 
-          }}>
-            מערכת הזמנות מתקדמת
-            <br />
-            <span style={{ color: '#d1d5db' }}>למאמני כושר</span>
-          </h1>
-          <p style={{ 
-            fontSize: '1.25rem', 
-            marginBottom: '3rem', 
-            color: '#d1d5db',
-            maxWidth: '48rem',
-            margin: '0 auto 3rem auto',
-            lineHeight: '1.6'
-          }}>
-            פלטפורמה מקצועית לניהול הזמנות עם חיבור ליומן Google ומעקב אחר לקוחות.
-            הפכו את ניהול האימונים שלכם לפשוט ויעיל יותר מתמיד.
-          </p>
-          
-          {/* Fixed Button Container */}
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            gap: '2rem',
-            flexWrap: 'wrap',
-            marginTop: '2rem'
-          }}>
+        <div style={{ 
+          maxWidth: '1280px', 
+          margin: '0 auto', 
+          padding: '0 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          height: '64px'
+        }}>
+          {/* Logo & Title */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ 
+              width: '32px', 
+              height: '32px', 
+              backgroundColor: '#3b82f6', 
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <svg width="18" height="18" fill="white" viewBox="0 0 24 24">
+                <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+            </div>
+            <div>
+              <h1 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>
+                FitnessPro
+              </h1>
+              <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>
+                מערכת הזמנות למאמני כושר
+              </p>
+            </div>
+          </div>
+
+          {/* Desktop Actions */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <LanguageToggle />
             <Link
               href="/login"
               style={{
-                backgroundColor: 'white',
-                color: 'black',
-                fontWeight: 'bold',
-                padding: '1rem 3rem',
-                fontSize: '1.125rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 12px',
+                fontSize: '13px',
+                fontWeight: '500',
+                color: 'white',
+                backgroundColor: '#3b82f6',
+                border: 'none',
+                borderRadius: '6px',
                 textDecoration: 'none',
-                borderRadius: '0.5rem',
-                transition: 'all 0.3s ease',
-                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                display: 'inline-block'
+                transition: 'all 0.2s'
               }}
-              className="hover-button"
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#3b82f6'}
             >
-              התחברות למאמנים
+              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              התחברות
             </Link>
           </div>
         </div>
-      </section>
+      </header>
 
-      {/* Features Section */}
-      <section style={{ padding: '6rem 1rem', backgroundColor: '#f9fafb' }}>
-        <div style={{ maxWidth: '72rem', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '5rem' }}>
+      {/* Main Content */}
+      <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 16px' }}>
+        
+        {/* Hero Section */}
+        <div style={{ 
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          borderRadius: '16px',
+          padding: '64px 32px',
+          marginBottom: '32px',
+          color: 'white',
+          textAlign: 'center'
+        }}>
+          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
             <h2 style={{ 
-              fontSize: '3rem', 
-              fontWeight: 'bold', 
-              color: 'black', 
-              marginBottom: '1.5rem' 
+              fontSize: '48px', 
+              fontWeight: '700', 
+              margin: '0 0 16px 0',
+              lineHeight: '1.2'
             }}>
-              למה לבחור במערכת שלנו?
+              מערכת הזמנות מתקדמת
             </h2>
-            <div style={{ 
-              width: '6rem', 
-              height: '0.25rem', 
-              backgroundColor: 'black', 
-              margin: '0 auto 1.5rem auto' 
-            }}></div>
-          </div>
-
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
-            gap: '3rem' 
-          }}>
-            {/* Feature 1 */}
-            <div style={{ 
-              backgroundColor: 'white', 
-              padding: '3rem', 
-              textAlign: 'center',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+            <h3 style={{ 
+              fontSize: '32px', 
+              fontWeight: '600', 
+              margin: '0 0 24px 0',
+              opacity: 0.9
             }}>
-              <div style={{ 
-                width: '5rem', 
-                height: '5rem', 
-                backgroundColor: 'black', 
-                color: 'white', 
-                borderRadius: '50%', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                margin: '0 auto 2rem auto',
-                fontSize: '2.5rem'
-              }}>
-                📅
-              </div>
-              <h3 style={{ 
-                fontSize: '1.5rem', 
-                fontWeight: 'bold', 
-                marginBottom: '1.5rem', 
-                color: 'black' 
-              }}>
-                חיבור ליומן Google
-              </h3>
-              <p style={{ 
-                color: '#4b5563', 
-                lineHeight: '1.6', 
-                fontSize: '1.125rem' 
-              }}>
-                סנכרון אוטומטי עם יומן Google שלכם. כל הזמנה חדשה תופיע מיד ביומן הפרטי שלכם עם כל הפרטים הרלוונטיים.
-              </p>
-            </div>
-
-            {/* Feature 2 */}
-            <div style={{ 
-              backgroundColor: 'white', 
-              padding: '3rem', 
-              textAlign: 'center',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+              למאמני כושר 💪
+            </h3>
+            <p style={{ 
+              fontSize: '18px', 
+              opacity: 0.9, 
+              margin: '0 0 40px 0',
+              lineHeight: '1.6',
+              maxWidth: '600px',
+              margin: '0 auto 40px auto'
             }}>
-              <div style={{ 
-                width: '5rem', 
-                height: '5rem', 
-                backgroundColor: 'black', 
-                color: 'white', 
-                borderRadius: '50%', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                margin: '0 auto 2rem auto',
-                fontSize: '2.5rem'
-              }}>
-                🔗
-              </div>
-              <h3 style={{ 
-                fontSize: '1.5rem', 
-                fontWeight: 'bold', 
-                marginBottom: '1.5rem', 
-                color: 'black' 
-              }}>
-                קישור הזמנה אישי
-              </h3>
-              <p style={{ 
-                color: '#4b5563', 
-                lineHeight: '1.6', 
-                fontSize: '1.125rem' 
-              }}>
-                כל מאמן מקבל קישור אישי ויוניק. שתפו אותו עם הלקוחות שלכם והם יוכלו להזמין פגישות ישירות ללא צורך ברישום.
-              </p>
-            </div>
-
-            {/* Feature 3 */}
-            <div style={{ 
-              backgroundColor: 'white', 
-              padding: '3rem', 
-              textAlign: 'center',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
-            }}>
-              <div style={{ 
-                width: '5rem', 
-                height: '5rem', 
-                backgroundColor: 'black', 
-                color: 'white', 
-                borderRadius: '50%', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                margin: '0 auto 2rem auto',
-                fontSize: '2.5rem'
-              }}>
-                📊
-              </div>
-              <h3 style={{ 
-                fontSize: '1.5rem', 
-                fontWeight: 'bold', 
-                marginBottom: '1.5rem', 
-                color: 'black' 
-              }}>
-                ניהול מתקדם
-              </h3>
-              <p style={{ 
-                color: '#4b5563', 
-                lineHeight: '1.6', 
-                fontSize: '1.125rem' 
-              }}>
-                לוח בקרה מקצועי עם מעקב אחר כל ההזמנות, פרטי לקוחות, וניהול זמינות. הכל במקום אחד ונגיש.
-              </p>
+              פלטפורמה מקצועית לניהול הזמנות עם חיבור ליומן Google ומעקב אחר לקוחות.
+              הפכו את ניהול האימונים שלכם לפשוט ויעיל יותר מתמיד.
+            </p>
+            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Link
+                href="/login"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '16px 32px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  color: '#667eea',
+                  backgroundColor: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  transition: 'all 0.2s',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              >
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                התחברות למאמנים
+              </Link>
             </div>
           </div>
         </div>
-      </section>
 
-      {/* Simple CTA Section */}
-      <section style={{ 
-        padding: '6rem 1rem', 
-        backgroundColor: 'black', 
-        color: 'white',
-        textAlign: 'center'
-      }}>
-        <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
-          <h2 style={{ 
-            fontSize: '3rem', 
-            fontWeight: 'bold', 
-            marginBottom: '2rem' 
+        {/* Features Title */}
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <h3 style={{ 
+            fontSize: '32px', 
+            fontWeight: '700', 
+            color: '#111827', 
+            margin: '0 0 8px 0' 
           }}>
-            התחילו עוד היום!
-          </h2>
+            למה לבחור במערכת שלנו?
+          </h3>
+          <p style={{ fontSize: '16px', color: '#6b7280', margin: 0 }}>
+            כל מה שמאמן כושר צריך במקום אחד
+          </p>
+        </div>
+
+        {/* Features Grid */}
+        <div style={{ 
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+          gap: '24px',
+          marginBottom: '64px'
+        }}>
+          {/* Feature 1 */}
+          <div style={{ 
+            backgroundColor: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '16px',
+            padding: '32px',
+            textAlign: 'center',
+            transition: 'all 0.2s'
+          }}>
+            <div style={{ 
+              width: '64px', 
+              height: '64px', 
+              backgroundColor: '#eff6ff', 
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 24px',
+              fontSize: '28px'
+            }}>
+              📅
+            </div>
+            <h4 style={{ 
+              fontSize: '20px', 
+              fontWeight: '600', 
+              color: '#111827', 
+              margin: '0 0 16px 0' 
+            }}>
+              חיבור ליומן Google
+            </h4>
+            <p style={{ 
+              fontSize: '14px',
+              color: '#6b7280', 
+              lineHeight: '1.6', 
+              margin: 0 
+            }}>
+              סנכרון אוטומטי עם יומן Google שלכם. כל הזמנה חדשה תופיע מיד ביומן הפרטי שלכם עם כל הפרטים הרלוונטיים.
+            </p>
+          </div>
+
+          {/* Feature 2 */}
+          <div style={{ 
+            backgroundColor: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '16px',
+            padding: '32px',
+            textAlign: 'center',
+            transition: 'all 0.2s'
+          }}>
+            <div style={{ 
+              width: '64px', 
+              height: '64px', 
+              backgroundColor: '#f0fdf4', 
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 24px',
+              fontSize: '28px'
+            }}>
+              🔗
+            </div>
+            <h4 style={{ 
+              fontSize: '20px', 
+              fontWeight: '600', 
+              color: '#111827', 
+              margin: '0 0 16px 0' 
+            }}>
+              קישור הזמנה אישי
+            </h4>
+            <p style={{ 
+              fontSize: '14px',
+              color: '#6b7280', 
+              lineHeight: '1.6', 
+              margin: 0 
+            }}>
+              כל מאמן מקבל קישור אישי ויוניק. שתפו אותו עם הלקוחות שלכם והם יוכלו להזמין פגישות ישירות ללא צורך ברישום.
+            </p>
+          </div>
+
+          {/* Feature 3 */}
+          <div style={{ 
+            backgroundColor: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '16px',
+            padding: '32px',
+            textAlign: 'center',
+            transition: 'all 0.2s'
+          }}>
+            <div style={{ 
+              width: '64px', 
+              height: '64px', 
+              backgroundColor: '#faf5ff', 
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 24px',
+              fontSize: '28px'
+            }}>
+              📊
+            </div>
+            <h4 style={{ 
+              fontSize: '20px', 
+              fontWeight: '600', 
+              color: '#111827', 
+              margin: '0 0 16px 0' 
+            }}>
+              ניהול מתקדם
+            </h4>
+            <p style={{ 
+              fontSize: '14px',
+              color: '#6b7280', 
+              lineHeight: '1.6', 
+              margin: 0 
+            }}>
+              לוח בקרה מקצועי עם מעקב אחר כל ההזמנות, פרטי לקוחות, וניהול זמינות. הכל במקום אחד ונגיש.
+            </p>
+          </div>
+        </div>
+
+        {/* Stats Section */}
+        <div style={{ 
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '20px',
+          marginBottom: '64px'
+        }}>
+          <div style={{ 
+            backgroundColor: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            padding: '24px',
+            textAlign: 'center',
+            transition: 'all 0.2s'
+          }}>
+            <div style={{ 
+              fontSize: '32px', 
+              fontWeight: '700', 
+              color: '#3b82f6', 
+              margin: '0 0 8px 0' 
+            }}>
+              500+
+            </div>
+            <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
+              מאמנים רשומים
+            </p>
+          </div>
+
+          <div style={{ 
+            backgroundColor: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            padding: '24px',
+            textAlign: 'center',
+            transition: 'all 0.2s'
+          }}>
+            <div style={{ 
+              fontSize: '32px', 
+              fontWeight: '700', 
+              color: '#16a34a', 
+              margin: '0 0 8px 0' 
+            }}>
+              10K+
+            </div>
+            <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
+              אימונים בוצעו
+            </p>
+          </div>
+
+          <div style={{ 
+            backgroundColor: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            padding: '24px',
+            textAlign: 'center',
+            transition: 'all 0.2s'
+          }}>
+            <div style={{ 
+              fontSize: '32px', 
+              fontWeight: '700', 
+              color: '#9333ea', 
+              margin: '0 0 8px 0' 
+            }}>
+              98%
+            </div>
+            <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
+              שביעות רצון
+            </p>
+          </div>
+        </div>
+
+        {/* CTA Section */}
+        <div style={{ 
+          backgroundColor: 'white',
+          border: '1px solid #e5e7eb',
+          borderRadius: '16px',
+          padding: '48px 32px',
+          textAlign: 'center'
+        }}>
+          <h3 style={{ 
+            fontSize: '28px', 
+            fontWeight: '700', 
+            color: '#111827', 
+            margin: '0 0 16px 0' 
+          }}>
+            התחילו עוד היום! 🚀
+          </h3>
           <p style={{ 
-            fontSize: '1.25rem', 
-            color: '#d1d5db', 
-            marginBottom: '3rem',
-            lineHeight: '1.6'
+            fontSize: '16px', 
+            color: '#6b7280', 
+            margin: '0 0 32px 0',
+            lineHeight: '1.6',
+            maxWidth: '600px',
+            margin: '0 auto 32px auto'
           }}>
             הצטרפו למאמנים רבים שכבר משתמשים במערכת ומנהלים את העסק שלהם ביעילות מקסימלית
           </p>
           <Link
             href="/login"
             style={{
-              backgroundColor: 'white',
-              color: 'black',
-              fontWeight: 'bold',
-              padding: '1rem 2rem',
-              fontSize: '1.125rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '16px 32px',
+              fontSize: '16px',
+              fontWeight: '600',
+              color: 'white',
+              backgroundColor: '#3b82f6',
+              border: 'none',
+              borderRadius: '8px',
               textDecoration: 'none',
-              borderRadius: '0.5rem',
-              display: 'inline-block',
-              transition: 'all 0.3s ease'
+              transition: 'all 0.2s',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = '#2563eb'
+              e.currentTarget.style.transform = 'translateY(-2px)'
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = '#3b82f6'
+              e.currentTarget.style.transform = 'translateY(0)'
             }}
           >
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
             הצטרפו עכשיו - בחינם
           </Link>
         </div>
-      </section>
+      </main>
 
-      <style jsx>{`
-        .hover-button:hover {
-          background-color: #f3f4f6;
-          transform: scale(1.05);
-        }
-      `}</style>
+      {/* Footer */}
+      <footer style={{ 
+        backgroundColor: 'white',
+        borderTop: '1px solid #e5e7eb',
+        marginTop: '64px',
+        padding: '32px 16px'
+      }}>
+        <div style={{ 
+          maxWidth: '1280px', 
+          margin: '0 auto',
+          textAlign: 'center'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '16px' }}>
+            <div style={{ 
+              width: '24px', 
+              height: '24px', 
+              backgroundColor: '#3b82f6', 
+              borderRadius: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <svg width="14" height="14" fill="white" viewBox="0 0 24 24">
+                <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+            </div>
+            <span style={{ fontSize: '16px', fontWeight: '600', color: '#111827' }}>
+              FitnessPro
+            </span>
+          </div>
+          <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
+            © 2024 FitnessPro. כל הזכויות שמורות.
+          </p>
+        </div>
+      </footer>
     </div>
   )
 }
