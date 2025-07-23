@@ -1,4 +1,4 @@
-// src/app/api/bookings/[id]/route.ts
+// src/app/api/bookings/[id]/route.ts - FIXED VERSION
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
@@ -52,9 +52,26 @@ export async function DELETE(
       }
     }
 
-    // Delete the appointment from database
-    await prisma.appointment.delete({
-      where: { id: appointmentId }
+    // 🔧 NEW: Use transaction to ensure data consistency
+    await prisma.$transaction(async (tx) => {
+      // Delete the appointment from database
+      await tx.appointment.delete({
+        where: { id: appointmentId }
+      })
+
+      // 🆕 Update completedSessions count if this was a completed appointment
+      if (appointment.status === 'completed' && appointment.clientId) {
+        await tx.client.update({
+          where: { id: appointment.clientId },
+          data: {
+            completedSessions: {
+              decrement: 1  // Decrease the completed sessions count
+            }
+          }
+        })
+        
+        console.log(`Decremented completedSessions for client ${appointment.clientId}`)
+      }
     })
 
     console.log('Appointment deleted:', appointmentId)

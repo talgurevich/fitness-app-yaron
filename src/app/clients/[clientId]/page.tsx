@@ -1,8 +1,8 @@
-// src/app/clients/[clientId]/page.tsx - Fixed with proper fallbacks
+// src/app/clients/[clientId]/page.tsx - Complete with booking integration
 'use client'
 import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import { useRouter, useParams } from 'next/navigation'
+import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import LanguageToggle, { useTranslations } from '@/components/LanguageToggle'
 
@@ -51,8 +51,13 @@ export default function ClientProfilePage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const params = useParams()
+  const searchParams = useSearchParams()
   const clientId = params.clientId as string
   const { t } = useTranslations()
+
+  // 🆕 Booking success handling
+  const bookingSuccess = searchParams.get('booked') === 'true'
+  const [showSuccessMessage, setShowSuccessMessage] = useState(bookingSuccess)
 
   const [client, setClient] = useState<Client | null>(null)
   const [loading, setLoading] = useState(true)
@@ -91,7 +96,23 @@ export default function ClientProfilePage() {
     }
 
     fetchClient()
-  }, [session, status, router, clientId])
+
+    // 🆕 Handle booking success
+    if (bookingSuccess) {
+      setShowSuccessMessage(true)
+      // Auto-hide success message after 5 seconds
+      const timer = setTimeout(() => {
+        setShowSuccessMessage(false)
+      }, 5000)
+      
+      // Small delay to ensure appointment is saved, then refresh
+      setTimeout(() => {
+        fetchClient()
+      }, 1000)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [session, status, router, clientId, bookingSuccess])
 
   const fetchClient = async () => {
     try {
@@ -398,8 +419,35 @@ export default function ClientProfilePage() {
             </div>
           </div>
 
+          {/* 🆕 UPDATED Desktop Actions with Book Session button */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <LanguageToggle />
+            
+            {/* 🆕 Book Session Button */}
+            <Link
+              href={`/clients/${clientId}/book`}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 12px',
+                fontSize: '13px',
+                fontWeight: '500',
+                color: '#2563eb',
+                backgroundColor: '#eff6ff',
+                border: 'none',
+                borderRadius: '6px',
+                textDecoration: 'none',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#dbeafe'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#eff6ff'}
+            >
+              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Book Session
+            </Link>
             
             {/* Record Payment Button */}
             <button
@@ -666,6 +714,43 @@ export default function ClientProfilePage() {
 
       {/* Main Content */}
       <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 16px' }}>
+        
+        {/* 🆕 Success Message */}
+        {showSuccessMessage && (
+          <div style={{
+            backgroundColor: '#ecfdf5',
+            border: '1px solid #a7f3d0',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            marginBottom: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <svg width="16" height="16" fill="none" stroke="#059669" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span style={{ fontSize: '14px', color: '#059669', fontWeight: '500' }}>
+                ✓ Appointment booked successfully! Confirmation email sent to {client.name}.
+              </span>
+            </div>
+            <button
+              onClick={() => setShowSuccessMessage(false)}
+              style={{
+                padding: '4px',
+                backgroundColor: 'transparent',
+                border: 'none',
+                color: '#059669',
+                cursor: 'pointer'
+              }}
+            >
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
         
         {/* Client Hero Section */}
         <div style={{ 

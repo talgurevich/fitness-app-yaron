@@ -1,4 +1,4 @@
-// src/app/dashboard/page.tsx - Complete redesign with translations and language toggle
+// src/app/dashboard/page.tsx - Complete redesign with auto-completion
 'use client'
 import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
@@ -21,6 +21,8 @@ export default function DashboardPage() {
   const { t } = useTranslations()
   const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([])
   const [loading, setLoading] = useState(true)
+  const [autoCompleting, setAutoCompleting] = useState(false)
+  const [completedCount, setCompletedCount] = useState(0)
 
   useEffect(() => {
     if (status === 'loading') return
@@ -30,8 +32,55 @@ export default function DashboardPage() {
       return
     }
 
-    fetchUpcomingAppointments()
+    // Run auto-completion first, then fetch appointments
+    fetchDashboardData()
   }, [session, status, router])
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true)
+      
+      // 🆕 STEP 1: Run auto-completion first to update past appointments
+      await runAutoCompletion()
+      
+      // STEP 2: Then fetch updated appointment data
+      await fetchUpcomingAppointments()
+      
+    } catch (error) {
+      console.error('Error loading dashboard:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // 🆕 Auto-completion function
+  const runAutoCompletion = async () => {
+    try {
+      setAutoCompleting(true)
+      
+      const response = await fetch('/api/trainer/auto-complete', {
+        method: 'POST'
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        
+        if (data.completed > 0) {
+          setCompletedCount(data.completed)
+          console.log(`Auto-completed ${data.completed} appointments`)
+          
+          // Show a brief notification (optional)
+          if (data.completed > 0) {
+            setTimeout(() => setCompletedCount(0), 5000) // Clear after 5 seconds
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Auto-completion failed:', error)
+    } finally {
+      setAutoCompleting(false)
+    }
+  }
 
   const fetchUpcomingAppointments = async () => {
     try {
@@ -43,9 +92,12 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error('Error fetching appointments:', error)
-    } finally {
-      setLoading(false)
     }
+  }
+
+  // 🆕 Manual refresh function
+  const handleRefresh = async () => {
+    await fetchDashboardData()
   }
 
   const formatDateTime = (dateString: string) => {
@@ -95,7 +147,9 @@ export default function DashboardPage() {
             animation: 'spin 1s linear infinite',
             margin: '0 auto 16px'
           }}></div>
-          <p style={{ color: '#6b7280', fontSize: '14px' }}>{t('loading_dashboard') || 'Loading dashboard...'}</p>
+          <p style={{ color: '#6b7280', fontSize: '14px' }}>
+            {autoCompleting ? 'Updating sessions...' : (t('loading_dashboard') || 'Loading dashboard...')}
+          </p>
         </div>
       </div>
     )
@@ -155,6 +209,58 @@ export default function DashboardPage() {
           {/* Desktop Actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <LanguageToggle />
+            
+            {/* 🆕 Refresh Button */}
+            <button
+              onClick={handleRefresh}
+              disabled={loading || autoCompleting}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 12px',
+                fontSize: '13px',
+                fontWeight: '500',
+                color: '#059669',
+                backgroundColor: '#ecfdf5',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: loading || autoCompleting ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => {
+                if (!loading && !autoCompleting) {
+                  e.currentTarget.style.backgroundColor = '#d1fae5'
+                }
+              }}
+              onMouseOut={(e) => {
+                if (!loading && !autoCompleting) {
+                  e.currentTarget.style.backgroundColor = '#ecfdf5'
+                }
+              }}
+            >
+              {loading || autoCompleting ? (
+                <>
+                  <div style={{ 
+                    width: '14px', 
+                    height: '14px', 
+                    border: '2px solid #059669', 
+                    borderTop: '2px solid transparent',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                  }}></div>
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Refresh
+                </>
+              )}
+            </button>
+            
             <Link
               href="/availability"
               style={{
@@ -258,6 +364,27 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 16px' }}>
+        
+        {/* 🆕 Auto-completion notification */}
+        {completedCount > 0 && (
+          <div style={{
+            backgroundColor: '#ecfdf5',
+            border: '1px solid #a7f3d0',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            marginBottom: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <svg width="16" height="16" fill="none" stroke="#059669" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span style={{ fontSize: '14px', color: '#059669', fontWeight: '500' }}>
+              ✓ Auto-completed {completedCount} past session{completedCount !== 1 ? 's' : ''}
+            </span>
+          </div>
+        )}
         
         {/* Welcome Section */}
         <div style={{ 
