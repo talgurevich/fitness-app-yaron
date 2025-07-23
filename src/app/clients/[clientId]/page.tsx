@@ -1,4 +1,4 @@
-// src/app/clients/[clientId]/page.tsx
+// src/app/clients/[clientId]/page.tsx - English translation with better design
 'use client'
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
@@ -110,20 +110,20 @@ export default function ClientProfilePage() {
       if (data.success) {
         setClient(data.client)
         setEditing(false)
-        alert('פרטי הלקוח נשמרו בהצלחה!')
+        alert('Client information saved successfully!')
       } else {
-        alert('שגיאה בשמירת הפרטים: ' + data.error)
+        alert('Error saving information: ' + data.error)
       }
     } catch (error) {
       console.error('Error saving client:', error)
-      alert('שגיאה בשמירת הפרטים')
+      alert('Error saving information')
     } finally {
       setSaving(false)
     }
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('he-IL', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -131,7 +131,14 @@ export default function ClientProfilePage() {
   }
 
   const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('he-IL')
+    return new Date(dateString).toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    })
   }
 
   const getStatusColor = (status: string) => {
@@ -145,9 +152,9 @@ export default function ClientProfilePage() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'completed': return 'הושלם'
-      case 'booked': return 'מתוכנן'
-      case 'cancelled': return 'בוטל'
+      case 'completed': return 'Completed'
+      case 'booked': return 'Scheduled'
+      case 'cancelled': return 'Cancelled'
       default: return status
     }
   }
@@ -157,7 +164,7 @@ export default function ClientProfilePage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-700">טוען פרטי לקוח...</p>
+          <p className="text-gray-700">Loading client profile...</p>
         </div>
       </div>
     )
@@ -166,10 +173,13 @@ export default function ClientProfilePage() {
   if (!client) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">לקוח לא נמצא</h2>
-          <Link href="/clients" className="text-blue-600 hover:text-blue-800">
-            חזרה לרשימת הלקוחות
+        <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Client not found</h2>
+          <Link href="/clients" className="inline-flex items-center text-blue-600 hover:text-blue-800">
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Client List
           </Link>
         </div>
       </div>
@@ -179,24 +189,27 @@ export default function ClientProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
               <Link 
                 href="/clients"
-                className="text-gray-600 hover:text-gray-900 mr-4"
+                className="text-gray-600 hover:text-gray-900 mr-6 inline-flex items-center"
               >
-                ← חזרה לרשימת לקוחות
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Clients
               </Link>
-              <div className="flex items-center space-x-3 space-x-reverse">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
                 <div>
-                  <h1 className="text-xl font-semibold text-gray-900">
+                  <h1 className="text-xl font-bold text-gray-900">
                     {client.name}
                   </h1>
                   <p className="text-sm text-gray-500">{client.email}</p>
@@ -205,33 +218,54 @@ export default function ClientProfilePage() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex space-x-2 space-x-reverse">
+            <div className="flex space-x-3">
               {editing ? (
                 <>
                   <button
                     onClick={() => setEditing(false)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
                   >
-                    ביטול
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Cancel
                   </button>
                   <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors"
                   >
-                    {saving ? 'שומר...' : 'שמור'}
+                    {saving ? (
+                      <>
+                        <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Save Changes
+                      </>
+                    )}
                   </button>
                 </>
               ) : (
                 <>
                   <button
                     onClick={() => setEditing(true)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
                   >
-                    ✏️ ערוך פרטים
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Edit Profile
                   </button>
-                  <button className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-lg hover:bg-green-700">
-                    📅 קבע אימון
+                  <button className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-xl hover:bg-green-700 transition-colors">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Schedule Session
                   </button>
                 </>
               )}
@@ -241,141 +275,177 @@ export default function ClientProfilePage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           
-          {/* Left Column - Client Details */}
-          <div className="lg:col-span-2 space-y-6">
+          {/* Main Content - 3 columns */}
+          <div className="lg:col-span-3 space-y-8">
             
             {/* Basic Information */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">מידע בסיסי</h2>
+            <div className="bg-white rounded-2xl border border-gray-200 p-8">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Basic Information</h2>
               
               {editing ? (
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">שם מלא</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
                     <input
                       type="text"
                       value={editForm.name}
                       onChange={(e) => setEditForm({...editForm, name: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">טלפון</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
                     <input
                       type="text"
                       value={editForm.phone}
                       onChange={(e) => setEditForm({...editForm, phone: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">תאריך לידה</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Birth Date</label>
                     <input
                       type="date"
                       value={editForm.birthDate}
                       onChange={(e) => setEditForm({...editForm, birthDate: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">איש קשר לחירום</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Emergency Contact</label>
                     <input
                       type="text"
                       value={editForm.emergencyContact}
                       onChange={(e) => setEditForm({...editForm, emergencyContact: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  <div><span className="font-medium">אימייל:</span> {client.email}</div>
-                  <div><span className="font-medium">טלפון:</span> {client.phone || 'לא צוין'}</div>
-                  <div><span className="font-medium">הצטרף:</span> {formatDate(client.joinedDate)}</div>
-                  {client.birthDate && <div><span className="font-medium">תאריך לידה:</span> {formatDate(client.birthDate)}</div>}
-                  {client.emergencyContact && <div><span className="font-medium">איש קשר לחירום:</span> {client.emergencyContact}</div>}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <span className="text-sm font-medium text-gray-500">Email</span>
+                      <p className="text-gray-900">{client.email}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500">Phone</span>
+                      <p className="text-gray-900">{client.phone || 'Not provided'}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500">Joined</span>
+                      <p className="text-gray-900">{formatDate(client.joinedDate)}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    {client.birthDate && (
+                      <div>
+                        <span className="text-sm font-medium text-gray-500">Birth Date</span>
+                        <p className="text-gray-900">{formatDate(client.birthDate)}</p>
+                      </div>
+                    )}
+                    {client.emergencyContact && (
+                      <div>
+                        <span className="text-sm font-medium text-gray-500">Emergency Contact</span>
+                        <p className="text-gray-900">{client.emergencyContact}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
 
             {/* Goals and Notes */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">מטרות והערות</h2>
+            <div className="bg-white rounded-2xl border border-gray-200 p-8">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Goals & Notes</h2>
               
               {editing ? (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">מטרות אימון</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Training Goals</label>
                     <textarea
                       value={editForm.goals}
                       onChange={(e) => setEditForm({...editForm, goals: e.target.value})}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="מה המטרות של הלקוח?"
+                      rows={4}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="What are the client's fitness goals?"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">הערות רפואיות</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Medical Notes</label>
                     <textarea
                       value={editForm.medicalNotes}
                       onChange={(e) => setEditForm({...editForm, medicalNotes: e.target.value})}
-                      rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="מגבלות, פציעות, מצבים רפואיים"
+                      rows={3}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Injuries, limitations, medical conditions"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">הערות כלליות</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">General Notes</label>
                     <textarea
                       value={editForm.notes}
                       onChange={(e) => setEditForm({...editForm, notes: e.target.value})}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="הערות נוספות על הלקוח"
+                      rows={4}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Additional notes about the client"
                     />
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <div>
-                    <h3 className="font-medium text-gray-900 mb-2">מטרות אימון</h3>
-                    <p className="text-gray-700">{client.goals || 'לא צוינו מטרות'}</p>
+                    <h3 className="font-semibold text-gray-900 mb-3">Training Goals</h3>
+                    <p className="text-gray-700 bg-gray-50 rounded-xl p-4">
+                      {client.goals || 'No goals specified'}
+                    </p>
                   </div>
                   {client.medicalNotes && (
                     <div>
-                      <h3 className="font-medium text-gray-900 mb-2">הערות רפואיות</h3>
-                      <p className="text-gray-700 bg-yellow-50 p-3 rounded-lg">{client.medicalNotes}</p>
+                      <h3 className="font-semibold text-gray-900 mb-3">Medical Notes</h3>
+                      <p className="text-gray-700 bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                        ⚠️ {client.medicalNotes}
+                      </p>
                     </div>
                   )}
                   <div>
-                    <h3 className="font-medium text-gray-900 mb-2">הערות כלליות</h3>
-                    <p className="text-gray-700">{client.notes || 'אין הערות'}</p>
+                    <h3 className="font-semibold text-gray-900 mb-3">General Notes</h3>
+                    <p className="text-gray-700 bg-gray-50 rounded-xl p-4">
+                      {client.notes || 'No notes'}
+                    </p>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Appointment History */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">היסטוריית אימונים</h2>
+            {/* Session History */}
+            <div className="bg-white rounded-2xl border border-gray-200 p-8">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Session History</h2>
               
               {client.appointments.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">אין אימונים עדיין</p>
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <p className="text-gray-500">No sessions yet</p>
+                </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {client.appointments.map((appointment) => (
-                    <div key={appointment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div key={appointment.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
                       <div>
-                        <div className="font-medium text-gray-900">
+                        <div className="font-semibold text-gray-900">
                           {formatDateTime(appointment.datetime)}
                         </div>
                         <div className="text-sm text-gray-600">
-                          {appointment.duration} דקות
+                          {appointment.duration} minutes
                         </div>
                       </div>
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(appointment.status)}`}>
+                      <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(appointment.status)}`}>
                         {getStatusText(appointment.status)}
                       </span>
                     </div>
@@ -385,51 +455,63 @@ export default function ClientProfilePage() {
             </div>
           </div>
 
-          {/* Right Column - Stats & Quick Actions */}
+          {/* Sidebar - 1 column */}
           <div className="space-y-6">
             
             {/* Stats */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">סטטיסטיקות</h2>
+            <div className="bg-white rounded-2xl border border-gray-200 p-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-6">Statistics</h2>
               
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">סה"כ אימונים</span>
-                  <span className="text-2xl font-bold text-gray-900">{client.totalAppointments}</span>
+              <div className="space-y-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-gray-900">{client.totalAppointments}</div>
+                  <div className="text-sm text-gray-600">Total Sessions</div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">אימונים שהושלמו</span>
-                  <span className="text-2xl font-bold text-green-600">{client.completedSessions}</span>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-green-600">{client.completedSessions}</div>
+                  <div className="text-sm text-gray-600">Completed</div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">אימונים מתוכננים</span>
-                  <span className="text-2xl font-bold text-blue-600">{client.upcomingAppointments}</span>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-blue-600">{client.upcomingAppointments}</div>
+                  <div className="text-sm text-gray-600">Upcoming</div>
                 </div>
                 {client.lastSessionDate && (
-                  <div className="pt-3 border-t">
-                    <span className="text-sm text-gray-600">אימון אחרון:</span>
-                    <div className="font-medium text-gray-900">{formatDate(client.lastSessionDate)}</div>
+                  <div className="pt-4 border-t border-gray-200">
+                    <div className="text-sm text-gray-600">Last session:</div>
+                    <div className="font-semibold text-gray-900">{formatDate(client.lastSessionDate)}</div>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Quick Actions */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">פעולות מהירות</h2>
+            <div className="bg-white rounded-2xl border border-gray-200 p-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
               
               <div className="space-y-3">
-                <button className="w-full px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">
-                  📅 קבע אימון חדש
+                <button className="w-full inline-flex items-center justify-center px-4 py-3 text-sm font-medium text-white bg-green-600 rounded-xl hover:bg-green-700 transition-colors">
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Schedule New Session
                 </button>
-                <button className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
-                  📧 שלח אימייל
+                <button className="w-full inline-flex items-center justify-center px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Send Email
                 </button>
-                <button className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
-                  📱 שלח SMS
+                <button className="w-full inline-flex items-center justify-center px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                  Send SMS
                 </button>
-                <button className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
-                  📝 הוסף הערה מהירה
+                <button className="w-full inline-flex items-center justify-center px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Add Quick Note
                 </button>
               </div>
             </div>
