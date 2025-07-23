@@ -369,7 +369,35 @@ export default function HomePage() {
               {t('homepage_description') || 'פלטפורמה מקצועית לניהול הזמנות עם חיבור ליומן Google ומעקב אחר לקוחות. הפכו את ניהול האימונים שלכם לפשוט ויעיל יותר מתמיד.'}
             </p>
             <div className="hero-buttons">
-              <Link href="/login" className="cta-button primary">
+              <Link 
+                href="/login" 
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '16px 32px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  color: 'white',
+                  background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                  border: '1px solid #3b82f6',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 20px rgba(59, 130, 246, 0.3)'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #2563eb, #1d4ed8)'
+                  e.currentTarget.style.transform = 'translateY(-3px)'
+                  e.currentTarget.style.boxShadow = '0 10px 30px rgba(59, 130, 246, 0.4)'
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #3b82f6, #2563eb)'
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = '0 4px 20px rgba(59, 130, 246, 0.3)'
+                }}
+              >
                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
@@ -377,7 +405,31 @@ export default function HomePage() {
               </Link>
               <button
                 onClick={() => setShowRegistrationModal(true)}
-                className="cta-button secondary"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '16px 32px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  color: 'white',
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  backdropFilter: 'blur(10px)'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1))'
+                  e.currentTarget.style.transform = 'translateY(-3px)'
+                  e.currentTarget.style.boxShadow = '0 10px 30px rgba(255, 255, 255, 0.2)'
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))'
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = 'none'
+                }}
               >
                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
@@ -885,27 +937,29 @@ export default function HomePage() {
         }
 
         .cta-button.primary {
-          color: #1e293b;
-          background: linear-gradient(135deg, #ffffff, #e2e8f0);
-          box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+          color: white;
+          background: linear-gradient(135deg, #3b82f6, #2563eb);
+          border: 1px solid #3b82f6;
+          box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
         }
 
         .cta-button.primary:hover {
+          background: linear-gradient(135deg, #2563eb, #1d4ed8);
           transform: translateY(-3px);
-          box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
+          box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
         }
 
         .cta-button.secondary {
           color: white;
-          background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(139, 92, 246, 0.8));
-          border: 1px solid rgba(59, 130, 246, 0.3);
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+          border: 1px solid rgba(255, 255, 255, 0.3);
           backdrop-filter: blur(10px);
         }
 
         .cta-button.secondary:hover {
-          background: linear-gradient(135deg, rgba(59, 130, 246, 1), rgba(139, 92, 246, 1));
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
           transform: translateY(-3px);
-          box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+          box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
         }
 
         .cta-button.large {
