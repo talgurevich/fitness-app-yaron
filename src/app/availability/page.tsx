@@ -1,4 +1,4 @@
-// src/app/availability/page.tsx
+// src/app/availability/page.tsx - Fixed icon sizes
 'use client'
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
@@ -148,7 +148,7 @@ export default function AvailabilitySettingsPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin mb-4"></div>
+          <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin mb-4"></div>
           <div className="text-lg font-medium text-gray-700">טוען הגדרות זמינות...</div>
         </div>
       </div>
@@ -175,7 +175,7 @@ export default function AvailabilitySettingsPage() {
                 </svg>
                 חזור
               </Link>
-              <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
+              <div className="w-6 h-6 bg-gray-900 rounded-lg flex items-center justify-center">
                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
                 </svg>

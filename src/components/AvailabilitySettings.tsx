@@ -1,4 +1,4 @@
-// src/components/AvailabilitySettings.tsx - Fixed English version
+// src/components/AvailabilitySettings.tsx - Fixed icon sizes
 'use client'
 import { useState, useEffect } from 'react'
 
@@ -139,7 +139,7 @@ export default function AvailabilitySettings({ onClose }: AvailabilitySettingsPr
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
         <div className="bg-white rounded-2xl shadow-2xl p-12 text-center max-w-md w-full">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+          <div className="w-4 h-4 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
           <p className="text-gray-700 text-lg">Loading availability settings...</p>
         </div>
       </div>
@@ -152,8 +152,8 @@ export default function AvailabilitySettings({ onClose }: AvailabilitySettingsPr
         <div className="p-8 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-6 h-6 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
+                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
@@ -165,7 +165,7 @@ export default function AvailabilitySettings({ onClose }: AvailabilitySettingsPr
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 text-2xl font-bold w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors"
+              className="text-gray-400 hover:text-gray-600 text-2xl font-bold w-6 h-6 flex items-center justify-center rounded-xl hover:bg-gray-100 transition-colors"
             >
               ✕
             </button>
@@ -176,7 +176,7 @@ export default function AvailabilitySettings({ onClose }: AvailabilitySettingsPr
           {/* Session Settings */}
           <div className="mb-10 bg-blue-50 border border-blue-200 rounded-2xl p-6">
             <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-              <svg className="w-6 h-6 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
               Session Settings
@@ -220,7 +220,7 @@ export default function AvailabilitySettings({ onClose }: AvailabilitySettingsPr
           {/* Weekly Schedule */}
           <div className="space-y-6">
             <h3 className="text-xl font-bold text-gray-900 flex items-center">
-              <svg className="w-6 h-6 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
               </svg>
               Weekly Schedule
