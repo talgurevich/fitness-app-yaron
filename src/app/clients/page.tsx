@@ -1,4 +1,4 @@
-// src/app/clients/page.tsx - Fixed icon sizes and layout
+// src/app/clients/page.tsx - Complete redesign with modern responsive layout and small icons
 'use client'
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
@@ -71,89 +71,263 @@ export default function ClientsPage() {
     })
   }
 
-  const getStatusColor = (client: Client) => {
-    if (client.upcomingAppointments > 0) return 'bg-green-100 text-green-800'
-    if (client.completedSessions > 0) return 'bg-blue-100 text-blue-800'
-    return 'bg-gray-100 text-gray-800'
-  }
-
-  const getStatusText = (client: Client) => {
-    if (client.upcomingAppointments > 0) return 'Active'
-    if (client.completedSessions > 0) return 'Existing'
-    return 'New'
+  const getStatusInfo = (client: Client) => {
+    if (client.upcomingAppointments > 0) {
+      return {
+        text: 'Active',
+        color: '#16a34a',
+        backgroundColor: '#dcfce7'
+      }
+    }
+    if (client.completedSessions > 0) {
+      return {
+        text: 'Existing',
+        color: '#2563eb',
+        backgroundColor: '#dbeafe'
+      }
+    }
+    return {
+      text: 'New',
+      color: '#6b7280',
+      backgroundColor: '#f3f4f6'
+    }
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-4 h-4 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-700">Loading clients...</p>
+      <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ 
+            width: '20px', 
+            height: '20px', 
+            border: '2px solid #e5e7eb', 
+            borderTop: '2px solid #3b82f6',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 16px'
+          }}></div>
+          <p style={{ color: '#6b7280', fontSize: '14px' }}>Loading clients...</p>
         </div>
       </div>
     )
   }
 
+  const activeClients = clients.filter(c => c.upcomingAppointments > 0).length
+  const totalSessions = clients.reduce((sum, c) => sum + c.totalAppointments, 0)
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <Link 
-                href="/dashboard"
-                className="text-gray-600 hover:text-gray-900 mr-4 inline-flex items-center"
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+      {/* Top Header */}
+      <header style={{ 
+        backgroundColor: 'white', 
+        borderBottom: '1px solid #e5e7eb',
+        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
+      }}>
+        <div style={{ 
+          maxWidth: '1280px', 
+          margin: '0 auto', 
+          padding: '0 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          height: '64px'
+        }}>
+          {/* Back Button & Title */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <Link 
+              href="/dashboard"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 12px',
+                fontSize: '13px',
+                fontWeight: '500',
+                color: '#6b7280',
+                backgroundColor: '#f9fafb',
+                border: '1px solid #e5e7eb',
+                borderRadius: '6px',
+                textDecoration: 'none',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+            >
+              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Dashboard
+            </Link>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ 
+                width: '32px', 
+                height: '32px', 
+                backgroundColor: '#3b82f6', 
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <svg width="18" height="18" fill="white" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                 </svg>
-                Back to Dashboard
-              </Link>
-              <div className="flex items-center space-x-3">
-                <div className="w-6 h-6 bg-blue-600 rounded-xl flex items-center justify-center">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">
-                    Client Management
-                  </h1>
-                  <p className="text-sm text-gray-500">
-                    {clients.length} registered clients
-                  </p>
-                </div>
+              </div>
+              <div>
+                <h1 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>
+                  Client Management
+                </h1>
+                <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>
+                  {clients.length} registered clients
+                </p>
               </div>
             </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              onClick={() => {
+                // TODO: Open a scheduling modal or navigate to a proper scheduling page
+                // For now, we'll redirect to availability as a placeholder
+                alert('Scheduling feature coming soon! For now, you can set your availability and share your booking link with clients.')
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 12px',
+                fontSize: '13px',
+                fontWeight: '500',
+                color: '#16a34a',
+                backgroundColor: '#f0fdf4',
+                border: '1px solid #bbf7d0',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#dcfce7'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f0fdf4'}
+            >
+              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Schedule Session
+            </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search and Stats */}
-        <div className="mb-8">
-          <div className="bg-white rounded-2xl border border-gray-200 p-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-              <div className="mb-4 sm:mb-0">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Client List</h2>
-                <div className="flex space-x-6 text-sm text-gray-600">
-                  <span>Total clients: {clients.length}</span>
-                  <span>•</span>
-                  <span>Active: {clients.filter(c => c.upcomingAppointments > 0).length}</span>
+      {/* Main Content */}
+      <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 16px' }}>
+        
+        {/* Hero Section with Stats */}
+        <div style={{ 
+          background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+          borderRadius: '16px',
+          padding: '32px',
+          marginBottom: '32px',
+          color: 'white'
+        }}>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '20px'
+          }}>
+            <div>
+              <h2 style={{ fontSize: '28px', fontWeight: '700', margin: '0 0 8px 0' }}>
+                Your Clients 👥
+              </h2>
+              <p style={{ fontSize: '16px', opacity: 0.9, margin: '0 0 24px 0' }}>
+                Manage your client relationships and track their progress
+              </p>
+              
+              {/* Stats Row */}
+              <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                <div>
+                  <p style={{ fontSize: '24px', fontWeight: '700', margin: 0 }}>{clients.length}</p>
+                  <p style={{ fontSize: '14px', opacity: 0.8, margin: 0 }}>Total Clients</p>
+                </div>
+                <div>
+                  <p style={{ fontSize: '24px', fontWeight: '700', margin: 0 }}>{activeClients}</p>
+                  <p style={{ fontSize: '14px', opacity: 0.8, margin: 0 }}>Active This Month</p>
+                </div>
+                <div>
+                  <p style={{ fontSize: '24px', fontWeight: '700', margin: 0 }}>{totalSessions}</p>
+                  <p style={{ fontSize: '14px', opacity: 0.8, margin: 0 }}>Total Sessions</p>
                 </div>
               </div>
-              
-              {/* Search */}
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search clients..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full sm:w-80 px-4 py-3 pl-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <svg className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            </div>
+            
+            <div style={{ 
+              width: '60px', 
+              height: '60px', 
+              backgroundColor: 'rgba(255,255,255,0.2)', 
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {/* Search Section */}
+        <div style={{ 
+          backgroundColor: 'white',
+          border: '1px solid #e5e7eb',
+          borderRadius: '16px',
+          padding: '24px',
+          marginBottom: '32px'
+        }}>
+          <div style={{ 
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '16px'
+          }}>
+            <div>
+              <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: '0 0 4px 0' }}>
+                Client Directory
+              </h3>
+              <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
+                Find and manage your clients
+              </p>
+            </div>
+            
+            {/* Search Input */}
+            <div style={{ position: 'relative', minWidth: '280px' }}>
+              <input
+                type="text"
+                placeholder="Search clients by name or email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px 12px 40px',
+                  fontSize: '14px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  backgroundColor: 'white',
+                  outline: 'none',
+                  transition: 'all 0.2s'
+                }}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#3b82f6'}
+                onBlur={(e) => e.currentTarget.style.borderColor = '#d1d5db'}
+              />
+              <div style={{ 
+                position: 'absolute',
+                left: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)'
+              }}>
+                <svg width="16" height="16" fill="none" stroke="#9ca3af" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
@@ -161,74 +335,228 @@ export default function ClientsPage() {
           </div>
         </div>
 
-        {/* Client List */}
+        {/* Clients Grid */}
         {filteredClients.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-200 p-16 text-center">
-            <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div style={{ 
+            backgroundColor: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '16px',
+            padding: '64px 32px',
+            textAlign: 'center'
+          }}>
+            <div style={{ 
+              width: '80px', 
+              height: '80px', 
+              backgroundColor: '#f3f4f6', 
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px'
+            }}>
+              <svg width="32" height="32" fill="none" stroke="#9ca3af" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">No clients yet</h3>
-            <p className="text-gray-600 mb-6">Clients will be automatically added when they book sessions</p>
+            <h3 style={{ fontSize: '20px', fontWeight: '600', color: '#111827', margin: '0 0 8px 0' }}>
+              {searchTerm ? 'No clients found' : 'No clients yet'}
+            </h3>
+            <p style={{ fontSize: '16px', color: '#6b7280', margin: '0 0 24px 0' }}>
+              {searchTerm 
+                ? `No clients match "${searchTerm}". Try a different search term.`
+                : 'Clients will be automatically added when they book sessions'
+              }
+            </p>
+            {!searchTerm && (
+              <Link
+                href={`/book/${session?.user?.email?.split('@')[0]?.replace(/[^a-zA-Z0-9]/g, '-')}`}
+                target="_blank"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '12px 20px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#3b82f6',
+                  backgroundColor: '#eff6ff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#dbeafe'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#eff6ff'}
+              >
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+                Share your booking link
+              </Link>
+            )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredClients.map((client) => (
-              <Link 
-                key={client.id} 
-                href={`/clients/${client.id}`}
-                className="bg-white rounded-2xl border border-gray-200 p-6 hover:border-blue-300 hover:shadow-lg transition-all cursor-pointer group"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-gray-900 mb-1 group-hover:text-blue-600">
-                      {client.name}
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-2">{client.email}</p>
-                    {client.phone && (
-                      <p className="text-sm text-gray-500">{client.phone}</p>
+          <div style={{ 
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+            gap: '20px'
+          }}>
+            {filteredClients.map((client) => {
+              const statusInfo = getStatusInfo(client)
+              return (
+                <Link 
+                  key={client.id} 
+                  href={`/clients/${client.id}`}
+                  style={{
+                    display: 'block',
+                    backgroundColor: 'white',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '12px',
+                    padding: '20px',
+                    textDecoration: 'none',
+                    transition: 'all 0.2s',
+                    cursor: 'pointer'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)'
+                    e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+                    e.currentTarget.style.borderColor = '#3b82f6'
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)'
+                    e.currentTarget.style.boxShadow = 'none'
+                    e.currentTarget.style.borderColor = '#e5e7eb'
+                  }}
+                >
+                  {/* Client Header */}
+                  <div style={{ 
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    marginBottom: '16px'
+                  }}>
+                    <div style={{ flex: 1 }}>
+                      <h3 style={{ 
+                        fontSize: '16px', 
+                        fontWeight: '600', 
+                        color: '#111827', 
+                        margin: '0 0 4px 0',
+                        transition: 'color 0.2s'
+                      }}>
+                        {client.name}
+                      </h3>
+                      <p style={{ fontSize: '13px', color: '#6b7280', margin: '0 0 2px 0' }}>
+                        {client.email}
+                      </p>
+                      {client.phone && (
+                        <p style={{ fontSize: '13px', color: '#9ca3af', margin: 0 }}>
+                          {client.phone}
+                        </p>
+                      )}
+                    </div>
+                    <span style={{ 
+                      padding: '4px 8px',
+                      fontSize: '11px',
+                      fontWeight: '600',
+                      color: statusInfo.color,
+                      backgroundColor: statusInfo.backgroundColor,
+                      borderRadius: '6px',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {statusInfo.text}
+                    </span>
+                  </div>
+
+                  {/* Stats Grid */}
+                  <div style={{ 
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '8px',
+                    marginBottom: '16px'
+                  }}>
+                    <div style={{ 
+                      backgroundColor: '#f9fafb',
+                      borderRadius: '8px',
+                      padding: '8px',
+                      textAlign: 'center'
+                    }}>
+                      <p style={{ fontSize: '16px', fontWeight: '600', color: '#111827', margin: 0 }}>
+                        {client.totalAppointments}
+                      </p>
+                      <p style={{ fontSize: '10px', color: '#6b7280', margin: 0 }}>Total</p>
+                    </div>
+                    <div style={{ 
+                      backgroundColor: '#f0fdf4',
+                      borderRadius: '8px',
+                      padding: '8px',
+                      textAlign: 'center'
+                    }}>
+                      <p style={{ fontSize: '16px', fontWeight: '600', color: '#16a34a', margin: 0 }}>
+                        {client.completedSessions}
+                      </p>
+                      <p style={{ fontSize: '10px', color: '#6b7280', margin: 0 }}>Done</p>
+                    </div>
+                    <div style={{ 
+                      backgroundColor: '#eff6ff',
+                      borderRadius: '8px',
+                      padding: '8px',
+                      textAlign: 'center'
+                    }}>
+                      <p style={{ fontSize: '16px', fontWeight: '600', color: '#2563eb', margin: 0 }}>
+                        {client.upcomingAppointments}
+                      </p>
+                      <p style={{ fontSize: '10px', color: '#6b7280', margin: 0 }}>Upcoming</p>
+                    </div>
+                  </div>
+
+                  {/* Additional Info */}
+                  <div style={{ 
+                    paddingTop: '12px',
+                    borderTop: '1px solid #f3f4f6'
+                  }}>
+                    <div style={{ 
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      fontSize: '12px',
+                      color: '#6b7280'
+                    }}>
+                      <span>Joined {formatDate(client.joinedDate)}</span>
+                      {client.lastSessionDate && (
+                        <span>Last: {formatDate(client.lastSessionDate)}</span>
+                      )}
+                    </div>
+                    
+                    {client.goals && (
+                      <div style={{ 
+                        marginTop: '8px',
+                        padding: '8px',
+                        backgroundColor: '#fef3c7',
+                        borderRadius: '6px'
+                      }}>
+                        <p style={{ 
+                          fontSize: '11px', 
+                          color: '#92400e', 
+                          margin: 0,
+                          fontWeight: '500'
+                        }}>
+                          Goals: {client.goals.substring(0, 60)}...
+                        </p>
+                      </div>
                     )}
                   </div>
-                  <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(client)}`}>
-                    {getStatusText(client)}
-                  </span>
-                </div>
-
-                {/* Stats */}
-                <div className="grid grid-cols-3 gap-3 mb-4">
-                  <div className="bg-gray-50 rounded-xl p-3 text-center">
-                    <div className="text-lg font-bold text-gray-900">{client.totalAppointments}</div>
-                    <div className="text-xs text-gray-600">Total</div>
-                  </div>
-                  <div className="bg-green-50 rounded-xl p-3 text-center">
-                    <div className="text-lg font-bold text-green-600">{client.completedSessions}</div>
-                    <div className="text-xs text-gray-600">Completed</div>
-                  </div>
-                  <div className="bg-blue-50 rounded-xl p-3 text-center">
-                    <div className="text-lg font-bold text-blue-600">{client.upcomingAppointments}</div>
-                    <div className="text-xs text-gray-600">Upcoming</div>
-                  </div>
-                </div>
-
-                {/* Last session */}
-                {client.lastSessionDate && (
-                  <div className="text-sm text-gray-500 border-t pt-3 mb-3">
-                    <span>Last session: {formatDate(client.lastSessionDate)}</span>
-                  </div>
-                )}
-
-                {/* Goals preview */}
-                {client.goals && (
-                  <div className="text-sm text-gray-600 bg-gray-50 rounded-xl p-3">
-                    <span className="font-medium">Goals:</span> {client.goals.substring(0, 50)}...
-                  </div>
-                )}
-              </Link>
-            ))}
+                </Link>
+              )
+            })}
           </div>
         )}
       </main>
+
+      <style jsx>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   )
 }
