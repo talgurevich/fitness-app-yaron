@@ -1,4 +1,4 @@
-// src/app/clients/[clientId]/page.tsx - Updated to match dashboard design system
+// src/app/clients/[clientId]/page.tsx - Updated with pricing functionality
 'use client'
 import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
@@ -21,6 +21,7 @@ interface Client {
   preferredDays?: string
   preferredTimes?: string
   sessionDuration?: number
+  sessionPrice?: number  // NEW: Added pricing
   totalAppointments: number
   completedSessions: number
   upcomingAppointments: number
@@ -30,6 +31,7 @@ interface Client {
     duration: number
     status: string
     sessionNotes?: string
+    sessionPrice?: number  // NEW: Track session price
   }>
 }
 
@@ -53,7 +55,8 @@ export default function ClientProfilePage() {
     medicalNotes: '',
     emergencyContact: '',
     birthDate: '',
-    sessionDuration: 60
+    sessionDuration: 60,
+    sessionPrice: 180  // NEW: Added pricing to form
   })
 
   useEffect(() => {
@@ -82,7 +85,8 @@ export default function ClientProfilePage() {
           medicalNotes: data.client.medicalNotes || '',
           emergencyContact: data.client.emergencyContact || '',
           birthDate: data.client.birthDate ? data.client.birthDate.split('T')[0] : '',
-          sessionDuration: data.client.sessionDuration || 60
+          sessionDuration: data.client.sessionDuration || 60,
+          sessionPrice: data.client.sessionPrice || 180  // NEW: Set pricing in form
         })
       } else {
         console.error('Failed to fetch client:', data.error)
@@ -104,7 +108,7 @@ export default function ClientProfilePage() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(editForm)
+        body: JSON.stringify(editForm)  // This now includes sessionPrice
       })
 
       const data = await response.json()
@@ -305,7 +309,7 @@ export default function ClientProfilePage() {
                 {client.name}
               </h1>
               <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>
-                {client.email}
+                {client.email} • ₪{client.sessionPrice || 180}/hour
               </p>
             </div>
           </div>
@@ -490,8 +494,11 @@ export default function ClientProfilePage() {
               <h2 style={{ fontSize: '28px', fontWeight: '700', margin: '0 0 8px 0' }}>
                 {client.name} 👤
               </h2>
-              <p style={{ fontSize: '16px', opacity: 0.9, margin: '0 0 24px 0' }}>
+              <p style={{ fontSize: '16px', opacity: 0.9, margin: '0 0 4px 0' }}>
                 Client since {formatDate(client.joinedDate)}
+              </p>
+              <p style={{ fontSize: '18px', fontWeight: '600', opacity: 0.95, margin: '0 0 24px 0' }}>
+                💰 ₪{client.sessionPrice || 180} per hour
               </p>
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <Link
@@ -662,6 +669,37 @@ export default function ClientProfilePage() {
               </div>
             </div>
           </div>
+
+          {/* NEW: Total Revenue Card */}
+          <div style={{ 
+            backgroundColor: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            padding: '20px',
+            transition: 'all 0.2s'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ 
+                width: '40px', 
+                height: '40px', 
+                backgroundColor: '#fff7ed', 
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <svg width="20" height="20" fill="none" stroke="#ea580c" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                </svg>
+              </div>
+              <div>
+                <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>Total Revenue</p>
+                <p style={{ fontSize: '24px', fontWeight: '700', color: '#111827', margin: 0 }}>
+                  ₪{((client.sessionPrice || 180) * client.completedSessions).toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Main Layout */}
@@ -693,7 +731,7 @@ export default function ClientProfilePage() {
                     Basic Information
                   </h3>
                   <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0 0 0' }}>
-                    Contact details and personal info
+                    Contact details, pricing and personal info
                   </p>
                 </div>
               </div>
@@ -781,6 +819,56 @@ export default function ClientProfilePage() {
                         }}
                       />
                     </div>
+                    {/* NEW: Session Duration */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
+                        Session Duration (minutes)
+                      </label>
+                      <select
+                        value={editForm.sessionDuration}
+                        onChange={(e) => setEditForm({...editForm, sessionDuration: parseInt(e.target.value)})}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '6px',
+                          fontSize: '14px',
+                          color: '#111827',
+                          backgroundColor: 'white'
+                        }}
+                      >
+                        <option value={30}>30 minutes</option>
+                        <option value={45}>45 minutes</option>
+                        <option value={60}>60 minutes</option>
+                        <option value={90}>90 minutes</option>
+                        <option value={120}>120 minutes</option>
+                      </select>
+                    </div>
+                    {/* NEW: Session Price */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
+                        Session Price (₪)
+                      </label>
+                      <input
+                        type="number"
+                        value={editForm.sessionPrice}
+                        onChange={(e) => setEditForm({...editForm, sessionPrice: parseInt(e.target.value) || 180})}
+                        min="50"
+                        max="1000"
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '6px',
+                          fontSize: '14px',
+                          color: '#111827',
+                          backgroundColor: 'white'
+                        }}
+                      />
+                      <p style={{ fontSize: '11px', color: '#6b7280', margin: '4px 0 0 0' }}>
+                        Default: ₪180 per hour
+                      </p>
+                    </div>
                   </div>
                 ) : (
                   <div style={{ 
@@ -815,6 +903,23 @@ export default function ClientProfilePage() {
                       </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {/* NEW: Session Price Display */}
+                      <div>
+                        <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          Session Price
+                        </p>
+                        <p style={{ fontSize: '14px', fontWeight: '600', color: '#ea580c', margin: 0 }}>
+                          ₪{client.sessionPrice || 180} per hour
+                        </p>
+                      </div>
+                      <div>
+                        <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          Session Duration
+                        </p>
+                        <p style={{ fontSize: '14px', color: '#111827', margin: 0 }}>
+                          {client.sessionDuration || 60} minutes
+                        </p>
+                      </div>
                       {client.birthDate && (
                         <div>
                           <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -1087,7 +1192,7 @@ export default function ClientProfilePage() {
                               {formatDateTime(appointment.datetime)}
                             </p>
                             <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>
-                              {appointment.duration} minutes
+                              {appointment.duration} minutes • ₪{appointment.sessionPrice || client.sessionPrice || 180}
                             </p>
                           </div>
                         </div>
@@ -1267,6 +1372,15 @@ export default function ClientProfilePage() {
                   </p>
                   <p style={{ fontSize: '13px', color: '#111827', margin: 0 }}>
                     {formatDate(client.joinedDate)}
+                  </p>
+                </div>
+                {/* NEW: Pricing Summary */}
+                <div>
+                  <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 2px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Hourly Rate
+                  </p>
+                  <p style={{ fontSize: '13px', fontWeight: '600', color: '#ea580c', margin: 0 }}>
+                    ₪{client.sessionPrice || 180}
                   </p>
                 </div>
                 <div>

@@ -1,4 +1,4 @@
-// prisma/schema.prisma - Add Client model
+// prisma/schema.prisma - Add Client pricing
 generator client {
   provider = "prisma-client-js"
 }
@@ -58,10 +58,9 @@ model Trainer {
   updatedAt        DateTime      @updatedAt
   user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   appointments     Appointment[]
-  clients          Client[]      // New relationship
+  clients          Client[]
 }
 
-// New Client model
 model Client {
   id               String        @id @default(cuid())
   trainerId        String
@@ -83,6 +82,9 @@ model Client {
   preferredTimes   String?       // JSON array of preferred time slots
   sessionDuration  Int?          // Preferred session length in minutes
   
+  // Pricing - NEW FIELD
+  sessionPrice     Int           @default(180) // Price in NIS for 1-hour session
+  
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
   
@@ -96,7 +98,7 @@ model Client {
 model Appointment {
   id              String   @id @default(cuid())
   trainerId       String
-  clientId        String?  // New: Link to Client model
+  clientId        String?  // Link to Client model
   clientName      String
   clientEmail     String
   clientPhone     String?
@@ -104,7 +106,8 @@ model Appointment {
   duration        Int      @default(60) // minutes
   status          String   @default("booked") // booked, cancelled, completed
   googleEventId   String?
-  sessionNotes    String?  // New: Post-session notes
+  sessionNotes    String?  // Post-session notes
+  sessionPrice    Int?     // NEW: Price charged for this specific session (copied from client at booking time)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   trainer         Trainer  @relation(fields: [trainerId], references: [id], onDelete: Cascade)
