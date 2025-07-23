@@ -1,4 +1,4 @@
-// src/app/clients/page.tsx - Complete redesign with modern responsive layout and small icons
+// src/app/clients/page.tsx - Buttons moved to body for better mobile experience
 'use client'
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
@@ -117,7 +117,7 @@ export default function ClientsPage() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
-      {/* Top Header */}
+      {/* Clean Header - Only title and essential navigation */}
       <header style={{ 
         backgroundColor: 'white', 
         borderBottom: '1px solid #e5e7eb',
@@ -127,100 +127,167 @@ export default function ClientsPage() {
           maxWidth: '1280px', 
           margin: '0 auto', 
           padding: '0 16px',
+          height: '64px',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          height: '64px'
+          justifyContent: 'space-between'
         }}>
-          {/* Back Button & Title */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <Link 
-              href="/dashboard"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 12px',
-                fontSize: '13px',
-                fontWeight: '500',
-                color: '#6b7280',
-                backgroundColor: '#f9fafb',
-                border: '1px solid #e5e7eb',
-                borderRadius: '6px',
-                textDecoration: 'none',
-                transition: 'all 0.2s'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
-            >
-              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          {/* Title Section */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ 
+              width: '32px', 
+              height: '32px', 
+              backgroundColor: '#3b82f6', 
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <svg width="18" height="18" fill="white" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
               </svg>
-              Dashboard
-            </Link>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ 
-                width: '32px', 
-                height: '32px', 
-                backgroundColor: '#3b82f6', 
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <svg width="18" height="18" fill="white" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                </svg>
-              </div>
-              <div>
-                <h1 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>
-                  Client Management
-                </h1>
-                <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>
-                  {clients.length} registered clients
-                </p>
-              </div>
+            </div>
+            <div>
+              <h1 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>
+                Client Management
+              </h1>
+              <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>
+                {clients.length} clients
+              </p>
             </div>
           </div>
 
-          {/* Quick Actions */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <button
-              onClick={() => {
-                // TODO: Open a scheduling modal or navigate to a proper scheduling page
-                // For now, we'll redirect to availability as a placeholder
-                alert('Scheduling feature coming soon! For now, you can set your availability and share your booking link with clients.')
-              }}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 12px',
-                fontSize: '13px',
-                fontWeight: '500',
-                color: '#16a34a',
-                backgroundColor: '#f0fdf4',
-                border: '1px solid #bbf7d0',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#dcfce7'}
-              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f0fdf4'}
-            >
-              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Schedule Session
-            </button>
-          </div>
+          {/* Just breadcrumb navigation */}
+          <nav style={{ fontSize: '12px', color: '#6b7280' }}>
+            <Link href="/dashboard" style={{ color: '#3b82f6', textDecoration: 'none' }}>
+              Dashboard
+            </Link>
+            <span style={{ margin: '0 8px' }}>›</span>
+            <span>Clients</span>
+          </nav>
         </div>
       </header>
 
       {/* Main Content */}
       <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 16px' }}>
         
+        {/* Action Buttons Section - Now in body */}
+        <div style={{ 
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px',
+          marginBottom: '24px'
+        }}>
+          {/* Back Button */}
+          <Link 
+            href="/dashboard"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 16px',
+              fontSize: '14px',
+              fontWeight: '500',
+              color: '#6b7280',
+              backgroundColor: '#f9fafb',
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px',
+              textDecoration: 'none',
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+          >
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Dashboard
+          </Link>
+
+          {/* Action Buttons */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => {
+                alert('Scheduling feature coming soon! For now, you can set your availability and share your booking link with clients.')
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 16px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#16a34a',
+                backgroundColor: '#f0fdf4',
+                border: '1px solid #bbf7d0',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#dcfce7'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f0fdf4'}
+            >
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Schedule Session
+            </button>
+
+            <Link
+              href="/availability"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 16px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#2563eb',
+                backgroundColor: '#eff6ff',
+                border: '1px solid #bfdbfe',
+                borderRadius: '8px',
+                textDecoration: 'none',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#dbeafe'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#eff6ff'}
+            >
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
+              </svg>
+              Set Availability
+            </Link>
+
+            <Link
+              href={`/book/${session?.user?.email?.split('@')[0]?.replace(/[^a-zA-Z0-9]/g, '-')}`}
+              target="_blank"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 16px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#7c3aed',
+                backgroundColor: '#faf5ff',
+                border: '1px solid #d8b4fe',
+                borderRadius: '8px',
+                textDecoration: 'none',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3e8ff'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#faf5ff'}
+            >
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+              Share Booking Link
+            </Link>
+          </div>
+        </div>
+
         {/* Hero Section with Stats */}
         <div style={{ 
           background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
@@ -367,33 +434,6 @@ export default function ClientsPage() {
                 : 'Clients will be automatically added when they book sessions'
               }
             </p>
-            {!searchTerm && (
-              <Link
-                href={`/book/${session?.user?.email?.split('@')[0]?.replace(/[^a-zA-Z0-9]/g, '-')}`}
-                target="_blank"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '12px 20px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: '#3b82f6',
-                  backgroundColor: '#eff6ff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  textDecoration: 'none',
-                  transition: 'all 0.2s'
-                }}
-                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#dbeafe'}
-                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#eff6ff'}
-              >
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-                Share your booking link
-              </Link>
-            )}
           </div>
         ) : (
           <div style={{ 
@@ -555,6 +595,18 @@ export default function ClientsPage() {
       <style jsx>{`
         @keyframes spin {
           to { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+          .action-buttons {
+            flex-direction: column;
+            width: 100%;
+          }
+          
+          .action-buttons > * {
+            width: 100%;
+            justify-content: center;
+          }
         }
       `}</style>
     </div>

@@ -1,4 +1,4 @@
-// src/app/clients/[clientId]/page.tsx - Complete with booking integration
+// src/app/clients/[clientId]/page.tsx - Clean header with buttons moved to body
 'use client'
 import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
@@ -34,8 +34,8 @@ interface Client {
   totalAppointments: number
   completedSessions: number
   upcomingAppointments: number
-  totalPaid?: number  // Optional - fallback to 0
-  outstandingBalance?: number  // Optional - calculated if missing
+  totalPaid?: number
+  outstandingBalance?: number
   appointments: Array<{
     id: string
     datetime: string
@@ -44,7 +44,7 @@ interface Client {
     sessionNotes?: string
     sessionPrice?: number
   }>
-  payments?: Payment[]  // Optional - fallback to empty array
+  payments?: Payment[]
 }
 
 export default function ClientProfilePage() {
@@ -55,7 +55,7 @@ export default function ClientProfilePage() {
   const clientId = params.clientId as string
   const { t } = useTranslations()
 
-  // 🆕 Booking success handling
+  // Booking success handling
   const bookingSuccess = searchParams.get('booked') === 'true'
   const [showSuccessMessage, setShowSuccessMessage] = useState(bookingSuccess)
 
@@ -97,15 +97,12 @@ export default function ClientProfilePage() {
 
     fetchClient()
 
-    // 🆕 Handle booking success
     if (bookingSuccess) {
       setShowSuccessMessage(true)
-      // Auto-hide success message after 5 seconds
       const timer = setTimeout(() => {
         setShowSuccessMessage(false)
       }, 5000)
       
-      // Small delay to ensure appointment is saved, then refresh
       setTimeout(() => {
         fetchClient()
       }, 1000)
@@ -120,7 +117,6 @@ export default function ClientProfilePage() {
       const data = await response.json()
       
       if (data.success) {
-        console.log('Client data:', data.client) // Debug log
         setClient(data.client)
         setEditForm({
           name: data.client.name || '',
@@ -173,7 +169,6 @@ export default function ClientProfilePage() {
     }
   }
 
-  // Add payment function
   const handleAddPayment = async () => {
     if (!paymentForm.amount || parseFloat(paymentForm.amount) <= 0) {
       alert('Please enter a valid payment amount')
@@ -200,7 +195,7 @@ export default function ClientProfilePage() {
       if (data.success) {
         setShowPaymentForm(false)
         setPaymentForm({ amount: '', paymentMethod: 'cash', notes: '', appointmentId: '' })
-        await fetchClient() // Refresh client data to show updated payments
+        await fetchClient()
         alert('Payment recorded successfully!')
       } else {
         alert('Error recording payment: ' + data.error)
@@ -352,7 +347,7 @@ export default function ClientProfilePage() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
-      {/* Header */}
+      {/* Clean Header - Only title and navigation */}
       <header style={{ 
         backgroundColor: 'white', 
         borderBottom: '1px solid #e5e7eb',
@@ -367,32 +362,8 @@ export default function ClientProfilePage() {
           justifyContent: 'space-between',
           height: '64px'
         }}>
+          {/* Client Info */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Link 
-              href="/clients"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 12px',
-                fontSize: '13px',
-                fontWeight: '500',
-                color: '#374151',
-                backgroundColor: '#f3f4f6',
-                border: 'none',
-                borderRadius: '6px',
-                textDecoration: 'none',
-                transition: 'all 0.2s',
-                marginRight: '12px'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
-              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-            >
-              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Back to Clients
-            </Link>
             <div style={{ 
               width: '32px', 
               height: '32px', 
@@ -419,133 +390,16 @@ export default function ClientProfilePage() {
             </div>
           </div>
 
-          {/* 🆕 UPDATED Desktop Actions with Book Session button */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Navigation */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <LanguageToggle />
-            
-            {/* 🆕 Book Session Button */}
-            <Link
-              href={`/clients/${clientId}/book`}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 12px',
-                fontSize: '13px',
-                fontWeight: '500',
-                color: '#2563eb',
-                backgroundColor: '#eff6ff',
-                border: 'none',
-                borderRadius: '6px',
-                textDecoration: 'none',
-                transition: 'all 0.2s'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#dbeafe'}
-              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#eff6ff'}
-            >
-              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Book Session
-            </Link>
-            
-            {/* Record Payment Button */}
-            <button
-              onClick={() => setShowPaymentForm(true)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 12px',
-                fontSize: '13px',
-                fontWeight: '500',
-                color: '#059669',
-                backgroundColor: '#ecfdf5',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#d1fae5'}
-              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#ecfdf5'}
-            >
-              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-              </svg>
-              Record Payment
-            </button>
-            
-            {editing ? (
-              <>
-                <button
-                  onClick={() => setEditing(false)}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 12px',
-                    fontSize: '13px',
-                    fontWeight: '500',
-                    color: '#374151',
-                    backgroundColor: '#f3f4f6',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    textDecoration: 'none',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 12px',
-                    fontSize: '13px',
-                    fontWeight: '500',
-                    color: 'white',
-                    backgroundColor: saving ? '#9ca3af' : '#3b82f6',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: saving ? 'not-allowed' : 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  {saving ? 'Saving...' : 'Save Changes'}
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={() => setEditing(true)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '8px 12px',
-                  fontSize: '13px',
-                  fontWeight: '500',
-                  color: '#374151',
-                  backgroundColor: '#f3f4f6',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
-                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-              >
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                Edit Profile
-              </button>
-            )}
+            <nav style={{ fontSize: '12px', color: '#6b7280' }}>
+              <Link href="/clients" style={{ color: '#3b82f6', textDecoration: 'none' }}>
+                Clients
+              </Link>
+              <span style={{ margin: '0 8px' }}>›</span>
+              <span>{client.name}</span>
+            </nav>
           </div>
         </div>
       </header>
@@ -715,7 +569,170 @@ export default function ClientProfilePage() {
       {/* Main Content */}
       <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 16px' }}>
         
-        {/* 🆕 Success Message */}
+        {/* Action Buttons Section - Moved to body */}
+        <div style={{ 
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px',
+          marginBottom: '24px'
+        }}>
+          {/* Back Button */}
+          <Link 
+            href="/clients"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 16px',
+              fontSize: '14px',
+              fontWeight: '500',
+              color: '#6b7280',
+              backgroundColor: '#f9fafb',
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px',
+              textDecoration: 'none',
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+          >
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Clients
+          </Link>
+
+          {/* Action Buttons */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            {/* Book Session Button */}
+            <Link
+              href={`/clients/${clientId}/book`}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 16px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#2563eb',
+                backgroundColor: '#eff6ff',
+                border: '1px solid #bfdbfe',
+                borderRadius: '8px',
+                textDecoration: 'none',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#dbeafe'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#eff6ff'}
+            >
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Book Session
+            </Link>
+            
+            {/* Record Payment Button */}
+            <button
+              onClick={() => setShowPaymentForm(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 16px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#059669',
+                backgroundColor: '#ecfdf5',
+                border: '1px solid #a7f3d0',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#d1fae5'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#ecfdf5'}
+            >
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+              </svg>
+              Record Payment
+            </button>
+            
+            {/* Edit Profile Buttons */}
+            {editing ? (
+              <>
+                <button
+                  onClick={() => setEditing(false)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 16px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#374151',
+                    backgroundColor: '#f9fafb',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 16px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    color: 'white',
+                    backgroundColor: saving ? '#9ca3af' : '#3b82f6',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: saving ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setEditing(true)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 16px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#374151',
+                  backgroundColor: '#f9fafb',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+              >
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit Profile
+              </button>
+            )}
+          </div>
+        </div>
+        
+        {/* Success Message */}
         {showSuccessMessage && (
           <div style={{
             backgroundColor: '#ecfdf5',
@@ -983,7 +1000,7 @@ export default function ClientProfilePage() {
           </div>
         )}
 
-        {/* Basic Information & Session History (simplified version for now) */}
+        {/* Basic Information & Session History */}
         <div style={{ 
           backgroundColor: 'white',
           border: '1px solid #e5e7eb',
@@ -1082,6 +1099,18 @@ export default function ClientProfilePage() {
       <style jsx>{`
         @keyframes spin {
           to { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+          .action-buttons {
+            flex-direction: column;
+            width: 100%;
+          }
+          
+          .action-buttons > * {
+            width: 100%;
+            justify-content: center;
+          }
         }
       `}</style>
     </div>
