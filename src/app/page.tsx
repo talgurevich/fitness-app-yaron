@@ -1,10 +1,55 @@
-// src/app/page.tsx - Updated to match dashboard design system
+// src/app/page.tsx - Updated with registration modal
 'use client'
 import Link from 'next/link'
+import { useState } from 'react'
 import LanguageToggle, { useTranslations } from '@/components/LanguageToggle'
 
 export default function HomePage() {
   const { t } = useTranslations()
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false)
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: ''
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    
+    try {
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      if (!response.ok) {
+        throw new Error('Registration failed')
+      }
+
+      // Success! Close modal and show success message
+      setShowRegistrationModal(false)
+      setFormData({ name: '', email: '', phone: '' })
+      alert('תודה על הרשמתך! שלחנו לך מייל עם פרטים נוספים ונחזור אליך תוך 24 שעות.')
+      
+    } catch (error) {
+      console.error('Registration error:', error)
+      alert('אירעה שגיאה בשליחת הבקשה. אנא נסו שוב מאוחר יותר.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    })
+  }
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
@@ -51,6 +96,8 @@ export default function HomePage() {
           {/* Desktop Actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <LanguageToggle />
+            
+            {/* Login Button */}
             <Link
               href="/login"
               style={{
@@ -75,11 +122,293 @@ export default function HomePage() {
               </svg>
               התחברות
             </Link>
+
+            {/* Register Button */}
+            <button
+              onClick={() => setShowRegistrationModal(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 12px',
+                fontSize: '13px',
+                fontWeight: '500',
+                color: '#3b82f6',
+                backgroundColor: 'transparent',
+                border: '1px solid #3b82f6',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = '#3b82f6'
+                e.currentTarget.style.color = 'white'
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent'
+                e.currentTarget.style.color = '#3b82f6'
+              }}
+            >
+              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+              </svg>
+              רוצה להירשם
+            </button>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
+      {/* Registration Modal */}
+      {showRegistrationModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '16px'
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '16px',
+            padding: '32px',
+            maxWidth: '480px',
+            width: '100%',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            position: 'relative'
+          }}>
+            {/* Close Button */}
+            <button
+              onClick={() => setShowRegistrationModal(false)}
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                border: 'none',
+                backgroundColor: '#f3f4f6',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+            >
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Modal Header */}
+            <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+              <div style={{ 
+                width: '64px', 
+                height: '64px', 
+                backgroundColor: '#eff6ff', 
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 16px',
+                fontSize: '28px'
+              }}>
+                🚀
+              </div>
+              <h2 style={{ 
+                fontSize: '24px', 
+                fontWeight: '700', 
+                color: '#111827', 
+                margin: '0 0 8px 0' 
+              }}>
+                הצטרפו אלינו!
+              </h2>
+              <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
+                השאירו פרטים ונחזור אליכם עם כל המידע על המערכת
+              </p>
+            </div>
+
+            {/* Registration Form */}
+            <form onSubmit={handleSubmit}>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#374151',
+                  marginBottom: '6px'
+                }}>
+                  שם מלא *
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    transition: 'all 0.2s',
+                    boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                  onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                  placeholder="הכניסו את השם המלא שלכם"
+                />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#374151',
+                  marginBottom: '6px'
+                }}>
+                  כתובת אימייל *
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    transition: 'all 0.2s',
+                    boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                  onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                  placeholder="example@email.com"
+                />
+              </div>
+
+              <div style={{ marginBottom: '32px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#374151',
+                  marginBottom: '6px'
+                }}>
+                  מספר טלפון *
+                </label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    transition: 'all 0.2s',
+                    boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                  onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                  placeholder="050-1234567"
+                />
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                style={{
+                  width: '100%',
+                  padding: '14px 24px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  color: 'white',
+                  backgroundColor: isSubmitting ? '#9ca3af' : '#3b82f6',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+                onMouseOver={(e) => {
+                  if (!isSubmitting) {
+                    e.currentTarget.style.backgroundColor = '#2563eb'
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (!isSubmitting) {
+                    e.currentTarget.style.backgroundColor = '#3b82f6'
+                  }
+                }}
+              >
+                {isSubmitting ? (
+                  <>
+                    <div style={{
+                      width: '16px',
+                      height: '16px',
+                      border: '2px solid transparent',
+                      borderTop: '2px solid white',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite'
+                    }} />
+                    שולח...
+                  </>
+                ) : (
+                  <>
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                    שלח בקשה
+                  </>
+                )}
+              </button>
+
+              <p style={{ 
+                fontSize: '12px', 
+                color: '#6b7280', 
+                textAlign: 'center', 
+                margin: '16px 0 0 0',
+                lineHeight: '1.4'
+              }}>
+                ברגע שתשלחו את הפרטים, נציג שלנו יחזור אליכם תוך 24 שעות עם כל המידע על המערכת והתחלת השימוש
+              </p>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add CSS for spinner animation */}
+      <style jsx>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
+
+      {/* Main Content - Rest of your existing homepage content... */}
       <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 16px' }}>
         
         {/* Hero Section */}

@@ -1,10 +1,10 @@
-// src/app/api/trainer/clients/[clientId]/route.ts
+// src/app/api/trainer/clients/[clientId]/route.ts - Fixed to handle missing Payment model
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
+import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
-// GET - Fetch specific client details
+// GET - Fetch client with optional payment data
 export async function GET(
   request: NextRequest,
   { params }: { params: { clientId: string } }
@@ -13,88 +13,143 @@ export async function GET(
     const session = await getServerSession(authOptions)
     
     if (!session?.user?.email) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Not authenticated' 
-      }, { status: 401 })
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    const clientId = params.clientId
-    console.log('👤 Fetching client details for:', clientId)
-
-    // Get trainer
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      include: { trainer: true }
-    })
-
-    if (!user?.trainer) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Trainer profile not found' 
-      }, { status: 404 })
-    }
-
-    // Fetch client with full details
-    const client = await prisma.client.findFirst({
-      where: { 
-        id: clientId,
-        trainerId: user.trainer.id // Ensure trainer owns this client
-      },
-      include: {
-        appointments: {
-          orderBy: { datetime: 'desc' },
-          take: 10 // Recent appointments
-        },
-        _count: {
-          select: {
-            appointments: true
-          }
+    // Get trainer info
+    const trainer = await prisma.trainer.findFirst({
+      where: {
+        user: {
+          email: session.user.email
         }
       }
     })
 
+    if (!trainer) {
+      return NextResponse.json({ success: false, error: 'Trainer not found' }, { status: 404 })
+    }
+
+    // Get client with related data - handle payments safely
+    let client
+    
+    try {
+      // Try to get client with payments (if Payment model exists)
+      client = await prisma.client.findFirst({
+        where: {
+          id: params.clientId,
+          trainerId: trainer.id
+        },
+        include: {
+          appointments: {
+            orderBy: { datetime: 'desc' },
+            select: {
+              id: true,
+              datetime: true,
+              duration: true,
+              status: true,
+              sessionNotes: true,
+              sessionPrice: true
+            }
+          },
+          payments: {
+            orderBy: { paymentDate: 'desc' },
+            select: {
+              id: true,
+              amount: true,
+              paymentMethod: true,
+              paymentDate: true,
+              notes: true,
+              appointmentId: true
+            }
+          }
+        }
+      })
+    } catch (paymentsError) {
+      console.log('Payment model not found, falling back to basic client data')
+      
+      // Fallback: Get client without payments
+      client = await prisma.client.findFirst({
+        where: {
+          id: params.clientId,
+          trainerId: trainer.id
+        },
+        include: {
+          appointments: {
+            orderBy: { datetime: 'desc' },
+            select: {
+              id: true,
+              datetime: true,
+              duration: true,
+              status: true,
+              sessionNotes: true,
+              sessionPrice: true
+            }
+          }
+        }
+      })
+      
+      // Add empty payments array
+      if (client) {
+        (client as any).payments = []
+      }
+    }
+
     if (!client) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Client not found' 
-      }, { status: 404 })
+      return NextResponse.json({ success: false, error: 'Client not found' }, { status: 404 })
     }
 
-    // Calculate additional statistics
-    const completedSessions = await prisma.appointment.count({
-      where: { 
-        clientId: client.id,
-        status: 'completed'
-      }
-    })
-
-    const upcomingAppointments = await prisma.appointment.count({
-      where: { 
-        clientId: client.id,
-        datetime: { gte: new Date() },
-        status: 'booked'
-      }
-    })
-
-    const clientWithStats = {
-      ...client,
-      completedSessions,
-      upcomingAppointments
-    }
-
-    console.log('✅ Client details retrieved:', client.name)
+    // Calculate appointment statistics
+    const completedAppointments = client.appointments.filter(apt => apt.status === 'completed')
+    const upcomingAppointments = client.appointments.filter(apt => 
+      apt.status === 'booked' && new Date(apt.datetime) > new Date()
+    )
+    
+    // Calculate payment statistics (safe handling)
+    const payments = (client as any).payments || []
+    const totalPaid = payments.reduce((sum: number, payment: any) => sum + payment.amount, 0)
+    
+    // Calculate total owed (completed sessions * session price)
+    const totalOwed = completedAppointments.reduce((sum, apt) => {
+      const sessionPrice = apt.sessionPrice || client.sessionPrice || 180
+      return sum + sessionPrice
+    }, 0)
+    
+    const outstandingBalance = totalOwed - totalPaid
 
     return NextResponse.json({
       success: true,
-      client: clientWithStats
+      client: {
+        id: client.id,
+        name: client.name,
+        email: client.email,
+        phone: client.phone,
+        notes: client.notes,
+        goals: client.goals,
+        medicalNotes: client.medicalNotes,
+        emergencyContact: client.emergencyContact,
+        birthDate: client.birthDate,
+        joinedDate: client.joinedDate,
+        lastSessionDate: client.lastSessionDate,
+        preferredDays: client.preferredDays,
+        preferredTimes: client.preferredTimes,
+        sessionDuration: client.sessionDuration,
+        sessionPrice: client.sessionPrice,
+        totalAppointments: client.appointments.length,
+        completedSessions: completedAppointments.length,
+        upcomingAppointments: upcomingAppointments.length,
+        totalPaid, // Total payments received (0 if no payments)
+        totalOwed, // Total amount owed
+        outstandingBalance, // Outstanding balance
+        appointments: client.appointments,
+        payments // Payment history (empty array if no payments)
+      }
     })
 
   } catch (error) {
-    console.error('❌ Error fetching client details:', error)
+    console.error('Error fetching client:', error)
     return NextResponse.json({ 
       success: false, 
-      error: 'Failed to fetch client details' 
+      error: 'Internal server error' 
     }, { status: 500 })
   }
 }
@@ -108,75 +163,122 @@ export async function PUT(
     const session = await getServerSession(authOptions)
     
     if (!session?.user?.email) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Not authenticated' 
-      }, { status: 401 })
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    const clientId = params.clientId
+    const trainer = await prisma.trainer.findFirst({
+      where: {
+        user: {
+          email: session.user.email
+        }
+      }
+    })
+
+    if (!trainer) {
+      return NextResponse.json({ success: false, error: 'Trainer not found' }, { status: 404 })
+    }
+
     const body = await request.json()
-    
-    console.log('📝 Updating client:', clientId, body)
+    const { 
+      name, 
+      phone, 
+      notes, 
+      goals, 
+      medicalNotes, 
+      emergencyContact, 
+      birthDate,
+      sessionDuration,
+      sessionPrice
+    } = body
 
-    // Get trainer
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      include: { trainer: true }
-    })
-
-    if (!user?.trainer) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Trainer profile not found' 
-      }, { status: 404 })
-    }
-
-    // Verify client belongs to this trainer
-    const existingClient = await prisma.client.findFirst({
-      where: { 
-        id: clientId,
-        trainerId: user.trainer.id
-      }
-    })
-
-    if (!existingClient) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Client not found' 
-      }, { status: 404 })
-    }
-
-    // Update client information
+    // Update client basic info
     const updatedClient = await prisma.client.update({
-      where: { id: clientId },
+      where: {
+        id: params.clientId,
+        trainerId: trainer.id
+      },
       data: {
-        name: body.name || existingClient.name,
-        phone: body.phone || existingClient.phone,
-        notes: body.notes,
-        goals: body.goals,
-        medicalNotes: body.medicalNotes,
-        emergencyContact: body.emergencyContact,
-        birthDate: body.birthDate ? new Date(body.birthDate) : existingClient.birthDate,
-        preferredDays: body.preferredDays ? JSON.stringify(body.preferredDays) : existingClient.preferredDays,
-        preferredTimes: body.preferredTimes ? JSON.stringify(body.preferredTimes) : existingClient.preferredTimes,        sessionDuration: body.sessionDuration || existingClient.sessionDuration,
-        updatedAt: new Date()
+        name: name || undefined,
+        phone: phone || undefined,
+        notes: notes || undefined,
+        goals: goals || undefined,
+        medicalNotes: medicalNotes || undefined,
+        emergencyContact: emergencyContact || undefined,
+        birthDate: birthDate ? new Date(birthDate) : undefined,
+        sessionDuration: sessionDuration || undefined,
+        sessionPrice: sessionPrice || undefined
+      },
+      include: {
+        appointments: {
+          orderBy: { datetime: 'desc' },
+          select: {
+            id: true,
+            datetime: true,
+            duration: true,
+            status: true,
+            sessionNotes: true,
+            sessionPrice: true
+          }
+        }
       }
     })
 
-    console.log('✅ Client updated successfully:', updatedClient.name)
+    // Try to get payments if the model exists
+    let payments = []
+    try {
+      const clientWithPayments = await prisma.client.findFirst({
+        where: { id: params.clientId },
+        include: {
+          payments: {
+            orderBy: { paymentDate: 'desc' },
+            select: {
+              id: true,
+              amount: true,
+              paymentMethod: true,
+              paymentDate: true,
+              notes: true,
+              appointmentId: true
+            }
+          }
+        }
+      })
+      payments = clientWithPayments?.payments || []
+    } catch (error) {
+      console.log('Payment model not available')
+    }
+
+    // Recalculate statistics
+    const completedAppointments = updatedClient.appointments.filter(apt => apt.status === 'completed')
+    const upcomingAppointments = updatedClient.appointments.filter(apt => 
+      apt.status === 'booked' && new Date(apt.datetime) > new Date()
+    )
+    
+    const totalPaid = payments.reduce((sum: number, payment: any) => sum + payment.amount, 0)
+    const totalOwed = completedAppointments.reduce((sum, apt) => {
+      const sessionPrice = apt.sessionPrice || updatedClient.sessionPrice || 180
+      return sum + sessionPrice
+    }, 0)
+    const outstandingBalance = totalOwed - totalPaid
 
     return NextResponse.json({
       success: true,
-      client: updatedClient,
-      message: 'Client updated successfully'
+      client: {
+        ...updatedClient,
+        totalAppointments: updatedClient.appointments.length,
+        completedSessions: completedAppointments.length,
+        upcomingAppointments: upcomingAppointments.length,
+        totalPaid,
+        totalOwed,
+        outstandingBalance,
+        payments
+      }
     })
 
   } catch (error) {
-    console.error('❌ Error updating client:', error)
+    console.error('Error updating client:', error)
     return NextResponse.json({ 
       success: false, 
-      error: 'Failed to update client' 
+      error: 'Internal server error' 
     }, { status: 500 })
   }
 }

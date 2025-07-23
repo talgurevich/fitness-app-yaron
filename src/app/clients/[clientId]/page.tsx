@@ -1,10 +1,19 @@
-// src/app/clients/[clientId]/page.tsx - Updated with pricing functionality
+// src/app/clients/[clientId]/page.tsx - Fixed with proper fallbacks
 'use client'
 import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import LanguageToggle, { useTranslations } from '@/components/LanguageToggle'
+
+interface Payment {
+  id: string
+  amount: number
+  paymentDate: string
+  paymentMethod: string
+  notes?: string
+  appointmentId?: string
+}
 
 interface Client {
   id: string
@@ -21,18 +30,21 @@ interface Client {
   preferredDays?: string
   preferredTimes?: string
   sessionDuration?: number
-  sessionPrice?: number  // NEW: Added pricing
+  sessionPrice?: number
   totalAppointments: number
   completedSessions: number
   upcomingAppointments: number
+  totalPaid?: number  // Optional - fallback to 0
+  outstandingBalance?: number  // Optional - calculated if missing
   appointments: Array<{
     id: string
     datetime: string
     duration: number
     status: string
     sessionNotes?: string
-    sessionPrice?: number  // NEW: Track session price
+    sessionPrice?: number
   }>
+  payments?: Payment[]  // Optional - fallback to empty array
 }
 
 export default function ClientProfilePage() {
@@ -47,6 +59,17 @@ export default function ClientProfilePage() {
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [deletingAppointment, setDeletingAppointment] = useState<string | null>(null)
+  
+  // Payment form state
+  const [showPaymentForm, setShowPaymentForm] = useState(false)
+  const [addingPayment, setAddingPayment] = useState(false)
+  const [paymentForm, setPaymentForm] = useState({
+    amount: '',
+    paymentMethod: 'cash',
+    notes: '',
+    appointmentId: ''
+  })
+
   const [editForm, setEditForm] = useState({
     name: '',
     phone: '',
@@ -56,7 +79,7 @@ export default function ClientProfilePage() {
     emergencyContact: '',
     birthDate: '',
     sessionDuration: 60,
-    sessionPrice: 180  // NEW: Added pricing to form
+    sessionPrice: 180
   })
 
   useEffect(() => {
@@ -76,6 +99,7 @@ export default function ClientProfilePage() {
       const data = await response.json()
       
       if (data.success) {
+        console.log('Client data:', data.client) // Debug log
         setClient(data.client)
         setEditForm({
           name: data.client.name || '',
@@ -86,7 +110,7 @@ export default function ClientProfilePage() {
           emergencyContact: data.client.emergencyContact || '',
           birthDate: data.client.birthDate ? data.client.birthDate.split('T')[0] : '',
           sessionDuration: data.client.sessionDuration || 60,
-          sessionPrice: data.client.sessionPrice || 180  // NEW: Set pricing in form
+          sessionPrice: data.client.sessionPrice || 180
         })
       } else {
         console.error('Failed to fetch client:', data.error)
@@ -108,7 +132,7 @@ export default function ClientProfilePage() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(editForm)  // This now includes sessionPrice
+        body: JSON.stringify(editForm)
       })
 
       const data = await response.json()
@@ -128,6 +152,46 @@ export default function ClientProfilePage() {
     }
   }
 
+  // Add payment function
+  const handleAddPayment = async () => {
+    if (!paymentForm.amount || parseFloat(paymentForm.amount) <= 0) {
+      alert('Please enter a valid payment amount')
+      return
+    }
+
+    setAddingPayment(true)
+    try {
+      const response = await fetch(`/api/trainer/clients/${clientId}/payments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          amount: parseFloat(paymentForm.amount),
+          paymentMethod: paymentForm.paymentMethod,
+          notes: paymentForm.notes || null,
+          appointmentId: paymentForm.appointmentId || null
+        })
+      })
+
+      const data = await response.json()
+      
+      if (data.success) {
+        setShowPaymentForm(false)
+        setPaymentForm({ amount: '', paymentMethod: 'cash', notes: '', appointmentId: '' })
+        await fetchClient() // Refresh client data to show updated payments
+        alert('Payment recorded successfully!')
+      } else {
+        alert('Error recording payment: ' + data.error)
+      }
+    } catch (error) {
+      console.error('Error recording payment:', error)
+      alert('Error recording payment')
+    } finally {
+      setAddingPayment(false)
+    }
+  }
+
   const handleDeleteAppointment = async (appointmentId: string) => {
     if (!confirm('Are you sure you want to cancel this appointment? This will also remove it from your calendar.')) {
       return
@@ -142,7 +206,6 @@ export default function ClientProfilePage() {
       const data = await response.json()
       
       if (data.success) {
-        // Refresh client data to update the appointments list
         await fetchClient()
         alert('Appointment cancelled successfully!')
       } else {
@@ -190,6 +253,17 @@ export default function ClientProfilePage() {
       case 'booked': return 'Scheduled'
       case 'cancelled': return 'Cancelled'
       default: return status
+    }
+  }
+
+  const getPaymentMethodText = (method: string) => {
+    switch (method) {
+      case 'cash': return 'Cash'
+      case 'bank_transfer': return 'Bank Transfer'
+      case 'credit_card': return 'Credit Card'
+      case 'paypal': return 'PayPal'
+      case 'check': return 'Check'
+      default: return method
     }
   }
 
@@ -247,9 +321,17 @@ export default function ClientProfilePage() {
     )
   }
 
+  // Calculate payment data with safe fallbacks
+  const sessionPrice = client.sessionPrice || 180
+  const completedSessions = client.completedSessions || 0
+  const totalPaid = client.totalPaid || 0
+  const totalOwed = sessionPrice * completedSessions
+  const outstandingBalance = totalOwed - totalPaid
+  const payments = client.payments || []
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
-      {/* Header - matches dashboard exactly */}
+      {/* Header */}
       <header style={{ 
         backgroundColor: 'white', 
         borderBottom: '1px solid #e5e7eb',
@@ -264,7 +346,6 @@ export default function ClientProfilePage() {
           justifyContent: 'space-between',
           height: '64px'
         }}>
-          {/* Logo & Title */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <Link 
               href="/clients"
@@ -309,14 +390,42 @@ export default function ClientProfilePage() {
                 {client.name}
               </h1>
               <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>
-                {client.email} • ₪{client.sessionPrice || 180}/hour
+                {client.email} • ₪{sessionPrice}/hour
+                {outstandingBalance > 0 && (
+                  <span style={{ color: '#dc2626', fontWeight: '500' }}> • ₪{outstandingBalance} owed</span>
+                )}
               </p>
             </div>
           </div>
 
-          {/* Desktop Actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <LanguageToggle />
+            
+            {/* Record Payment Button */}
+            <button
+              onClick={() => setShowPaymentForm(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 12px',
+                fontSize: '13px',
+                fontWeight: '500',
+                color: '#059669',
+                backgroundColor: '#ecfdf5',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#d1fae5'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#ecfdf5'}
+            >
+              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+              </svg>
+              Record Payment
+            </button>
             
             {editing ? (
               <>
@@ -340,9 +449,6 @@ export default function ClientProfilePage() {
                   onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
                   onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
                 >
-                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
                   Cancel
                 </button>
                 <button
@@ -362,115 +468,201 @@ export default function ClientProfilePage() {
                     cursor: saving ? 'not-allowed' : 'pointer',
                     transition: 'all 0.2s'
                   }}
-                  onMouseOver={(e) => {
-                    if (!saving) e.currentTarget.style.backgroundColor = '#2563eb'
-                  }}
-                  onMouseOut={(e) => {
-                    if (!saving) e.currentTarget.style.backgroundColor = '#3b82f6'
-                  }}
                 >
-                  {saving ? (
-                    <>
-                      <div style={{ 
-                        width: '14px', 
-                        height: '14px', 
-                        border: '2px solid white', 
-                        borderTop: '2px solid transparent',
-                        borderRadius: '50%',
-                        animation: 'spin 1s linear infinite'
-                      }}></div>
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      Save Changes
-                    </>
-                  )}
+                  {saving ? 'Saving...' : 'Save Changes'}
                 </button>
               </>
             ) : (
-              <>
-                <button
-                  onClick={() => setEditing(true)}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 12px',
-                    fontSize: '13px',
-                    fontWeight: '500',
-                    color: '#374151',
-                    backgroundColor: '#f3f4f6',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                >
-                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  Edit Profile
-                </button>
-                <Link
-                  href={`/book/${session?.user?.email?.split('@')[0]?.replace(/[^a-zA-Z0-9]/g, '-')}`}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 12px',
-                    fontSize: '13px',
-                    fontWeight: '500',
-                    color: '#16a34a',
-                    backgroundColor: '#f0fdf4',
-                    border: 'none',
-                    borderRadius: '6px',
-                    textDecoration: 'none',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#dcfce7'}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f0fdf4'}
-                >
-                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
-                  </svg>
-                  Schedule Session
-                </Link>
-              </>
+              <button
+                onClick={() => setEditing(true)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 12px',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                  color: '#374151',
+                  backgroundColor: '#f3f4f6',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+              >
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit Profile
+              </button>
             )}
-            
-            <button
-              onClick={() => signOut()}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 12px',
-                fontSize: '13px',
-                fontWeight: '500',
-                color: '#dc2626',
-                backgroundColor: '#fef2f2',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'}
-              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
-            >
-              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              {t('sign_out')}
-            </button>
           </div>
         </div>
       </header>
+
+      {/* Payment Form Modal */}
+      {showPaymentForm && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '16px',
+            padding: '24px',
+            width: '400px',
+            maxWidth: '90vw'
+          }}>
+            <div style={{ marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: '0 0 8px 0' }}>
+                Record Payment
+              </h3>
+              <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
+                Outstanding balance: ₪{outstandingBalance}
+              </p>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
+                Amount (₪) *
+              </label>
+              <input
+                type="number"
+                value={paymentForm.amount}
+                onChange={(e) => setPaymentForm({...paymentForm, amount: e.target.value})}
+                placeholder="Enter payment amount"
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  color: '#111827',
+                  backgroundColor: 'white'
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
+                Payment Method
+              </label>
+              <select
+                value={paymentForm.paymentMethod}
+                onChange={(e) => setPaymentForm({...paymentForm, paymentMethod: e.target.value})}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  color: '#111827',
+                  backgroundColor: 'white'
+                }}
+              >
+                <option value="cash">Cash</option>
+                <option value="bank_transfer">Bank Transfer</option>
+                <option value="credit_card">Credit Card</option>
+                <option value="paypal">PayPal</option>
+                <option value="check">Check</option>
+              </select>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
+                Notes (optional)
+              </label>
+              <textarea
+                value={paymentForm.notes}
+                onChange={(e) => setPaymentForm({...paymentForm, notes: e.target.value})}
+                placeholder="Payment notes..."
+                rows={3}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  color: '#111827',
+                  backgroundColor: 'white',
+                  resize: 'vertical'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowPaymentForm(false)}
+                style={{
+                  padding: '10px 16px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#374151',
+                  backgroundColor: '#f9fafb',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddPayment}
+                disabled={addingPayment}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 16px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: 'white',
+                  backgroundColor: addingPayment ? '#9ca3af' : '#059669',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: addingPayment ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => {
+                  if (!addingPayment) e.currentTarget.style.backgroundColor = '#047857'
+                }}
+                onMouseOut={(e) => {
+                  if (!addingPayment) e.currentTarget.style.backgroundColor = '#059669'
+                }}
+              >
+                {addingPayment ? (
+                  <>
+                    <div style={{ 
+                      width: '14px', 
+                      height: '14px', 
+                      border: '2px solid white', 
+                      borderTop: '2px solid transparent',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite'
+                    }}></div>
+                    Recording...
+                  </>
+                ) : (
+                  'Record Payment'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 16px' }}>
@@ -497,86 +689,27 @@ export default function ClientProfilePage() {
               <p style={{ fontSize: '16px', opacity: 0.9, margin: '0 0 4px 0' }}>
                 Client since {formatDate(client.joinedDate)}
               </p>
-              <p style={{ fontSize: '18px', fontWeight: '600', opacity: 0.95, margin: '0 0 24px 0' }}>
-                💰 ₪{client.sessionPrice || 180} per hour
+              <p style={{ fontSize: '18px', fontWeight: '600', opacity: 0.95, margin: '0 0 8px 0' }}>
+                💰 ₪{sessionPrice} per hour
               </p>
-              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                <Link
-                  href={`/book/${session?.user?.email?.split('@')[0]?.replace(/[^a-zA-Z0-9]/g, '-')}`}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '12px 20px',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    color: '#667eea',
-                    backgroundColor: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    textDecoration: 'none',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
-                  onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-                >
-                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
-                  </svg>
-                  Schedule Session
-                </Link>
-                <button
-                  onClick={() => setEditing(!editing)}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '12px 20px',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    color: 'white',
-                    backgroundColor: 'rgba(255,255,255,0.2)',
-                    border: '1px solid rgba(255,255,255,0.3)',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.3)'
-                    e.currentTarget.style.transform = 'translateY(-1px)'
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'
-                    e.currentTarget.style.transform = 'translateY(0)'
-                  }}
-                >
-                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  {editing ? 'Cancel Edit' : 'Edit Profile'}
-                </button>
-              </div>
-            </div>
-            <div style={{ 
-              width: '60px', 
-              height: '60px', 
-              backgroundColor: 'rgba(255,255,255,0.2)', 
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
+              {outstandingBalance > 0 && (
+                <p style={{ fontSize: '16px', fontWeight: '600', backgroundColor: 'rgba(220, 38, 38, 0.2)', padding: '8px 12px', borderRadius: '6px', margin: '0 0 24px 0' }}>
+                  ⚠️ Outstanding: ₪{outstandingBalance}
+                </p>
+              )}
+              {outstandingBalance === 0 && completedSessions > 0 && (
+                <p style={{ fontSize: '16px', fontWeight: '600', backgroundColor: 'rgba(34, 197, 94, 0.2)', padding: '8px 12px', borderRadius: '6px', margin: '0 0 24px 0' }}>
+                  ✅ Fully paid up!
+                </p>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Stats Grid */}
+        {/* Enhanced Stats Grid with Payment Info */}
         <div style={{ 
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
           gap: '20px',
           marginBottom: '32px'
         }}>
@@ -621,67 +754,6 @@ export default function ClientProfilePage() {
               <div style={{ 
                 width: '40px', 
                 height: '40px', 
-                backgroundColor: '#f0fdf4', 
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <svg width="20" height="20" fill="none" stroke="#16a34a" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>Completed</p>
-                <p style={{ fontSize: '24px', fontWeight: '700', color: '#111827', margin: 0 }}>
-                  {client.completedSessions}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ 
-            backgroundColor: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '12px',
-            padding: '20px',
-            transition: 'all 0.2s'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ 
-                width: '40px', 
-                height: '40px', 
-                backgroundColor: '#faf5ff', 
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <svg width="20" height="20" fill="none" stroke="#9333ea" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>Upcoming</p>
-                <p style={{ fontSize: '24px', fontWeight: '700', color: '#111827', margin: 0 }}>
-                  {client.upcomingAppointments}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* NEW: Total Revenue Card */}
-          <div style={{ 
-            backgroundColor: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '12px',
-            padding: '20px',
-            transition: 'all 0.2s'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ 
-                width: '40px', 
-                height: '40px', 
                 backgroundColor: '#fff7ed', 
                 borderRadius: '8px',
                 display: 'flex',
@@ -693,718 +765,233 @@ export default function ClientProfilePage() {
                 </svg>
               </div>
               <div>
-                <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>Total Revenue</p>
+                <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>Total Owed</p>
                 <p style={{ fontSize: '24px', fontWeight: '700', color: '#111827', margin: 0 }}>
-                  ₪{((client.sessionPrice || 180) * client.completedSessions).toLocaleString()}
+                  ₪{totalOwed.toLocaleString()}
                 </p>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Main Layout */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'minmax(0, 1fr) 300px',
-          gap: '32px'
-        }}>
-          
-          {/* Main Content Area */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            
-            {/* Basic Information */}
-            <div style={{ 
-              backgroundColor: 'white',
-              border: '1px solid #e5e7eb',
-              borderRadius: '16px',
-              overflow: 'hidden'
-            }}>
+          <div style={{ 
+            backgroundColor: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            padding: '20px',
+            transition: 'all 0.2s'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ 
-                padding: '24px',
-                borderBottom: '1px solid #e5e7eb',
+                width: '40px', 
+                height: '40px', 
+                backgroundColor: '#f0fdf4', 
+                borderRadius: '8px',
                 display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
+                alignItems: 'center',
+                justifyContent: 'center'
               }}>
-                <div>
-                  <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>
-                    Basic Information
-                  </h3>
-                  <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0 0 0' }}>
-                    Contact details, pricing and personal info
-                  </p>
-                </div>
+                <svg width="20" height="20" fill="none" stroke="#16a34a" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
-              
-              <div style={{ padding: '24px' }}>
-                {editing ? (
-                  <div style={{ 
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(2, 1fr)',
-                    gap: '20px'
-                  }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
-                        Full Name
-                      </label>
-                      <input
-                        type="text"
-                        value={editForm.name}
-                        onChange={(e) => setEditForm({...editForm, name: e.target.value})}
-                        style={{
-                          width: '100%',
-                          padding: '10px 12px',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '6px',
-                          fontSize: '14px',
-                          color: '#111827',
-                          backgroundColor: 'white'
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
-                        Phone
-                      </label>
-                      <input
-                        type="text"
-                        value={editForm.phone}
-                        onChange={(e) => setEditForm({...editForm, phone: e.target.value})}
-                        style={{
-                          width: '100%',
-                          padding: '10px 12px',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '6px',
-                          fontSize: '14px',
-                          color: '#111827',
-                          backgroundColor: 'white'
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
-                        Birth Date
-                      </label>
-                      <input
-                        type="date"
-                        value={editForm.birthDate}
-                        onChange={(e) => setEditForm({...editForm, birthDate: e.target.value})}
-                        style={{
-                          width: '100%',
-                          padding: '10px 12px',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '6px',
-                          fontSize: '14px',
-                          color: '#111827',
-                          backgroundColor: 'white'
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
-                        Emergency Contact
-                      </label>
-                      <input
-                        type="text"
-                        value={editForm.emergencyContact}
-                        onChange={(e) => setEditForm({...editForm, emergencyContact: e.target.value})}
-                        style={{
-                          width: '100%',
-                          padding: '10px 12px',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '6px',
-                          fontSize: '14px',
-                          color: '#111827',
-                          backgroundColor: 'white'
-                        }}
-                      />
-                    </div>
-                    {/* NEW: Session Duration */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
-                        Session Duration (minutes)
-                      </label>
-                      <select
-                        value={editForm.sessionDuration}
-                        onChange={(e) => setEditForm({...editForm, sessionDuration: parseInt(e.target.value)})}
-                        style={{
-                          width: '100%',
-                          padding: '10px 12px',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '6px',
-                          fontSize: '14px',
-                          color: '#111827',
-                          backgroundColor: 'white'
-                        }}
-                      >
-                        <option value={30}>30 minutes</option>
-                        <option value={45}>45 minutes</option>
-                        <option value={60}>60 minutes</option>
-                        <option value={90}>90 minutes</option>
-                        <option value={120}>120 minutes</option>
-                      </select>
-                    </div>
-                    {/* NEW: Session Price */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
-                        Session Price (₪)
-                      </label>
-                      <input
-                        type="number"
-                        value={editForm.sessionPrice}
-                        onChange={(e) => setEditForm({...editForm, sessionPrice: parseInt(e.target.value) || 180})}
-                        min="50"
-                        max="1000"
-                        style={{
-                          width: '100%',
-                          padding: '10px 12px',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '6px',
-                          fontSize: '14px',
-                          color: '#111827',
-                          backgroundColor: 'white'
-                        }}
-                      />
-                      <p style={{ fontSize: '11px', color: '#6b7280', margin: '4px 0 0 0' }}>
-                        Default: ₪180 per hour
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ 
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(2, 1fr)',
-                    gap: '24px'
-                  }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      <div>
-                        <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                          Email
-                        </p>
-                        <p style={{ fontSize: '14px', color: '#111827', margin: 0 }}>
-                          {client.email}
-                        </p>
-                      </div>
-                      <div>
-                        <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                          Phone
-                        </p>
-                        <p style={{ fontSize: '14px', color: '#111827', margin: 0 }}>
-                          {client.phone || 'Not provided'}
-                        </p>
-                      </div>
-                      <div>
-                        <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                          Joined
-                        </p>
-                        <p style={{ fontSize: '14px', color: '#111827', margin: 0 }}>
-                          {formatDate(client.joinedDate)}
-                        </p>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      {/* NEW: Session Price Display */}
-                      <div>
-                        <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                          Session Price
-                        </p>
-                        <p style={{ fontSize: '14px', fontWeight: '600', color: '#ea580c', margin: 0 }}>
-                          ₪{client.sessionPrice || 180} per hour
-                        </p>
-                      </div>
-                      <div>
-                        <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                          Session Duration
-                        </p>
-                        <p style={{ fontSize: '14px', color: '#111827', margin: 0 }}>
-                          {client.sessionDuration || 60} minutes
-                        </p>
-                      </div>
-                      {client.birthDate && (
-                        <div>
-                          <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                            Birth Date
-                          </p>
-                          <p style={{ fontSize: '14px', color: '#111827', margin: 0 }}>
-                            {formatDate(client.birthDate)}
-                          </p>
-                        </div>
-                      )}
-                      {client.emergencyContact && (
-                        <div>
-                          <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                            Emergency Contact
-                          </p>
-                          <p style={{ fontSize: '14px', color: '#111827', margin: 0 }}>
-                            {client.emergencyContact}
-                          </p>
-                        </div>
-                      )}
-                      {client.lastSessionDate && (
-                        <div>
-                          <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                            Last Session
-                          </p>
-                          <p style={{ fontSize: '14px', color: '#111827', margin: 0 }}>
-                            {formatDate(client.lastSessionDate)}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Goals and Notes */}
-            <div style={{ 
-              backgroundColor: 'white',
-              border: '1px solid #e5e7eb',
-              borderRadius: '16px',
-              overflow: 'hidden'
-            }}>
-              <div style={{ 
-                padding: '24px',
-                borderBottom: '1px solid #e5e7eb'
-              }}>
-                <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>
-                  Goals & Notes
-                </h3>
-                <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0 0 0' }}>
-                  Training goals and important information
+              <div>
+                <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>Total Paid</p>
+                <p style={{ fontSize: '24px', fontWeight: '700', color: '#111827', margin: 0 }}>
+                  ₪{totalPaid.toLocaleString()}
                 </p>
-              </div>
-              
-              <div style={{ padding: '24px' }}>
-                {editing ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
-                        Training Goals
-                      </label>
-                      <textarea
-                        value={editForm.goals}
-                        onChange={(e) => setEditForm({...editForm, goals: e.target.value})}
-                        rows={4}
-                        style={{
-                          width: '100%',
-                          padding: '10px 12px',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '6px',
-                          fontSize: '14px',
-                          color: '#111827',
-                          backgroundColor: 'white',
-                          resize: 'vertical'
-                        }}
-                        placeholder="What are the client's fitness goals?"
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
-                        Medical Notes
-                      </label>
-                      <textarea
-                        value={editForm.medicalNotes}
-                        onChange={(e) => setEditForm({...editForm, medicalNotes: e.target.value})}
-                        rows={3}
-                        style={{
-                          width: '100%',
-                          padding: '10px 12px',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '6px',
-                          fontSize: '14px',
-                          color: '#111827',
-                          backgroundColor: 'white',
-                          resize: 'vertical'
-                        }}
-                        placeholder="Injuries, limitations, medical conditions"
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
-                        General Notes
-                      </label>
-                      <textarea
-                        value={editForm.notes}
-                        onChange={(e) => setEditForm({...editForm, notes: e.target.value})}
-                        rows={4}
-                        style={{
-                          width: '100%',
-                          padding: '10px 12px',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '6px',
-                          fontSize: '14px',
-                          color: '#111827',
-                          backgroundColor: 'white',
-                          resize: 'vertical'
-                        }}
-                        placeholder="Additional notes about the client"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    <div>
-                      <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#111827', margin: '0 0 8px 0' }}>
-                        Training Goals
-                      </h4>
-                      <div style={{ 
-                        padding: '16px',
-                        backgroundColor: '#f9fafb',
-                        border: '1px solid #f3f4f6',
-                        borderRadius: '8px'
-                      }}>
-                        <p style={{ fontSize: '14px', color: '#374151', margin: 0, lineHeight: '1.5' }}>
-                          {client.goals || 'No goals specified'}
-                        </p>
-                      </div>
-                    </div>
-                    {client.medicalNotes && (
-                      <div>
-                        <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#111827', margin: '0 0 8px 0' }}>
-                          Medical Notes
-                        </h4>
-                        <div style={{ 
-                          padding: '16px',
-                          backgroundColor: '#fefce8',
-                          border: '1px solid #fde047',
-                          borderRadius: '8px'
-                        }}>
-                          <p style={{ fontSize: '14px', color: '#a16207', margin: 0, lineHeight: '1.5' }}>
-                            ⚠️ {client.medicalNotes}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                    <div>
-                      <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#111827', margin: '0 0 8px 0' }}>
-                        General Notes
-                      </h4>
-                      <div style={{ 
-                        padding: '16px',
-                        backgroundColor: '#f9fafb',
-                        border: '1px solid #f3f4f6',
-                        borderRadius: '8px'
-                      }}>
-                        <p style={{ fontSize: '14px', color: '#374151', margin: 0, lineHeight: '1.5' }}>
-                          {client.notes || 'No notes'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Session History */}
-            <div style={{ 
-              backgroundColor: 'white',
-              border: '1px solid #e5e7eb',
-              borderRadius: '16px',
-              overflow: 'hidden'
-            }}>
-              <div style={{ 
-                padding: '24px',
-                borderBottom: '1px solid #e5e7eb'
-              }}>
-                <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>
-                  Session History
-                </h3>
-                <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0 0 0' }}>
-                  {client.appointments?.length || 0} sessions recorded
-                </p>
-              </div>
-              
-              <div style={{ padding: '24px' }}>
-                {!client.appointments || client.appointments.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '48px 24px' }}>
-                    <div style={{ 
-                      width: '64px', 
-                      height: '64px', 
-                      backgroundColor: '#f3f4f6', 
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      margin: '0 auto 16px'
-                    }}>
-                      <svg width="24" height="24" fill="none" stroke="#9ca3af" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <h4 style={{ fontSize: '16px', fontWeight: '600', color: '#111827', margin: '0 0 8px 0' }}>
-                      No sessions yet
-                    </h4>
-                    <p style={{ fontSize: '14px', color: '#6b7280', margin: '0 0 20px 0' }}>
-                      Sessions will appear here once scheduled
-                    </p>
-                    <Link
-                      href={`/book/${session?.user?.email?.split('@')[0]?.replace(/[^a-zA-Z0-9]/g, '-')}`}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        padding: '10px 16px',
-                        fontSize: '14px',
-                        fontWeight: '500',
-                        color: '#16a34a',
-                        backgroundColor: '#f0fdf4',
-                        border: 'none',
-                        borderRadius: '8px',
-                        textDecoration: 'none',
-                        transition: 'all 0.2s'
-                      }}
-                    >
-                      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
-                      </svg>
-                      Schedule first session
-                    </Link>
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {(client.appointments || []).map((appointment) => (
-                      <div key={appointment.id} style={{ 
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '16px',
-                        border: '1px solid #f3f4f6',
-                        borderRadius: '8px',
-                        transition: 'all 0.2s'
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <div style={{ 
-                            width: '32px', 
-                            height: '32px', 
-                            backgroundColor: '#eff6ff', 
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}>
-                            <svg width="16" height="16" fill="none" stroke="#3b82f6" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
-                            </svg>
-                          </div>
-                          <div>
-                            <p style={{ fontSize: '14px', fontWeight: '600', color: '#111827', margin: 0 }}>
-                              {formatDateTime(appointment.datetime)}
-                            </p>
-                            <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>
-                              {appointment.duration} minutes • ₪{appointment.sessionPrice || client.sessionPrice || 180}
-                            </p>
-                          </div>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <span style={{ 
-                            display: 'inline-block',
-                            padding: '4px 8px',
-                            fontSize: '11px',
-                            fontWeight: '500',
-                            borderRadius: '12px',
-                            ...getStatusColor(appointment.status)
-                          }}>
-                            {getStatusText(appointment.status)}
-                          </span>
-                          {/* Only show delete button for future appointments */}
-                          {appointment.status === 'booked' && new Date(appointment.datetime) > new Date() && (
-                            <button
-                              onClick={() => handleDeleteAppointment(appointment.id)}
-                              disabled={deletingAppointment === appointment.id}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                padding: '6px 8px',
-                                fontSize: '11px',
-                                fontWeight: '500',
-                                color: deletingAppointment === appointment.id ? '#9ca3af' : '#dc2626',
-                                backgroundColor: deletingAppointment === appointment.id ? '#f9fafb' : '#fef2f2',
-                                border: `1px solid ${deletingAppointment === appointment.id ? '#e5e7eb' : '#fecaca'}`,
-                                borderRadius: '6px',
-                                cursor: deletingAppointment === appointment.id ? 'not-allowed' : 'pointer',
-                                transition: 'all 0.2s'
-                              }}
-                              onMouseOver={(e) => {
-                                if (deletingAppointment !== appointment.id) {
-                                  e.currentTarget.style.backgroundColor = '#fee2e2'
-                                }
-                              }}
-                              onMouseOut={(e) => {
-                                if (deletingAppointment !== appointment.id) {
-                                  e.currentTarget.style.backgroundColor = '#fef2f2'
-                                }
-                              }}
-                            >
-                              {deletingAppointment === appointment.id ? (
-                                <>
-                                  <div style={{ 
-                                    width: '10px', 
-                                    height: '10px', 
-                                    border: '1px solid #9ca3af', 
-                                    borderTop: '1px solid transparent',
-                                    borderRadius: '50%',
-                                    animation: 'spin 1s linear infinite'
-                                  }}></div>
-                                  Cancelling...
-                                </>
-                              ) : (
-                                <>
-                                  <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                  </svg>
-                                  Cancel
-                                </>
-                              )}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
           </div>
 
-          {/* Sidebar */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            
-            {/* Quick Actions */}
-            <div style={{ 
-              backgroundColor: 'white',
-              border: '1px solid #e5e7eb',
-              borderRadius: '12px',
-              padding: '20px'
-            }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#111827', margin: '0 0 16px 0' }}>
-                Quick Actions
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <Link
-                  href={`/book/${session?.user?.email?.split('@')[0]?.replace(/[^a-zA-Z0-9]/g, '-')}`}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '10px 12px',
-                    fontSize: '13px',
-                    fontWeight: '500',
-                    color: 'white',
-                    backgroundColor: '#16a34a',
-                    border: 'none',
-                    borderRadius: '6px',
-                    textDecoration: 'none',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#15803d'}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#16a34a'}
-                >
-                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
-                  </svg>
-                  Schedule Session
-                </Link>
-                <button
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '10px 12px',
-                    fontSize: '13px',
-                    fontWeight: '500',
-                    color: '#374151',
-                    backgroundColor: '#f9fafb',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
-                >
-                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  Send Email
-                </button>
-                <button
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '10px 12px',
-                    fontSize: '13px',
-                    fontWeight: '500',
-                    color: '#374151',
-                    backgroundColor: '#f9fafb',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
-                >
-                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                  </svg>
-                  Send SMS
-                </button>
+          <div style={{ 
+            backgroundColor: 'white',
+            border: `1px solid ${outstandingBalance > 0 ? '#fca5a5' : '#e5e7eb'}`,
+            borderRadius: '12px',
+            padding: '20px',
+            transition: 'all 0.2s'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ 
+                width: '40px', 
+                height: '40px', 
+                backgroundColor: outstandingBalance > 0 ? '#fef2f2' : '#f0fdf4', 
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <svg width="20" height="20" fill="none" stroke={outstandingBalance > 0 ? '#dc2626' : '#16a34a'} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
-            </div>
-
-            {/* Client Summary */}
-            <div style={{ 
-              backgroundColor: 'white',
-              border: '1px solid #e5e7eb',
-              borderRadius: '12px',
-              padding: '20px'
-            }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#111827', margin: '0 0 16px 0' }}>
-                Client Summary
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div>
-                  <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 2px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Member Since
-                  </p>
-                  <p style={{ fontSize: '13px', color: '#111827', margin: 0 }}>
-                    {formatDate(client.joinedDate)}
-                  </p>
-                </div>
-                {/* NEW: Pricing Summary */}
-                <div>
-                  <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 2px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Hourly Rate
-                  </p>
-                  <p style={{ fontSize: '13px', fontWeight: '600', color: '#ea580c', margin: 0 }}>
-                    ₪{client.sessionPrice || 180}
-                  </p>
-                </div>
-                <div>
-                  <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 2px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Session Duration
-                  </p>
-                  <p style={{ fontSize: '13px', color: '#111827', margin: 0 }}>
-                    {client.sessionDuration || 60} minutes
-                  </p>
-                </div>
-                {client.phone && (
-                  <div>
-                    <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 2px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Phone
-                    </p>
-                    <p style={{ fontSize: '13px', color: '#111827', margin: 0 }}>
-                      {client.phone}
-                    </p>
-                  </div>
-                )}
+              <div>
+                <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>Outstanding</p>
+                <p style={{ fontSize: '24px', fontWeight: '700', color: outstandingBalance > 0 ? '#dc2626' : '#16a34a', margin: 0 }}>
+                  ₪{outstandingBalance.toLocaleString()}
+                </p>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Payment History Section - Only show if payments exist */}
+        {payments.length > 0 && (
+          <div style={{ 
+            backgroundColor: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '16px',
+            overflow: 'hidden',
+            marginBottom: '32px'
+          }}>
+            <div style={{ 
+              padding: '24px',
+              borderBottom: '1px solid #e5e7eb'
+            }}>
+              <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>
+                Payment History
+              </h3>
+              <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0 0 0' }}>
+                {payments.length} payments recorded
+              </p>
+            </div>
+            
+            <div style={{ padding: '24px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {payments.map((payment) => (
+                  <div key={payment.id} style={{ 
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '16px',
+                    border: '1px solid #f3f4f6',
+                    borderRadius: '8px',
+                    backgroundColor: '#f9fafb'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ 
+                        width: '32px', 
+                        height: '32px', 
+                        backgroundColor: '#f0fdf4', 
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <svg width="16" height="16" fill="none" stroke="#16a34a" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p style={{ fontSize: '14px', fontWeight: '600', color: '#111827', margin: 0 }}>
+                          ₪{payment.amount} - {getPaymentMethodText(payment.paymentMethod)}
+                        </p>
+                        <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>
+                          {formatDate(payment.paymentDate)}
+                          {payment.notes && ` • ${payment.notes}`}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Basic Information & Session History (simplified version for now) */}
+        <div style={{ 
+          backgroundColor: 'white',
+          border: '1px solid #e5e7eb',
+          borderRadius: '16px',
+          padding: '24px'
+        }}>
+          <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: '0 0 16px 0' }}>
+            Basic Information
+          </h3>
+          
+          {editing ? (
+            <div style={{ 
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: '20px',
+              marginBottom: '20px'
+            }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    color: '#111827',
+                    backgroundColor: 'white'
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
+                  Session Price (₪)
+                </label>
+                <input
+                  type="number"
+                  value={editForm.sessionPrice}
+                  onChange={(e) => setEditForm({...editForm, sessionPrice: parseInt(e.target.value) || 180})}
+                  min="50"
+                  max="1000"
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    color: '#111827',
+                    backgroundColor: 'white'
+                  }}
+                />
+              </div>
+            </div>
+          ) : (
+            <div style={{ 
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '24px',
+              marginBottom: '20px'
+            }}>
+              <div>
+                <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Email
+                </p>
+                <p style={{ fontSize: '14px', color: '#111827', margin: 0 }}>
+                  {client.email}
+                </p>
+              </div>
+              <div>
+                <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Session Price
+                </p>
+                <p style={{ fontSize: '14px', fontWeight: '600', color: '#ea580c', margin: 0 }}>
+                  ₪{sessionPrice} per hour
+                </p>
+              </div>
+              <div>
+                <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Phone
+                </p>
+                <p style={{ fontSize: '14px', color: '#111827', margin: 0 }}>
+                  {client.phone || 'Not provided'}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
       </main>
 
       <style jsx>{`
