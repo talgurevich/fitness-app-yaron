@@ -1,13 +1,15 @@
-import './globals.css'
+// src/app/layout.tsx - Update your existing layout file
+import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import { NextAuthProvider } from './providers'
-import Header from '@/components/Header'
+import './globals.css'
+import { Providers } from './providers'
+import Footer from '@/components/Footer'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export const metadata = {
-  title: 'מערכת הזמנות למאמני כושר',
-  description: 'מערכת הזמנות פשוטה למאמני כושר',
+export const metadata: Metadata = {
+  title: 'Trainer Booking - Professional Fitness Scheduling',
+  description: 'Book fitness training sessions with professional trainers. Easy scheduling, calendar integration, and automated confirmations.',
 }
 
 export default function RootLayout({
@@ -16,12 +18,14 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="he" dir="rtl">
-      <body className={inter.className}>
-        <NextAuthProvider>
-          <Header />
-          <main className="min-h-screen bg-gray-50">{children}</main>
-        </NextAuthProvider>
+    <html lang="en">
+      <body className={`${inter.className} min-h-screen flex flex-col`}>
+        <Providers>
+          <main className="flex-1">
+            {children}
+          </main>
+          <Footer />
+        </Providers>
       </body>
     </html>
   )
