@@ -1,11 +1,11 @@
-// prisma/schema.prisma - Add Client pricing
+// prisma/schema.prisma - Add Payment model
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Account {
@@ -59,6 +59,7 @@ model Trainer {
   user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   appointments     Appointment[]
   clients          Client[]
+  payments         Payment[]     // NEW: Track payments received
 }
 
 model Client {
@@ -82,7 +83,7 @@ model Client {
   preferredTimes   String?       // JSON array of preferred time slots
   sessionDuration  Int?          // Preferred session length in minutes
   
-  // Pricing - NEW FIELD
+  // Pricing
   sessionPrice     Int           @default(180) // Price in NIS for 1-hour session
   
   createdAt        DateTime      @default(now())
@@ -91,6 +92,7 @@ model Client {
   // Relationships
   trainer          Trainer       @relation(fields: [trainerId], references: [id], onDelete: Cascade)
   appointments     Appointment[]
+  payments         Payment[]     // NEW: Track payments made by client
   
   @@unique([trainerId, email]) // Unique client per trainer
 }
@@ -107,9 +109,29 @@ model Appointment {
   status          String   @default("booked") // booked, cancelled, completed
   googleEventId   String?
   sessionNotes    String?  // Post-session notes
-  sessionPrice    Int?     // NEW: Price charged for this specific session (copied from client at booking time)
+  sessionPrice    Int?     // Price charged for this specific session (copied from client at booking time)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   trainer         Trainer  @relation(fields: [trainerId], references: [id], onDelete: Cascade)
   client          Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  payments        Payment[] // NEW: Link payments to specific sessions
+}
+
+// NEW: Payment tracking model
+model Payment {
+  id              String      @id @default(cuid())
+  trainerId       String
+  clientId        String
+  appointmentId   String?     // Optional - link to specific appointment
+  amount          Int         // Amount paid in NIS (can be partial payments)
+  paymentDate     DateTime    @default(now())
+  paymentMethod   String      @default("cash") // cash, bank_transfer, credit_card, paypal, etc
+  notes           String?     // Optional notes about the payment
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  // Relationships
+  trainer         Trainer     @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+  client          Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  appointment     Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
 }
