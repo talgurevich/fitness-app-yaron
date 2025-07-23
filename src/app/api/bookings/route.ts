@@ -2,10 +2,33 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createCalendarEvent } from '@/lib/calendar'
-import { Resend } from 'resend'
-import { getClientConfirmationEmail, getTrainerNotificationEmail } from '@/lib/email-templates'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Dynamic imports to avoid build-time issues
+let resendInstance: any = null
+let emailTemplates: any = null
+
+async function initializeEmailServices() {
+  if (!process.env.RESEND_API_KEY) {
+    console.log('⚠️ RESEND_API_KEY not found. Emails disabled.')
+    return false
+  }
+
+  try {
+    if (!resendInstance) {
+      const { Resend } = await import('resend')
+      resendInstance = new Resend(process.env.RESEND_API_KEY)
+    }
+
+    if (!emailTemplates) {
+      emailTemplates = await import('@/lib/email-templates')
+    }
+
+    return true
+  } catch (error) {
+    console.error('❌ Failed to initialize email services:', error)
+    return false
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -126,7 +149,10 @@ export async function POST(request: NextRequest) {
       errors: [] as string[]
     }
 
-    if (process.env.RESEND_API_KEY) {
+    // Try to initialize and send emails
+    const emailServicesReady = await initializeEmailServices()
+    
+    if (emailServicesReady && resendInstance && emailTemplates) {
       try {
         console.log('📧 Sending confirmation emails...')
 
@@ -144,8 +170,8 @@ export async function POST(request: NextRequest) {
 
         // Send client confirmation email
         try {
-          const clientEmail = getClientConfirmationEmail(emailData)
-          await resend.emails.send({
+          const clientEmail = emailTemplates.getClientConfirmationEmail(emailData)
+          await resendInstance.emails.send({
             from: 'Fitness Booking <onboarding@resend.dev>', // Use your verified domain
             ...clientEmail
           })
@@ -158,8 +184,8 @@ export async function POST(request: NextRequest) {
 
         // Send trainer notification email
         try {
-          const trainerEmail = getTrainerNotificationEmail(emailData)
-          await resend.emails.send({
+          const trainerEmail = emailTemplates.getTrainerNotificationEmail(emailData)
+          await resendInstance.emails.send({
             from: 'Fitness Booking <onboarding@resend.dev>', // Use your verified domain
             ...trainerEmail
           })
@@ -175,7 +201,7 @@ export async function POST(request: NextRequest) {
         emailStatus.errors.push('Email service error')
       }
     } else {
-      console.log('⚠️ RESEND_API_KEY not found. Emails not sent.')
+      console.log('⚠️ Email services not available. Emails not sent.')
       emailStatus.errors.push('Email service not configured')
     }
 
