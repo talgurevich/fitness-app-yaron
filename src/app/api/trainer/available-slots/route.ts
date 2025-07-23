@@ -1,4 +1,4 @@
-// src/app/api/trainer/available-slots/route.ts
+// src/app/api/trainer/available-slots/route.ts - FIXED VERSION
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
@@ -6,6 +6,12 @@ interface TimeSlot {
   start: string
   end: string
   isAvailable: boolean
+}
+
+interface WorkingHoursDay {
+  enabled: boolean
+  start: string
+  end: string
 }
 
 // GET - Get available time slots for a specific trainer and date (PUBLIC)
@@ -33,6 +39,9 @@ export async function GET(request: NextRequest) {
             datetime: {
               gte: new Date(date + 'T00:00:00.000Z'),
               lt: new Date(date + 'T23:59:59.999Z')
+            },
+            status: {
+              not: 'cancelled' // Only consider non-cancelled appointments
             }
           }
         }
@@ -46,32 +55,49 @@ export async function GET(request: NextRequest) {
       }, { status: 404 })
     }
 
-    // Parse trainer's availability settings
-    let availability = {}
+    // Parse trainer's settings
+    let workingHours: Record<string, WorkingHoursDay> = {}
     let sessionDuration = 60
     let breakBetweenSessions = 15
 
     if (trainer.workingHours) {
       try {
         const parsed = JSON.parse(trainer.workingHours)
-        availability = parsed.availability || {}
-        sessionDuration = parsed.sessionDuration || 60
-        breakBetweenSessions = parsed.breakBetweenSessions || 15
+        
+        // Handle both old and new formats
+        if (parsed.availability) {
+          // Old format: convert from availability array to working hours object
+          for (const [day, slots] of Object.entries(parsed.availability)) {
+            const daySlots = slots as TimeSlot[]
+            if (daySlots && daySlots.length > 0) {
+              workingHours[day] = {
+                enabled: daySlots[0].isAvailable,
+                start: daySlots[0].start,
+                end: daySlots[0].end
+              }
+            }
+          }
+          sessionDuration = parsed.sessionDuration || 60
+          breakBetweenSessions = parsed.breakBetweenSessions || 15
+        } else {
+          // New format: direct working hours object
+          workingHours = parsed
+        }
       } catch (e) {
         console.log('⚠️ Error parsing workingHours, using defaults')
       }
     }
 
-    // Default availability if none set
-    if (Object.keys(availability).length === 0) {
-      availability = {
-        sunday: [{ start: '09:00', end: '17:00', isAvailable: true }],
-        monday: [{ start: '09:00', end: '17:00', isAvailable: true }],
-        tuesday: [{ start: '09:00', end: '17:00', isAvailable: true }],
-        wednesday: [{ start: '09:00', end: '17:00', isAvailable: true }],
-        thursday: [{ start: '09:00', end: '17:00', isAvailable: true }],
-        friday: [{ start: '09:00', end: '13:00', isAvailable: true }],
-        saturday: [{ start: '10:00', end: '14:00', isAvailable: false }]
+    // Default working hours if none set
+    if (Object.keys(workingHours).length === 0) {
+      workingHours = {
+        sunday: { enabled: false, start: '09:00', end: '17:00' },
+        monday: { enabled: true, start: '09:00', end: '17:00' },
+        tuesday: { enabled: true, start: '09:00', end: '17:00' },
+        wednesday: { enabled: true, start: '09:00', end: '17:00' },
+        thursday: { enabled: true, start: '09:00', end: '17:00' },
+        friday: { enabled: false, start: '09:00', end: '14:00' },
+        saturday: { enabled: false, start: '10:00', end: '16:00' }
       }
     }
 
@@ -80,9 +106,9 @@ export async function GET(request: NextRequest) {
     const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
     const dayOfWeek = days[selectedDate.getDay()]
 
-    const dayAvailability = availability[dayOfWeek] as TimeSlot[]
+    const daySchedule = workingHours[dayOfWeek]
 
-    if (!dayAvailability || dayAvailability.length === 0 || !dayAvailability[0].isAvailable) {
+    if (!daySchedule || !daySchedule.enabled) {
       return NextResponse.json({
         success: true,
         availableSlots: [],
@@ -93,42 +119,63 @@ export async function GET(request: NextRequest) {
     // Generate all possible time slots
     const allSlots: string[] = []
     
-    for (const period of dayAvailability) {
-      if (!period.isAvailable) continue
-      
-      const [startHour, startMinute] = period.start.split(':').map(Number)
-      const [endHour, endMinute] = period.end.split(':').map(Number)
-      
-      const startTime = startHour * 60 + startMinute
-      const endTime = endHour * 60 + endMinute
-      
-      let currentTime = startTime
-      const slotDuration = sessionDuration + breakBetweenSessions
-      
-      while (currentTime + sessionDuration <= endTime) {
-        const hours = Math.floor(currentTime / 60)
-        const minutes = currentTime % 60
-        const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
-        allSlots.push(timeString)
-        currentTime += slotDuration
-      }
+    const [startHour, startMinute] = daySchedule.start.split(':').map(Number)
+    const [endHour, endMinute] = daySchedule.end.split(':').map(Number)
+    
+    const startTime = startHour * 60 + startMinute
+    const endTime = endHour * 60 + endMinute
+    
+    let currentTime = startTime
+    const slotDuration = sessionDuration + breakBetweenSessions
+    
+    while (currentTime + sessionDuration <= endTime) {
+      const hours = Math.floor(currentTime / 60)
+      const minutes = currentTime % 60
+      const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
+      allSlots.push(timeString)
+      currentTime += slotDuration
     }
 
-    // Filter out booked slots
-    const bookedTimes = trainer.appointments.map(apt => 
-      new Date(apt.datetime).toLocaleTimeString('en-US', { 
+    // FIXED: Convert booked appointments to time strings with proper timezone handling
+    const trainerTimezone = trainer.timezone || 'Asia/Jerusalem'
+    const bookedTimes = trainer.appointments.map(apt => {
+      // Convert the appointment datetime to the trainer's timezone
+      const appointmentDate = new Date(apt.datetime)
+      
+      // Format in trainer's timezone
+      return appointmentDate.toLocaleTimeString('en-GB', { 
         hour12: false, 
         hour: '2-digit', 
-        minute: '2-digit' 
+        minute: '2-digit',
+        timeZone: trainerTimezone
       })
-    )
+    })
 
+    console.log('📅 Debug info:', {
+      selectedDate: selectedDate.toISOString(),
+      dayOfWeek,
+      daySchedule,
+      appointments: trainer.appointments.map(apt => ({
+        datetime: apt.datetime.toISOString(),
+        formattedTime: new Date(apt.datetime).toLocaleTimeString('en-GB', { 
+          hour12: false, 
+          hour: '2-digit', 
+          minute: '2-digit',
+          timeZone: trainerTimezone
+        })
+      })),
+      bookedTimes,
+      allSlots
+    })
+
+    // Filter out booked slots
     const availableSlots = allSlots.filter(slot => !bookedTimes.includes(slot))
 
     console.log('📊 Generated slots:', {
       totalSlots: allSlots.length,
       bookedSlots: bookedTimes.length,
-      availableSlots: availableSlots.length
+      availableSlots: availableSlots.length,
+      bookedTimes
     })
 
     return NextResponse.json({
@@ -136,7 +183,7 @@ export async function GET(request: NextRequest) {
       availableSlots,
       trainerName: trainer.user.name || trainer.user.email,
       sessionDuration,
-      dayAvailability: dayAvailability
+      daySchedule
     })
 
   } catch (error) {
