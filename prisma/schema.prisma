@@ -1,4 +1,4 @@
-// prisma/schema.prisma
+// prisma/schema.prisma - Add Client model
 generator client {
   provider = "prisma-client-js"
 }
@@ -58,11 +58,45 @@ model Trainer {
   updatedAt        DateTime      @updatedAt
   user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   appointments     Appointment[]
+  clients          Client[]      // New relationship
+}
+
+// New Client model
+model Client {
+  id               String        @id @default(cuid())
+  trainerId        String
+  email            String        // Primary identifier
+  name             String
+  phone            String?
+  
+  // Enhanced profile information
+  notes            String?       // Trainer's notes about the client
+  goals            String?       // Fitness goals
+  medicalNotes     String?       // Medical conditions/restrictions
+  emergencyContact String?       // Emergency contact info
+  birthDate        DateTime?     // Age calculation
+  joinedDate       DateTime      @default(now())
+  lastSessionDate  DateTime?     // Auto-updated from appointments
+  
+  // Preferences
+  preferredDays    String?       // JSON array of preferred days
+  preferredTimes   String?       // JSON array of preferred time slots
+  sessionDuration  Int?          // Preferred session length in minutes
+  
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  
+  // Relationships
+  trainer          Trainer       @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+  appointments     Appointment[]
+  
+  @@unique([trainerId, email]) // Unique client per trainer
 }
 
 model Appointment {
   id              String   @id @default(cuid())
   trainerId       String
+  clientId        String?  // New: Link to Client model
   clientName      String
   clientEmail     String
   clientPhone     String?
@@ -70,7 +104,9 @@ model Appointment {
   duration        Int      @default(60) // minutes
   status          String   @default("booked") // booked, cancelled, completed
   googleEventId   String?
+  sessionNotes    String?  // New: Post-session notes
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   trainer         Trainer  @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+  client          Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
 }
