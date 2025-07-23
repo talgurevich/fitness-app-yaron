@@ -8,6 +8,9 @@ let resendInstance: any = null
 let emailTemplates: any = null
 
 async function initializeEmailServices() {
+  console.log('🔧 Initializing email services...')
+  console.log('📊 RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY)
+  
   if (!process.env.RESEND_API_KEY) {
     console.log('⚠️ RESEND_API_KEY not found. Emails disabled.')
     return false
@@ -15,12 +18,16 @@ async function initializeEmailServices() {
 
   try {
     if (!resendInstance) {
+      console.log('📦 Importing Resend...')
       const { Resend } = await import('resend')
       resendInstance = new Resend(process.env.RESEND_API_KEY)
+      console.log('✅ Resend instance created')
     }
 
     if (!emailTemplates) {
+      console.log('📦 Importing email templates...')
       emailTemplates = await import('@/lib/email-templates')
+      console.log('✅ Email templates loaded')
     }
 
     return true
@@ -35,7 +42,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { trainerSlug, clientName, clientEmail, clientPhone, datetime, duration = 60 } = body
 
-    console.log('Received booking:', { trainerSlug, clientName, clientEmail, datetime })
+    console.log('📝 Received booking:', { trainerSlug, clientName, clientEmail, datetime })
 
     // Find trainer by booking slug
     const trainer = await prisma.trainer.findFirst({
@@ -48,11 +55,11 @@ export async function POST(request: NextRequest) {
     })
 
     if (!trainer) {
-      console.log('Trainer not found for slug:', trainerSlug)
+      console.log('❌ Trainer not found for slug:', trainerSlug)
       return NextResponse.json({ error: 'Trainer not found' }, { status: 404 })
     }
 
-    console.log('Found trainer:', trainer.user.email)
+    console.log('✅ Found trainer:', trainer.user.email)
 
     // Create the appointment
     const appointment = await prisma.appointment.create({
@@ -67,14 +74,14 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    console.log('Created appointment:', appointment.id)
+    console.log('✅ Created appointment:', appointment.id)
 
     // Try to create Google Calendar event automatically
     let calendarEventId = null
     let calendarEventLink = null
     
     try {
-      console.log('Attempting to create calendar event...')
+      console.log('📅 Attempting to create calendar event...')
       
       // Get the trainer's Google account access token
       const account = await prisma.account.findFirst({
@@ -101,7 +108,7 @@ export async function POST(request: NextRequest) {
 אימייל: ${appointment.clientEmail}${appointment.clientPhone ? `
 טלפון: ${appointment.clientPhone}` : ''}
 
-הזמן באמצעות: Fitness Booking App`,
+הזמן באמצעותת: Fitness Booking App`,
           start: {
             dateTime: startTime.toISOString(),
             timeZone: 'Asia/Jerusalem'
@@ -138,7 +145,6 @@ export async function POST(request: NextRequest) {
       
     } catch (calendarError) {
       console.error('❌ Calendar event creation error:', calendarError)
-      // Don't fail the booking if calendar creation fails
       console.log('ℹ️ Booking created successfully but calendar event failed. This is OK.')
     }
 
@@ -146,15 +152,22 @@ export async function POST(request: NextRequest) {
     let emailStatus = {
       clientEmailSent: false,
       trainerEmailSent: false,
-      errors: [] as string[]
+      errors: [] as string[],
+      debug: {} as any
     }
 
+    console.log('📧 Starting email process...')
+    
     // Try to initialize and send emails
     const emailServicesReady = await initializeEmailServices()
     
+    emailStatus.debug.servicesReady = emailServicesReady
+    emailStatus.debug.resendInstance = !!resendInstance
+    emailStatus.debug.emailTemplates = !!emailTemplates
+    
     if (emailServicesReady && resendInstance && emailTemplates) {
       try {
-        console.log('📧 Sending confirmation emails...')
+        console.log('📧 Email services ready, preparing to send emails...')
 
         const emailData = {
           clientName: appointment.clientName,
@@ -168,42 +181,94 @@ export async function POST(request: NextRequest) {
           calendarEventLink: calendarEventLink || undefined
         }
 
+        console.log('📧 Email data prepared:', { 
+          clientEmail: emailData.clientEmail, 
+          trainerEmail: emailData.trainerEmail 
+        })
+
+        // Determine FROM address - use verified domain if available, fallback to test mode
+        const FROM_DOMAIN = process.env.VERIFIED_EMAIL_DOMAIN || null
+        const USE_TEST_MODE = !FROM_DOMAIN
+        
+        if (USE_TEST_MODE) {
+          console.log('🧪 Using test mode - sending all emails to verified address')
+        } else {
+          console.log('✅ Using verified domain:', FROM_DOMAIN)
+        }
+
         // Send client confirmation email
         try {
+          console.log('📤 Sending client confirmation email...')
           const clientEmail = emailTemplates.getClientConfirmationEmail(emailData)
-          await resendInstance.emails.send({
-            from: 'Fitness Booking <onboarding@resend.dev>', // Use your verified domain
-            ...clientEmail
-          })
+          console.log('📤 Client email template generated, subject:', clientEmail.subject)
+          
+          const emailPayload = {
+            from: FROM_DOMAIN ? `Fitness Booking <booking@${FROM_DOMAIN}>` : 'Fitness Booking <onboarding@resend.dev>',
+            to: USE_TEST_MODE ? ['tal.gurevich2@gmail.com'] : [emailData.clientEmail],
+            subject: USE_TEST_MODE ? `[CLIENT COPY for ${emailData.clientEmail}] ${clientEmail.subject}` : clientEmail.subject,
+            html: USE_TEST_MODE ? `
+              <div style="background: #fef3c7; padding: 16px; margin-bottom: 20px; border-radius: 8px; border: 2px solid #f59e0b;">
+                <strong>🧪 TEST MODE: This email was meant for client: ${emailData.clientEmail}</strong><br>
+                <small>Set VERIFIED_EMAIL_DOMAIN environment variable to send to real recipients</small>
+              </div>
+              ${clientEmail.html}
+            ` : clientEmail.html
+          }
+          
+          const clientResult = await resendInstance.emails.send(emailPayload)
+          
+          console.log('✅ Client email sent successfully:', clientResult)
           emailStatus.clientEmailSent = true
-          console.log('✅ Client confirmation email sent to:', appointment.clientEmail)
+          emailStatus.debug.clientResult = clientResult
+          
         } catch (clientEmailError) {
           console.error('❌ Failed to send client email:', clientEmailError)
-          emailStatus.errors.push('Failed to send client confirmation email')
+          emailStatus.errors.push('Failed to send client confirmation email: ' + clientEmailError.message)
+          emailStatus.debug.clientError = clientEmailError
         }
 
         // Send trainer notification email
         try {
+          console.log('📤 Sending trainer notification email...')
           const trainerEmail = emailTemplates.getTrainerNotificationEmail(emailData)
-          await resendInstance.emails.send({
-            from: 'Fitness Booking <onboarding@resend.dev>', // Use your verified domain
-            ...trainerEmail
-          })
+          console.log('📤 Trainer email template generated, subject:', trainerEmail.subject)
+          
+          const emailPayload = {
+            from: FROM_DOMAIN ? `Fitness Booking <booking@${FROM_DOMAIN}>` : 'Fitness Booking <onboarding@resend.dev>',
+            to: USE_TEST_MODE ? ['tal.gurevich2@gmail.com'] : [emailData.trainerEmail],
+            subject: USE_TEST_MODE ? `[TRAINER COPY for ${emailData.trainerEmail}] ${trainerEmail.subject}` : trainerEmail.subject,
+            html: USE_TEST_MODE ? `
+              <div style="background: #fef3c7; padding: 16px; margin-bottom: 20px; border-radius: 8px; border: 2px solid #f59e0b;">
+                <strong>🧪 TEST MODE: This notification was meant for trainer: ${emailData.trainerEmail}</strong><br>
+                <small>Set VERIFIED_EMAIL_DOMAIN environment variable to send to real recipients</small>
+              </div>
+              ${trainerEmail.html}
+            ` : trainerEmail.html
+          }
+          
+          const trainerResult = await resendInstance.emails.send(emailPayload)
+          
+          console.log('✅ Trainer email sent successfully:', trainerResult)
           emailStatus.trainerEmailSent = true
-          console.log('✅ Trainer notification email sent to:', trainer.user.email)
+          emailStatus.debug.trainerResult = trainerResult
+          
         } catch (trainerEmailError) {
           console.error('❌ Failed to send trainer email:', trainerEmailError)
-          emailStatus.errors.push('Failed to send trainer notification email')
+          emailStatus.errors.push('Failed to send trainer notification email: ' + trainerEmailError.message)
+          emailStatus.debug.trainerError = trainerEmailError
         }
 
       } catch (generalEmailError) {
         console.error('❌ General email error:', generalEmailError)
-        emailStatus.errors.push('Email service error')
+        emailStatus.errors.push('Email service error: ' + generalEmailError.message)
+        emailStatus.debug.generalError = generalEmailError
       }
     } else {
       console.log('⚠️ Email services not available. Emails not sent.')
       emailStatus.errors.push('Email service not configured')
     }
+
+    console.log('📊 Final email status:', emailStatus)
 
     return NextResponse.json({ 
       success: true, 
@@ -221,7 +286,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Booking error:', error)
+    console.error('❌ Booking error:', error)
     return NextResponse.json({ 
       error: 'Failed to create booking: ' + error.message,
       success: false 
