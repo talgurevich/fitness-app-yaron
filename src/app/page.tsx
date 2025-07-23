@@ -339,7 +339,7 @@ export default function HomePage() {
         >
           <div className="hero-content">
             <div className="hero-badge">
-              ✨ מערכת חדשנית למאמני כושר
+              מערכת פשוטה למאמני כושר אישיים
             </div>
             <h2 className="hero-title">
               {t('advanced_booking_system') || 'מערכת הזמנות מתקדמת'}

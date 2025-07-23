@@ -1,4 +1,4 @@
-// src/app/api/bookings/route.ts - Enhanced with email confirmation
+// src/app/api/bookings/route.ts - Fixed to prevent duplicate clients by email
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
@@ -53,7 +53,47 @@ export async function POST(request: NextRequest) {
     }
 
     const appointmentDate = new Date(datetime)
-    
+
+    // 🔧 FIX: Find or create client by email (the key change!)
+    let client = await prisma.client.findUnique({
+      where: {
+        trainerId_email: {
+          trainerId: trainer.id,
+          email: clientEmail
+        }
+      }
+    })
+
+    if (client) {
+      console.log('✅ Found existing client:', client.email, '- Using existing data')
+      
+      // Optional: Update client info if booking form has more recent/correct data
+      // You can uncomment this if you want to allow updates to client info
+      /*
+      if (clientPhone && !client.phone) {
+        await prisma.client.update({
+          where: { id: client.id },
+          data: { phone: clientPhone }
+        })
+        client.phone = clientPhone
+      }
+      */
+    } else {
+      console.log('🆕 Creating new client for:', clientEmail)
+      
+      // Create new client
+      client = await prisma.client.create({
+        data: {
+          trainerId: trainer.id,
+          email: clientEmail,
+          name: clientName,
+          phone: clientPhone || null,
+          sessionPrice: sessionPrice || 180, // Set default price
+          joinedDate: new Date()
+        }
+      })
+    }
+
     // Create Google Calendar event if trainer has calendar access
     let googleEventId = null
     if (session.accessToken && trainer.googleCalendarId) {
@@ -65,8 +105,8 @@ export async function POST(request: NextRequest) {
         const event = await calendar.events.insert({
           calendarId: 'primary',
           requestBody: {
-            summary: `Training Session - ${clientName}`,
-            description: `Fitness training session with ${clientName}${notes ? `\n\nNotes: ${notes}` : ''}`,
+            summary: `Training Session - ${client.name}`, // Use client's correct name
+            description: `Fitness training session with ${client.name}${notes ? `\n\nNotes: ${notes}` : ''}`,
             start: {
               dateTime: appointmentDate.toISOString(),
               timeZone: trainer.timezone || 'Asia/Jerusalem'
@@ -76,7 +116,7 @@ export async function POST(request: NextRequest) {
               timeZone: trainer.timezone || 'Asia/Jerusalem'
             },
             attendees: [
-              { email: clientEmail, displayName: clientName }
+              { email: client.email, displayName: client.name }
             ]
           }
         })
@@ -89,28 +129,28 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create appointment in database
+    // Create appointment linked to the client (using client's correct data)
     const appointment = await prisma.appointment.create({
       data: {
         trainerId: trainer.id,
-        clientId: clientId || null,
-        clientName,
-        clientEmail,
-        clientPhone: clientPhone || null,
+        clientId: client.id, // Always link to client
+        clientName: client.name, // Use client's correct name
+        clientEmail: client.email, // Use client's correct email
+        clientPhone: client.phone, // Use client's correct phone
         datetime: appointmentDate,
         duration,
         status: 'booked',
-        sessionPrice: sessionPrice || null,
+        sessionPrice: sessionPrice || client.sessionPrice || 180,
         sessionNotes: notes || null,
         googleEventId
       }
     })
 
     // Update client's lastSessionDate if this is a future appointment
-    if (clientId && appointmentDate > new Date()) {
+    if (appointmentDate > new Date()) {
       try {
         await prisma.client.update({
-          where: { id: clientId },
+          where: { id: client.id },
           data: { lastSessionDate: appointmentDate }
         })
       } catch (error) {
@@ -118,7 +158,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Send confirmation email to client
+    // Send confirmation email to client (using client's correct info)
     try {
       const formatDateTime = (date: Date) => {
         return date.toLocaleString('en-US', {
@@ -134,7 +174,7 @@ export async function POST(request: NextRequest) {
 
       const confirmationEmail = await resend.emails.send({
         from: `${trainer.user.name || 'Your Trainer'} <booking@trainer-booking.com>`,
-        to: [clientEmail],
+        to: [client.email], // Use client's correct email
         subject: `Training Session Confirmed - ${formatDateTime(appointmentDate)}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -145,6 +185,7 @@ export async function POST(request: NextRequest) {
             
             <div style="background: #f8f9fa; padding: 25px; border-radius: 8px; margin-bottom: 20px;">
               <h2 style="color: #333; margin: 0 0 15px 0; font-size: 18px;">Session Details:</h2>
+              <p style="margin: 8px 0; color: #555;"><strong>Client:</strong> ${client.name}</p>
               <p style="margin: 8px 0; color: #555;"><strong>Trainer:</strong> ${trainer.user.name || trainer.user.email}</p>
               <p style="margin: 8px 0; color: #555;"><strong>Date & Time:</strong> ${formatDateTime(appointmentDate)}</p>
               <p style="margin: 8px 0; color: #555;"><strong>Duration:</strong> ${duration} minutes</p>
@@ -184,15 +225,17 @@ export async function POST(request: NextRequest) {
       success: true,
       appointment: {
         id: appointment.id,
-        clientName: appointment.clientName,
-        clientEmail: appointment.clientEmail,
+        clientId: client.id,
+        clientName: client.name, // Return client's correct name
+        clientEmail: client.email, // Return client's correct email
+        clientPhone: client.phone, // Return client's correct phone
         datetime: appointment.datetime.toISOString(),
         duration: appointment.duration,
         status: appointment.status,
         sessionPrice: appointment.sessionPrice,
         googleEventId: appointment.googleEventId
       },
-      message: 'Appointment booked successfully'
+      message: `Appointment booked successfully for ${client.name}`
     })
 
   } catch (error) {
