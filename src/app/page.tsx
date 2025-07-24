@@ -564,6 +564,24 @@ export default function HomePage() {
               </div>
               <span>Trainer Booking</span>
             </div>
+            
+            {/* Legal Links */}
+            <div className="footer-links">
+              <Link 
+                href="/privacy" 
+                className="footer-link"
+              >
+                מדיניות פרטיות
+              </Link>
+              <span className="footer-separator">•</span>
+              <Link 
+                href="/terms" 
+                className="footer-link"
+              >
+                תנאי שימוש
+              </Link>
+            </div>
+
             <p className="footer-text">
               © 2025{' '}
               <a 
@@ -1179,6 +1197,19 @@ export default function HomePage() {
           justify-content: center;
           gap: 12px;
           margin-bottom: 16px;
+        }
+
+        .footer-links {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          margin-bottom: 16px;
+          font-size: 14px;
+        }
+
+        .footer-separator {
+          color: #64748b;
         }
 
         .footer-icon {
