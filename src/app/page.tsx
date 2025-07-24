@@ -143,7 +143,7 @@ export default function HomePage() {
             </div>
             <div>
               <h1 style={{ fontSize: '18px', fontWeight: '600', color: 'white', margin: 0 }}>
-                FitnessPro
+                Trainer Booking
               </h1>
               <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>
                 {t('fitness_booking_system') || 'מערכת הזמנות למאמני כושר'}
@@ -562,7 +562,7 @@ export default function HomePage() {
                   <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
                 </svg>
               </div>
-              <span>FitnessPro</span>
+              <span>Trainer Booking</span>
             </div>
             <p className="footer-text">
               © 2025{' '}
