@@ -1,159 +1,90 @@
-// src/lib/auth.ts
-import { NextAuthOptions } from "next-auth"
-import CredentialsProvider from "next-auth/providers/credentials"
-import GoogleProvider from "next-auth/providers/google"
-import { CustomPrismaAdapter } from "./prisma-adapter"
-import { prisma } from "./prisma"
+// src/lib/auth.ts - Make sure this includes calendar scopes
+import { NextAuthOptions } from 'next-auth'
+import GoogleProvider from 'next-auth/providers/google'
+import { PrismaAdapter } from '@next-auth/prisma-adapter'
+import { prisma } from './prisma'
 
 export const authOptions: NextAuthOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
-  adapter: CustomPrismaAdapter(prisma), // Use our custom adapter
+  adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       authorization: {
         params: {
-          scope: "openid email profile https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events",
-          access_type: "offline",
-          prompt: "consent"
+          scope: [
+            'openid',
+            'email',
+            'profile',
+            'https://www.googleapis.com/auth/calendar',        // Read/write calendar access
+            'https://www.googleapis.com/auth/calendar.events'   // Events access
+          ].join(' '),
+          access_type: 'offline',  // Get refresh token
+          prompt: 'consent',       // Force consent screen to get refresh token
         }
-      },
-      allowDangerousEmailAccountLinking: true
+      }
     }),
-    CredentialsProvider({
-      name: "credentials", 
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
-      },
-      async authorize(credentials) {
-        if (credentials?.email === "test@test.com" && credentials?.password === "123456") {
-          return {
-            id: "test-user-id",
-            email: "test@test.com",
-            name: "Test Trainer",
-            role: "trainer"
-          }
-        }
-        return null
-      }
-    })
   ],
-  session: {
-    strategy: "database"
-  },
-  // Add explicit cookie configuration for custom domain
-  cookies: {
-    sessionToken: {
-      name: process.env.NODE_ENV === 'production' 
-        ? "__Secure-next-auth.session-token" 
-        : "next-auth.session-token",
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        domain: process.env.NODE_ENV === 'production' ? '.trainer-booking.com' : undefined
-      },
-    },
-    callbackUrl: {
-      name: process.env.NODE_ENV === 'production' 
-        ? "__Secure-next-auth.callback-url" 
-        : "next-auth.callback-url",
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        domain: process.env.NODE_ENV === 'production' ? '.trainer-booking.com' : undefined
-      },
-    },
-    csrfToken: {
-      name: process.env.NODE_ENV === 'production' 
-        ? "__Host-next-auth.csrf-token" 
-        : "next-auth.csrf-token",
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-      },
-    },
-    pkceCodeVerifier: {
-      name: process.env.NODE_ENV === 'production' 
-        ? "__Secure-next-auth.pkce.code_verifier" 
-        : "next-auth.pkce.code_verifier",
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 60 * 15, // 15 minutes
-        domain: process.env.NODE_ENV === 'production' ? '.trainer-booking.com' : undefined
-      },
-    },
-    state: {
-      name: process.env.NODE_ENV === 'production' 
-        ? "__Secure-next-auth.state" 
-        : "next-auth.state",
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 60 * 15, // 15 minutes
-        domain: process.env.NODE_ENV === 'production' ? '.trainer-booking.com' : undefined
-      },
-    },
-    nonce: {
-      name: process.env.NODE_ENV === 'production' 
-        ? "__Secure-next-auth.nonce" 
-        : "next-auth.nonce",
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        domain: process.env.NODE_ENV === 'production' ? '.trainer-booking.com' : undefined
-      },
-    }
-  },
   callbacks: {
-    async session({ session, user }) {
-      if (session.user) {
-        session.user.id = user.id
-        session.user.role = user.role || "trainer"
-        
-        // Get Google access token
-        const account = await prisma.account.findFirst({
-          where: {
-            userId: user.id,
-            provider: 'google'
+    async jwt({ token, account }) {
+      // Persist the OAuth access_token and refresh_token to the token right after signin
+      if (account) {
+        token.accessToken = account.access_token
+        token.refreshToken = account.refresh_token
+        token.expiresAt = account.expires_at
+      }
+      
+      // Check if token is expired and refresh if possible
+      if (token.expiresAt && Date.now() > (token.expiresAt as number) * 1000) {
+        console.log('🔄 Token expired, attempting refresh...')
+        try {
+          const response = await fetch('https://oauth2.googleapis.com/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              client_id: process.env.GOOGLE_CLIENT_ID!,
+              client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+              grant_type: 'refresh_token',
+              refresh_token: token.refreshToken as string,
+            }),
+          })
+
+          const refreshedTokens = await response.json()
+
+          if (!response.ok) {
+            throw new Error('Failed to refresh token')
           }
-        })
-        
-        if (account?.access_token) {
-          session.accessToken = account.access_token
-          console.log('✅ Session created with Google access token for:', user.email)
+
+          console.log('✅ Token refreshed successfully')
+          
+          return {
+            ...token,
+            accessToken: refreshedTokens.access_token,
+            expiresAt: Math.floor(Date.now() / 1000 + refreshedTokens.expires_in),
+            refreshToken: refreshedTokens.refresh_token ?? token.refreshToken,
+          }
+        } catch (error) {
+          console.error('❌ Error refreshing token:', error)
+          return {
+            ...token,
+            error: 'RefreshAccessTokenError',
+          }
         }
       }
+      
+      return token
+    },
+    async session({ session, token }) {
+      // Send properties to the client
+      session.accessToken = token.accessToken as string
+      session.error = token.error as string
       return session
     },
-
-    async signIn({ user, account, profile }) {
-      console.log('🔐 Sign in attempt:', {
-        provider: account?.provider,
-        email: user.email,
-        hasAccessToken: !!account?.access_token,
-        hasRefreshToken: !!account?.refresh_token
-      })
-      return true
-    }
+  },
+  session: {
+    strategy: 'jwt',
   },
   pages: {
-    signIn: "/login",
+    signIn: '/login',
   },
-  // Add debug logging
-  debug: process.env.NODE_ENV === 'development',
 }

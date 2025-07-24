@@ -1,4 +1,4 @@
-// src/app/dashboard/page.tsx - Complete redesign with auto-completion
+// src/app/dashboard/page.tsx - Complete redesign with Calendar Connection in Hero Section
 'use client'
 import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
@@ -15,6 +15,13 @@ interface Appointment {
   status: string
 }
 
+interface CalendarStatus {
+  connected: boolean
+  calendarsFound?: number
+  primaryCalendar?: string
+  error?: string
+}
+
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -23,6 +30,10 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [autoCompleting, setAutoCompleting] = useState(false)
   const [completedCount, setCompletedCount] = useState(0)
+  const [calendarStatus, setCalendarStatus] = useState<CalendarStatus>({ connected: false })
+  const [calendarTesting, setCalendarTesting] = useState(false)
+  const [calendarConnecting, setCalendarConnecting] = useState(false)
+  const [calendarMessage, setCalendarMessage] = useState<string | null>(null)
 
   useEffect(() => {
     if (status === 'loading') return
@@ -32,7 +43,7 @@ export default function DashboardPage() {
       return
     }
 
-    // Run auto-completion first, then fetch appointments
+    // Run auto-completion first, then fetch appointments, then check calendar
     fetchDashboardData()
   }, [session, status, router])
 
@@ -46,10 +57,40 @@ export default function DashboardPage() {
       // STEP 2: Then fetch updated appointment data
       await fetchUpcomingAppointments()
       
+      // STEP 3: Check calendar connection status
+      await checkCalendarStatus()
+      
     } catch (error) {
       console.error('Error loading dashboard:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  // 🆕 Check Calendar Connection Status
+  const checkCalendarStatus = async () => {
+    try {
+      const response = await fetch('/api/calendar/connect')
+      const data = await response.json()
+      
+      if (data.success) {
+        setCalendarStatus({
+          connected: true,
+          calendarsFound: data.calendars?.length || 0,
+          primaryCalendar: data.calendars?.find(cal => cal.primary)?.name || 'Unknown'
+        })
+      } else {
+        setCalendarStatus({
+          connected: false,
+          error: data.error
+        })
+      }
+    } catch (error) {
+      console.error('Calendar status check failed:', error)
+      setCalendarStatus({
+        connected: false,
+        error: 'Failed to check calendar status'
+      })
     }
   }
 
@@ -98,6 +139,70 @@ export default function DashboardPage() {
   // 🆕 Manual refresh function
   const handleRefresh = async () => {
     await fetchDashboardData()
+  }
+
+  // 🆕 Connect Calendar function
+  const handleConnectCalendar = async () => {
+    try {
+      setCalendarConnecting(true)
+      setCalendarMessage(null)
+      
+      const response = await fetch('/api/calendar/connect')
+      const data = await response.json()
+      
+      if (data.success) {
+        setCalendarStatus({
+          connected: true,
+          calendarsFound: data.calendars?.length || 0,
+          primaryCalendar: data.calendars?.find(cal => cal.primary)?.name || 'Unknown'
+        })
+        setCalendarMessage('✅ Calendar connected successfully!')
+      } else {
+        setCalendarMessage(`❌ ${data.error || 'Calendar connection failed'}`)
+        
+        // If needs Google auth, could redirect to re-login
+        if (data.needsGoogleAuth || data.needsReauth) {
+          setCalendarMessage('❌ Please logout and login again with Google to connect calendar')
+        }
+      }
+      
+      // Clear message after 5 seconds
+      setTimeout(() => setCalendarMessage(null), 5000)
+      
+    } catch (error) {
+      console.error('Calendar connection failed:', error)
+      setCalendarMessage('❌ Calendar connection failed')
+      setTimeout(() => setCalendarMessage(null), 5000)
+    } finally {
+      setCalendarConnecting(false)
+    }
+  }
+
+  // 🆕 Test Calendar function
+  const handleTestCalendar = async () => {
+    try {
+      setCalendarTesting(true)
+      setCalendarMessage(null)
+      
+      const response = await fetch('/api/calendar/test')
+      const data = await response.json()
+      
+      if (data.success) {
+        setCalendarMessage('✅ Calendar test successful!')
+      } else {
+        setCalendarMessage(`❌ ${data.error || 'Calendar test failed'}`)
+      }
+      
+      // Clear message after 5 seconds
+      setTimeout(() => setCalendarMessage(null), 5000)
+      
+    } catch (error) {
+      console.error('Calendar test failed:', error)
+      setCalendarMessage('❌ Calendar test failed')
+      setTimeout(() => setCalendarMessage(null), 5000)
+    } finally {
+      setCalendarTesting(false)
+    }
   }
 
   const formatDateTime = (dateString: string) => {
@@ -365,6 +470,28 @@ export default function DashboardPage() {
       {/* Main Content */}
       <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 16px' }}>
         
+        {/* 🆕 Calendar status notification */}
+        {calendarMessage && (
+          <div style={{
+            backgroundColor: calendarMessage.includes('✅') ? '#ecfdf5' : '#fef2f2',
+            border: `1px solid ${calendarMessage.includes('✅') ? '#a7f3d0' : '#fecaca'}`,
+            borderRadius: '8px',
+            padding: '12px 16px',
+            marginBottom: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span style={{ 
+              fontSize: '14px', 
+              color: calendarMessage.includes('✅') ? '#059669' : '#dc2626', 
+              fontWeight: '500' 
+            }}>
+              {calendarMessage}
+            </span>
+          </div>
+        )}
+        
         {/* 🆕 Auto-completion notification */}
         {completedCount > 0 && (
           <div style={{
@@ -386,7 +513,7 @@ export default function DashboardPage() {
           </div>
         )}
         
-        {/* Welcome Section */}
+        {/* Welcome Section - Enhanced with Calendar Controls */}
         <div style={{ 
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
           borderRadius: '16px',
@@ -397,17 +524,149 @@ export default function DashboardPage() {
           <div style={{ 
             display: 'flex', 
             justifyContent: 'space-between', 
-            alignItems: 'center',
+            alignItems: 'flex-start',
             flexWrap: 'wrap',
             gap: '20px'
           }}>
-            <div>
+            <div style={{ flex: 1, minWidth: '300px' }}>
               <h2 style={{ fontSize: '28px', fontWeight: '700', margin: '0 0 8px 0' }}>
                 {t('welcome_back_trainer')} 💪
               </h2>
               <p style={{ fontSize: '16px', opacity: 0.9, margin: '0 0 24px 0' }}>
                 {t('business_today')}
               </p>
+              
+              {/* Calendar Status & Controls */}
+              <div style={{ 
+                backgroundColor: 'rgba(255,255,255,0.1)', 
+                borderRadius: '12px', 
+                padding: '16px',
+                marginBottom: '24px',
+                border: '1px solid rgba(255,255,255,0.2)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <svg width="18" height="18" fill="white" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <h3 style={{ fontSize: '16px', fontWeight: '600', margin: 0 }}>
+                    Google Calendar
+                  </h3>
+                </div>
+                
+                {calendarStatus.connected ? (
+                  <div>
+                    <p style={{ fontSize: '14px', opacity: 0.9, margin: '0 0 12px 0' }}>
+                      ✅ Connected to {calendarStatus.primaryCalendar} ({calendarStatus.calendarsFound} calendars)
+                    </p>
+                    <button
+                      onClick={handleTestCalendar}
+                      disabled={calendarTesting}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '8px 16px',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        color: '#667eea',
+                        backgroundColor: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: calendarTesting ? 'not-allowed' : 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseOver={(e) => {
+                        if (!calendarTesting) {
+                          e.currentTarget.style.transform = 'translateY(-1px)'
+                        }
+                      }}
+                      onMouseOut={(e) => {
+                        if (!calendarTesting) {
+                          e.currentTarget.style.transform = 'translateY(0)'
+                        }
+                      }}
+                    >
+                      {calendarTesting ? (
+                        <>
+                          <div style={{ 
+                            width: '14px', 
+                            height: '14px', 
+                            border: '2px solid #667eea', 
+                            borderTop: '2px solid transparent',
+                            borderRadius: '50%',
+                            animation: 'spin 1s linear infinite'
+                          }}></div>
+                          Testing...
+                        </>
+                      ) : (
+                        <>
+                          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Test Calendar
+                        </>
+                      )}
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <p style={{ fontSize: '14px', opacity: 0.9, margin: '0 0 12px 0' }}>
+                      ❌ Calendar not connected - appointments won't sync to Google Calendar
+                    </p>
+                    <button
+                      onClick={handleConnectCalendar}
+                      disabled={calendarConnecting}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '8px 16px',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        color: '#667eea',
+                        backgroundColor: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: calendarConnecting ? 'not-allowed' : 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseOver={(e) => {
+                        if (!calendarConnecting) {
+                          e.currentTarget.style.transform = 'translateY(-1px)'
+                        }
+                      }}
+                      onMouseOut={(e) => {
+                        if (!calendarConnecting) {
+                          e.currentTarget.style.transform = 'translateY(0)'
+                        }
+                      }}
+                    >
+                      {calendarConnecting ? (
+                        <>
+                          <div style={{ 
+                            width: '14px', 
+                            height: '14px', 
+                            border: '2px solid #667eea', 
+                            borderTop: '2px solid transparent',
+                            borderRadius: '50%',
+                            animation: 'spin 1s linear infinite'
+                          }}></div>
+                          Connecting...
+                        </>
+                      ) : (
+                        <>
+                          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
+                          </svg>
+                          Connect Calendar
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Other Action Buttons */}
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <Link
                   href="/availability"
@@ -579,7 +838,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Desktop Layout */}
+        {/* Desktop Layout - Rest of the content remains the same... */}
         <div style={{ 
           display: 'grid', 
           gridTemplateColumns: 'minmax(0, 1fr) 300px',
@@ -742,7 +1001,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Sidebar */}
+          {/* Sidebar - Quick Actions */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             
             {/* Quick Actions */}
@@ -880,194 +1139,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Mobile Layout */}
-        <div style={{ display: 'none' }} className="mobile-layout">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            
-            {/* Mobile Quick Actions */}
-            <div style={{ 
-              backgroundColor: 'white',
-              border: '1px solid #e5e7eb',
-              borderRadius: '12px',
-              padding: '20px'
-            }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#111827', margin: '0 0 16px 0' }}>
-                Quick Actions
-              </h3>
-              <div style={{ 
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: '8px'
-              }}>
-                <Link
-                  href="/availability"
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '16px 8px',
-                    fontSize: '12px',
-                    fontWeight: '500',
-                    color: 'white',
-                    backgroundColor: '#3b82f6',
-                    border: 'none',
-                    borderRadius: '8px',
-                    textDecoration: 'none',
-                    textAlign: 'center'
-                  }}
-                >
-                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
-                  </svg>
-                  Availability
-                </Link>
-                <Link
-                  href="/clients"
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '16px 8px',
-                    fontSize: '12px',
-                    fontWeight: '500',
-                    color: '#374151',
-                    backgroundColor: '#f9fafb',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    textDecoration: 'none',
-                    textAlign: 'center'
-                  }}
-                >
-                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                  </svg>
-                  Clients
-                </Link>
-              </div>
-              <Link
-                href={`/book/${session?.user?.email?.split('@')[0]?.replace(/[^a-zA-Z0-9]/g, '-')}`}
-                target="_blank"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  padding: '12px',
-                  fontSize: '13px',
-                  fontWeight: '500',
-                  color: '#2563eb',
-                  backgroundColor: '#eff6ff',
-                  border: '1px solid #bfdbfe',
-                  borderRadius: '8px',
-                  textDecoration: 'none',
-                  marginTop: '8px'
-                }}
-              >
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-                Share Booking Link
-              </Link>
-            </div>
-
-            {/* Mobile Sessions */}
-            <div style={{ 
-              backgroundColor: 'white',
-              border: '1px solid #e5e7eb',
-              borderRadius: '12px'
-            }}>
-              <div style={{ 
-                padding: '20px',
-                borderBottom: '1px solid #e5e7eb'
-              }}>
-                <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#111827', margin: 0 }}>
-                  Upcoming Sessions
-                </h3>
-                <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0 0 0' }}>
-                  {upcomingAppointments.length} scheduled
-                </p>
-              </div>
-              
-              <div style={{ padding: '20px' }}>
-                {upcomingAppointments.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '24px 0' }}>
-                    <div style={{ 
-                      width: '48px', 
-                      height: '48px', 
-                      backgroundColor: '#f3f4f6', 
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      margin: '0 auto 12px'
-                    }}>
-                      <svg width="20" height="20" fill="none" stroke="#9ca3af" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
-                      No upcoming sessions
-                    </p>
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {upcomingAppointments.slice(0, 5).map((appointment) => {
-                      const { date, time } = formatDateTime(appointment.datetime)
-                      return (
-                        <div key={appointment.id} style={{ 
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          padding: '12px',
-                          border: '1px solid #f3f4f6',
-                          borderRadius: '6px'
-                        }}>
-                          <div>
-                            <p style={{ fontSize: '13px', fontWeight: '600', color: '#111827', margin: 0 }}>
-                              {appointment.clientName}
-                            </p>
-                            <p style={{ fontSize: '11px', color: '#6b7280', margin: 0 }}>
-                              {date} at {time}
-                            </p>
-                          </div>
-                          <span style={{ 
-                            padding: '2px 6px',
-                            fontSize: '10px',
-                            fontWeight: '500',
-                            borderRadius: '8px',
-                            ...getStatusColor(appointment.status).split(' ').reduce((acc, cls) => {
-                              if (cls.startsWith('bg-')) {
-                                acc.backgroundColor = {
-                                  'bg-green-100': '#dcfce7',
-                                  'bg-blue-100': '#dbeafe',
-                                  'bg-red-100': '#fee2e2',
-                                  'bg-gray-100': '#f3f4f6'
-                                }[cls] || '#f3f4f6'
-                              }
-                              if (cls.startsWith('text-')) {
-                                acc.color = {
-                                  'text-green-800': '#166534',
-                                  'text-blue-800': '#1e40af',
-                                  'text-red-800': '#991b1b',
-                                  'text-gray-800': '#1f2937'
-                                }[cls] || '#1f2937'
-                              }
-                              return acc
-                            }, {})
-                          }}>
-                            {getStatusText(appointment.status)}
-                          </span>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
       </main>
 
       <style jsx>{`
