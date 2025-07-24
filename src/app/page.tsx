@@ -574,7 +574,7 @@ export default function HomePage() {
               >
                 Tal Gurevich
               </a>
-              {' '}• All rights reserved.
+              {' '}• All rights reserved
             </p>
           </div>
         </div>
