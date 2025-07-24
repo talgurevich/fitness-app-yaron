@@ -1,10 +1,11 @@
-// src/app/dashboard/page.tsx - Complete redesign with Calendar Connection in Hero Section
+// src/app/dashboard/page.tsx - Complete dashboard with WhatsApp Help Component
 'use client'
 import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import LanguageToggle, { useTranslations } from '@/components/LanguageToggle'
+import WhatsAppHelp from '@/components/WhatsAppHelp'
 
 interface Appointment {
   id: string
@@ -1084,7 +1085,7 @@ export default function DashboardPage() {
                   onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#eff6ff'}
                 >
                   <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>
                   Share Link
                 </Link>
@@ -1140,6 +1141,9 @@ export default function DashboardPage() {
         </div>
 
       </main>
+
+      {/* 🆕 WhatsApp Help Component - Floating Button */}
+      <WhatsAppHelp />
 
       <style jsx>{`
         @keyframes spin {
