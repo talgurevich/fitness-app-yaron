@@ -159,13 +159,13 @@ export default function ClientProfilePage() {
       if (data.success) {
         setClient(data.client)
         setEditing(false)
-        alert('Client information saved successfully!')
+        alert(t('client_info_saved_success'))
       } else {
-        alert('Error saving information: ' + data.error)
+        alert(t('error_saving_info') + ': ' + data.error)
       }
     } catch (error) {
       console.error('Error saving client:', error)
-      alert('Error saving information')
+      alert(t('error_saving_info'))
     } finally {
       setSaving(false)
     }
@@ -173,7 +173,7 @@ export default function ClientProfilePage() {
 
   const handleAddPayment = async () => {
     if (!paymentForm.amount || parseFloat(paymentForm.amount) <= 0) {
-      alert('Please enter a valid payment amount')
+      alert(t('please_enter_valid_payment_amount'))
       return
     }
 
@@ -198,20 +198,20 @@ export default function ClientProfilePage() {
         setShowPaymentForm(false)
         setPaymentForm({ amount: '', paymentMethod: 'cash', notes: '', appointmentId: '' })
         await fetchClient()
-        alert('Payment recorded successfully!')
+        alert(t('payment_recorded_success'))
       } else {
-        alert('Error recording payment: ' + data.error)
+        alert(t('error_recording_payment') + ': ' + data.error)
       }
     } catch (error) {
       console.error('Error recording payment:', error)
-      alert('Error recording payment')
+      alert(t('error_recording_payment'))
     } finally {
       setAddingPayment(false)
     }
   }
 
   const handleDeleteAppointment = async (appointmentId: string) => {
-    if (!confirm('Are you sure you want to cancel this appointment? This will also remove it from your calendar.')) {
+    if (!confirm(t('confirm_cancel_appointment'))) {
       return
     }
 
@@ -225,13 +225,13 @@ export default function ClientProfilePage() {
       
       if (data.success) {
         await fetchClient()
-        alert('Appointment cancelled successfully!')
+        alert(t('appointment_cancelled_success'))
       } else {
-        alert('Error cancelling appointment: ' + data.error)
+        alert(t('error_cancelling_appointment') + ': ' + data.error)
       }
     } catch (error) {
       console.error('Error cancelling appointment:', error)
-      alert('Error cancelling appointment')
+      alert(t('error_cancelling_appointment'))
     } finally {
       setDeletingAppointment(null)
     }
@@ -267,20 +267,20 @@ export default function ClientProfilePage() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'completed': return 'Completed'
-      case 'booked': return 'Scheduled'
-      case 'cancelled': return 'Cancelled'
+      case 'completed': return t('completed')
+      case 'booked': return t('scheduled')
+      case 'cancelled': return t('cancelled')
       default: return status
     }
   }
 
   const getPaymentMethodText = (method: string) => {
     switch (method) {
-      case 'cash': return 'Cash'
-      case 'bank_transfer': return 'Bank Transfer'
-      case 'credit_card': return 'Credit Card'
-      case 'paypal': return 'PayPal'
-      case 'check': return 'Check'
+      case 'cash': return t('cash')
+      case 'bank_transfer': return t('bank_transfer')
+      case 'credit_card': return t('credit_card')
+      case 'paypal': return t('paypal')
+      case 'check': return t('check')
       default: return method
     }
   }
@@ -298,7 +298,7 @@ export default function ClientProfilePage() {
             animation: 'spin 1s linear infinite',
             margin: '0 auto 16px'
           }}></div>
-          <p style={{ color: '#6b7280', fontSize: '14px' }}>Loading client profile...</p>
+          <p style={{ color: '#6b7280', fontSize: '14px' }}>{t('loading_client_profile')}</p>
         </div>
       </div>
     )
@@ -315,7 +315,7 @@ export default function ClientProfilePage() {
           textAlign: 'center'
         }}>
           <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#111827', margin: '0 0 16px 0' }}>
-            Client not found
+            {t('client_not_found')}
           </h2>
           <Link 
             href="/clients" 
@@ -332,7 +332,7 @@ export default function ClientProfilePage() {
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Back to Client List
+            {t('back_to_client_list')}
           </Link>
         </div>
       </div>
@@ -384,9 +384,9 @@ export default function ClientProfilePage() {
                 {client.name}
               </h1>
               <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>
-                {client.email} • ₪{sessionPrice}/hour
+                {client.email} • ₪{sessionPrice}/{t('per_hour')}
                 {outstandingBalance > 0 && (
-                  <span style={{ color: '#dc2626', fontWeight: '500' }}> • ₪{outstandingBalance} owed</span>
+                  <span style={{ color: '#dc2626', fontWeight: '500' }}> • ₪{outstandingBalance} {t('owed')}</span>
                 )}
               </p>
             </div>
@@ -397,7 +397,7 @@ export default function ClientProfilePage() {
             <LanguageToggle />
             <nav style={{ fontSize: '12px', color: '#6b7280' }}>
               <Link href="/clients" style={{ color: '#3b82f6', textDecoration: 'none' }}>
-                Clients
+                {t('clients')}
               </Link>
               <span style={{ margin: '0 8px' }}>›</span>
               <span>{client.name}</span>
@@ -429,22 +429,22 @@ export default function ClientProfilePage() {
           }}>
             <div style={{ marginBottom: '20px' }}>
               <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: '0 0 8px 0' }}>
-                Record Payment
+                {t('record_payment')}
               </h3>
               <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
-                Outstanding balance: ₪{outstandingBalance}
+                {t('outstanding_balance')}: ₪{outstandingBalance}
               </p>
             </div>
 
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
-                Amount (₪) *
+                {t('amount')} (₪) *
               </label>
               <input
                 type="number"
                 value={paymentForm.amount}
                 onChange={(e) => setPaymentForm({...paymentForm, amount: e.target.value})}
-                placeholder="Enter payment amount"
+                placeholder={t('enter_payment_amount')}
                 style={{
                   width: '100%',
                   padding: '10px 12px',
@@ -459,7 +459,7 @@ export default function ClientProfilePage() {
 
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
-                Payment Method
+                {t('payment_method')}
               </label>
               <select
                 value={paymentForm.paymentMethod}
@@ -474,22 +474,22 @@ export default function ClientProfilePage() {
                   backgroundColor: 'white'
                 }}
               >
-                <option value="cash">Cash</option>
-                <option value="bank_transfer">Bank Transfer</option>
-                <option value="credit_card">Credit Card</option>
-                <option value="paypal">PayPal</option>
-                <option value="check">Check</option>
+                <option value="cash">{t('cash')}</option>
+                <option value="bank_transfer">{t('bank_transfer')}</option>
+                <option value="credit_card">{t('credit_card')}</option>
+                <option value="paypal">{t('paypal')}</option>
+                <option value="check">{t('check')}</option>
               </select>
             </div>
 
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
-                Notes (optional)
+                {t('notes_optional')}
               </label>
               <textarea
                 value={paymentForm.notes}
                 onChange={(e) => setPaymentForm({...paymentForm, notes: e.target.value})}
-                placeholder="Payment notes..."
+                placeholder={t('payment_notes_placeholder')}
                 rows={3}
                 style={{
                   width: '100%',
@@ -521,7 +521,7 @@ export default function ClientProfilePage() {
                 onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
                 onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
               >
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 onClick={handleAddPayment}
@@ -557,10 +557,10 @@ export default function ClientProfilePage() {
                       borderRadius: '50%',
                       animation: 'spin 1s linear infinite'
                     }}></div>
-                    Recording...
+                    {t('recording')}
                   </>
                 ) : (
-                  'Record Payment'
+                  t('record_payment')
                 )}
               </button>
             </div>
@@ -603,7 +603,7 @@ export default function ClientProfilePage() {
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Back to Clients
+            {t('back_to_clients')}
           </Link>
 
           {/* Action Buttons */}
@@ -631,7 +631,7 @@ export default function ClientProfilePage() {
               <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
-              Book Session
+              {t('book_session')}
             </Link>
             
             {/* Record Payment Button */}
@@ -657,7 +657,7 @@ export default function ClientProfilePage() {
               <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
               </svg>
-              Record Payment
+              {t('record_payment')}
             </button>
             
             {/* Edit Profile Buttons */}
@@ -682,7 +682,7 @@ export default function ClientProfilePage() {
                   onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
                   onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button
                   onClick={handleSave}
@@ -702,7 +702,7 @@ export default function ClientProfilePage() {
                     transition: 'all 0.2s'
                   }}
                 >
-                  {saving ? 'Saving...' : 'Save Changes'}
+                  {saving ? t('saving') : t('save_changes')}
                 </button>
               </>
             ) : (
@@ -728,7 +728,7 @@ export default function ClientProfilePage() {
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
-                Edit Profile
+                {t('edit_profile')}
               </button>
             )}
           </div>
@@ -751,7 +751,7 @@ export default function ClientProfilePage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span style={{ fontSize: '14px', color: '#059669', fontWeight: '500' }}>
-                ✓ Appointment booked successfully! Confirmation email sent to {client.name}.
+                ✓ {t('appointment_booked_success_email', { name: client.name })}
               </span>
             </div>
             <button
@@ -791,19 +791,19 @@ export default function ClientProfilePage() {
                 {client.name} 👤
               </h2>
               <p style={{ fontSize: '16px', opacity: 0.9, margin: '0 0 4px 0' }}>
-                Client since {formatDate(client.joinedDate)}
+                {t('client_since')} {formatDate(client.joinedDate)}
               </p>
               <p style={{ fontSize: '18px', fontWeight: '600', opacity: 0.95, margin: '0 0 8px 0' }}>
-                💰 ₪{sessionPrice} per hour
+                💰 ₪{sessionPrice} {t('per_hour')}
               </p>
               {outstandingBalance > 0 && (
                 <p style={{ fontSize: '16px', fontWeight: '600', backgroundColor: 'rgba(220, 38, 38, 0.2)', padding: '8px 12px', borderRadius: '6px', margin: '0 0 24px 0' }}>
-                  ⚠️ Outstanding: ₪{outstandingBalance}
+                  ⚠️ {t('outstanding')}: ₪{outstandingBalance}
                 </p>
               )}
               {outstandingBalance === 0 && completedSessions > 0 && (
                 <p style={{ fontSize: '16px', fontWeight: '600', backgroundColor: 'rgba(34, 197, 94, 0.2)', padding: '8px 12px', borderRadius: '6px', margin: '0 0 24px 0' }}>
-                  ✅ Fully paid up!
+                  ✅ {t('fully_paid_up')}
                 </p>
               )}
             </div>
@@ -839,7 +839,7 @@ export default function ClientProfilePage() {
                 </svg>
               </div>
               <div>
-                <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>Total Sessions</p>
+                <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>{t('total_sessions')}</p>
                 <p style={{ fontSize: '24px', fontWeight: '700', color: '#111827', margin: 0 }}>
                   {client.totalAppointments}
                 </p>
@@ -869,7 +869,7 @@ export default function ClientProfilePage() {
                 </svg>
               </div>
               <div>
-                <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>Total Owed</p>
+                <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>{t('total_owed')}</p>
                 <p style={{ fontSize: '24px', fontWeight: '700', color: '#111827', margin: 0 }}>
                   ₪{totalOwed.toLocaleString()}
                 </p>
@@ -899,7 +899,7 @@ export default function ClientProfilePage() {
                 </svg>
               </div>
               <div>
-                <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>Total Paid</p>
+                <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>{t('total_paid')}</p>
                 <p style={{ fontSize: '24px', fontWeight: '700', color: '#111827', margin: 0 }}>
                   ₪{totalPaid.toLocaleString()}
                 </p>
@@ -929,7 +929,7 @@ export default function ClientProfilePage() {
                 </svg>
               </div>
               <div>
-                <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>Outstanding</p>
+                <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>{t('outstanding')}</p>
                 <p style={{ fontSize: '24px', fontWeight: '700', color: outstandingBalance > 0 ? '#dc2626' : '#16a34a', margin: 0 }}>
                   ₪{outstandingBalance.toLocaleString()}
                 </p>
@@ -952,10 +952,10 @@ export default function ClientProfilePage() {
               borderBottom: '1px solid #e5e7eb'
             }}>
               <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>
-                Payment History
+                {t('payment_history')}
               </h3>
               <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0 0 0' }}>
-                {payments.length} payments recorded
+                {t('payments_recorded', { count: payments.length })}
               </p>
             </div>
             
@@ -1011,7 +1011,7 @@ export default function ClientProfilePage() {
           marginBottom: '32px'
         }}>
           <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: '0 0 16px 0' }}>
-            Basic Information
+            {t('basic_information')}
           </h3>
           
           {editing ? (
@@ -1023,7 +1023,7 @@ export default function ClientProfilePage() {
             }}>
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
-                  Full Name
+                  {t('full_name')}
                 </label>
                 <input
                   type="text"
@@ -1042,7 +1042,7 @@ export default function ClientProfilePage() {
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
-                  Email
+                  {t('email')}
                 </label>
                 <input
                   type="email"
@@ -1061,13 +1061,13 @@ export default function ClientProfilePage() {
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
-                  Phone
+                  {t('phone')}
                 </label>
                 <input
                   type="tel"
                   value={editForm.phone}
                   onChange={(e) => setEditForm({...editForm, phone: e.target.value})}
-                  placeholder="050-1234567"
+                  placeholder={t('phone_placeholder')}
                   style={{
                     width: '100%',
                     padding: '10px 12px',
@@ -1081,7 +1081,7 @@ export default function ClientProfilePage() {
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
-                  Session Price (₪)
+                  {t('session_price')} (₪)
                 </label>
                 <input
                   type="number"
@@ -1110,7 +1110,7 @@ export default function ClientProfilePage() {
             }}>
               <div>
                 <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Email
+                  {t('email')}
                 </p>
                 <p style={{ fontSize: '14px', color: '#111827', margin: 0 }}>
                   {client.email}
@@ -1118,18 +1118,18 @@ export default function ClientProfilePage() {
               </div>
               <div>
                 <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Session Price
+                  {t('session_price')}
                 </p>
                 <p style={{ fontSize: '14px', fontWeight: '600', color: '#ea580c', margin: 0 }}>
-                  ₪{sessionPrice} per hour
+                  ₪{sessionPrice} {t('per_hour')}
                 </p>
               </div>
               <div>
                 <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Phone
+                  {t('phone')}
                 </p>
                 <p style={{ fontSize: '14px', color: '#111827', margin: 0 }}>
-                  {client.phone || 'Not provided'}
+                  {client.phone || t('not_provided')}
                 </p>
               </div>
             </div>
@@ -1149,10 +1149,10 @@ export default function ClientProfilePage() {
             borderBottom: '1px solid #e5e7eb'
           }}>
             <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>
-              Session History & Upcoming Appointments
+              {t('session_history_upcoming')}
             </h3>
             <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0 0 0' }}>
-              {client.appointments?.length || 0} total appointments
+              {t('total_appointments', { count: client.appointments?.length || 0 })}
             </p>
           </div>
           
@@ -1185,7 +1185,7 @@ export default function ClientProfilePage() {
                           <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
                           </svg>
-                          Upcoming Sessions ({futureAppointments.length})
+                          {t('upcoming_sessions', { count: futureAppointments.length })}
                         </h4>
                         
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1218,12 +1218,12 @@ export default function ClientProfilePage() {
                                   </span>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '13px', color: '#6b7280' }}>
-                                  <span>⏱️ {appointment.duration} minutes</span>
+                                  <span>⏱️ {appointment.duration} {t('minutes')}</span>
                                   {appointment.sessionPrice && (
                                     <span>💰 ₪{appointment.sessionPrice}</span>
                                   )}
                                   {appointment.sessionNotes && (
-                                    <span>📝 Notes</span>
+                                    <span>📝 {t('notes')}</span>
                                   )}
                                 </div>
                                 {appointment.sessionNotes && (
@@ -1285,14 +1285,14 @@ export default function ClientProfilePage() {
                                         borderRadius: '50%',
                                         animation: 'spin 1s linear infinite'
                                       }}></div>
-                                      Cancelling...
+                                      {t('cancelling')}
                                     </>
                                   ) : (
                                     <>
                                       <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                       </svg>
-                                      Cancel
+                                      {t('cancel')}
                                     </>
                                   )}
                                 </button>
@@ -1318,7 +1318,7 @@ export default function ClientProfilePage() {
                           <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
-                          Session History ({pastAppointments.length})
+                          {t('session_history', { count: pastAppointments.length })}
                         </h4>
                         
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1353,12 +1353,12 @@ export default function ClientProfilePage() {
                                   </span>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '13px', color: '#6b7280' }}>
-                                  <span>⏱️ {appointment.duration} minutes</span>
+                                  <span>⏱️ {appointment.duration} {t('minutes')}</span>
                                   {appointment.sessionPrice && (
                                     <span>💰 ₪{appointment.sessionPrice}</span>
                                   )}
                                   {appointment.sessionNotes && (
-                                    <span>📝 Notes</span>
+                                    <span>📝 {t('notes')}</span>
                                   )}
                                 </div>
                                 {appointment.sessionNotes && (
@@ -1422,14 +1422,14 @@ export default function ClientProfilePage() {
                                       borderRadius: '50%',
                                       animation: 'spin 1s linear infinite'
                                     }}></div>
-                                    Deleting...
+                                    {t('deleting')}
                                   </>
                                 ) : (
                                   <>
                                     <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                     </svg>
-                                    Delete
+                                    {t('delete')}
                                   </>
                                 )}
                               </button>
@@ -1444,7 +1444,7 @@ export default function ClientProfilePage() {
                               fontSize: '14px',
                               fontStyle: 'italic'
                             }}>
-                              Showing last 10 sessions • {pastAppointments.length - 10} more sessions in history
+                              {t('showing_last_sessions', { count: 10, remaining: pastAppointments.length - 10 })}
                             </div>
                           )}
                         </div>
@@ -1472,10 +1472,10 @@ export default function ClientProfilePage() {
                           </svg>
                         </div>
                         <p style={{ fontSize: '16px', fontWeight: '500', color: '#374151', margin: '0 0 8px 0' }}>
-                          No appointments yet
+                          {t('no_appointments_yet')}
                         </p>
                         <p style={{ fontSize: '14px', margin: 0 }}>
-                          Book the first session with this client to see appointment history here.
+                          {t('book_first_session_to_see_history')}
                         </p>
                       </div>
                     )}
