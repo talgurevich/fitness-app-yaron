@@ -95,6 +95,10 @@ const translations = {
     'contact_us': 'צור קשר',
     'about': 'אודות',
     'personal_booking': 'קישור הזמנה אישי',
+    'get_started': 'בואו נתחיל',
+    'contact_form_description': 'השאירו פרטים ונחזור אליכם עם כל המידע על המערכת',
+    'contact_success_message': 'תודה על פנייתכם! נחזור אליכם תוך 24 שעות.',
+    'contact_error_message': 'אירעה שגיאה בשליחת הבקשה. אנא נסו שוב מאוחר יותר.',
     
     // Homepage translations
     'fitness_booking_system': 'מערכת הזמנות למאמני כושר',
@@ -256,6 +260,10 @@ const translations = {
     'contact_us': 'Contact Us',
     'about': 'About',
     'personal_booking': 'Personal Booking Link',
+    'get_started': 'Get Started',
+    'contact_form_description': 'Leave your details and we\'ll get back to you with all the information about the system',
+    'contact_success_message': 'Thank you for your inquiry! We\'ll get back to you within 24 hours.',
+    'contact_error_message': 'An error occurred while submitting the request. Please try again later.',
     
     // Homepage translations
     'fitness_booking_system': 'Fitness Trainer Booking System',

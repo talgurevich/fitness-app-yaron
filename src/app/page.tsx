@@ -55,7 +55,7 @@ export default function HomePage() {
     setIsSubmitting(true)
     
     try {
-      const response = await fetch('/api/register', {
+      const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -64,16 +64,16 @@ export default function HomePage() {
       })
 
       if (!response.ok) {
-        throw new Error('Registration failed')
+        throw new Error('Contact form submission failed')
       }
 
       setShowRegistrationModal(false)
       setFormData({ name: '', email: '', phone: '' })
-      alert('תודה על הרשמתך! שלחנו לך מייל עם פרטים נוספים ונחזור אליך תוך 24 שעות.')
+      alert(t('contact_success_message'))
       
     } catch (error) {
       console.error('Registration error:', error)
-      alert('אירעה שגיאה בשליחת הבקשה. אנא נסו שוב מאוחר יותר.')
+      alert(t('contact_error_message'))
     } finally {
       setIsSubmitting(false)
     }
@@ -217,10 +217,10 @@ export default function HomePage() {
                 color: 'white', 
                 margin: '0 0 8px 0' 
               }}>
-                הצטרפו אלינו!
+                {t('contact_us')}
               </h2>
               <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>
-                השאירו פרטים ונחזור אליכם עם כל המידע על המערכת
+                {t('contact_form_description')}
               </p>
             </div>
 
@@ -370,6 +370,41 @@ export default function HomePage() {
                 </svg>
                 {t('login_for_trainers')}
               </Link>
+              
+              <button
+                onClick={() => setShowRegistrationModal(true)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '16px 32px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  color: 'white',
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  backdropFilter: 'blur(10px)',
+                  marginLeft: '16px'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1))'
+                  e.currentTarget.style.transform = 'translateY(-3px)'
+                  e.currentTarget.style.boxShadow = '0 10px 30px rgba(255, 255, 255, 0.2)'
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))'
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = 'none'
+                }}
+              >
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                {t('get_started')}
+              </button>
             </div>
           </div>
         </section>

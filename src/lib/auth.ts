@@ -1,10 +1,8 @@
 // src/lib/auth.ts - Make sure this includes calendar scopes
 import { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
-import CredentialsProvider from 'next-auth/providers/credentials'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import { prisma } from './prisma'
-import bcrypt from 'bcryptjs'
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -23,55 +21,6 @@ export const authOptions: NextAuthOptions = {
           ].join(' '),
           access_type: 'offline',  // Get refresh token
           prompt: 'consent',       // Force consent screen to get refresh token
-        }
-      }
-    }),
-    CredentialsProvider({
-      name: 'credentials',
-      credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' }
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null
-        }
-
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email
-          },
-          include: { accounts: true }
-        })
-
-        if (!user) {
-          return null
-        }
-
-        // If user doesn't have a password but has Google OAuth, 
-        // suggest they use Google sign-in instead
-        if (!user.password && user.accounts.some(acc => acc.provider === 'google')) {
-          throw new Error('Please sign in with Google for this account')
-        }
-
-        if (!user.password) {
-          return null
-        }
-
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        )
-
-        if (!isPasswordValid) {
-          return null
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.image,
         }
       }
     }),

@@ -158,7 +158,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Send confirmation email to client (using client's correct info)
+    // Send confirmation emails to both client and trainer
     try {
       const formatDateTime = (date: Date) => {
         return date.toLocaleString('en-US', {
@@ -172,8 +172,9 @@ export async function POST(request: NextRequest) {
         })
       }
 
+      // 1. Send confirmation email to CLIENT
       const confirmationEmail = await resend.emails.send({
-        from: `${trainer.user.name || 'Your Trainer'} <booking@trainer-booking.com>`,
+        from: `${trainer.user.name || 'Your Trainer'} <onboarding@resend.dev>`,
         to: [client.email], // Use client's correct email
         subject: `Training Session Confirmed - ${formatDateTime(appointmentDate)}`,
         html: `
@@ -215,9 +216,89 @@ export async function POST(request: NextRequest) {
         `
       })
 
-      console.log('Confirmation email sent:', confirmationEmail.data?.id)
+      console.log('✅ Client confirmation email sent:', confirmationEmail.data?.id)
+
+      // 2. Send notification email to TRAINER
+      const trainerNotificationEmail = await resend.emails.send({
+        from: 'Fitness Booking System <onboarding@resend.dev>',
+        to: ['tal.gurevich2@gmail.com'], // Always send to trainer's email
+        subject: `🆕 New Booking: ${client.name} - ${formatDateTime(appointmentDate)}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 30px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
+              <h1 style="color: white; margin: 0; font-size: 24px;">🎉 New Training Session Booked!</h1>
+              <p style="color: white; margin: 10px 0 0 0; opacity: 0.9;">You have a new client appointment</p>
+            </div>
+            
+            <div style="background: #f8fafc; padding: 25px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #3b82f6;">
+              <h2 style="color: #1e40af; margin: 0 0 15px 0; font-size: 18px;">📋 Booking Details:</h2>
+              <div style="margin: 12px 0; color: #374151;">
+                <strong>👤 Client:</strong> ${client.name}
+              </div>
+              <div style="margin: 12px 0; color: #374151;">
+                <strong>📧 Email:</strong> 
+                <a href="mailto:${client.email}" style="color: #3b82f6; text-decoration: none; margin-left: 8px;">${client.email}</a>
+              </div>
+              ${client.phone ? `
+                <div style="margin: 12px 0; color: #374151;">
+                  <strong>📱 Phone:</strong> 
+                  <a href="tel:${client.phone}" style="color: #3b82f6; text-decoration: none; margin-left: 8px;">${client.phone}</a>
+                </div>
+              ` : ''}
+              <div style="margin: 12px 0; color: #374151;">
+                <strong>📅 Date & Time:</strong> ${formatDateTime(appointmentDate)}
+              </div>
+              <div style="margin: 12px 0; color: #374151;">
+                <strong>⏱️ Duration:</strong> ${duration} minutes
+              </div>
+              ${sessionPrice ? `
+                <div style="margin: 12px 0; color: #374151;">
+                  <strong>💰 Session Price:</strong> ₪${sessionPrice}
+                </div>
+              ` : ''}
+              ${notes ? `
+                <div style="margin: 12px 0; color: #374151;">
+                  <strong>📝 Notes:</strong> ${notes}
+                </div>
+              ` : ''}
+              <div style="margin: 12px 0; color: #374151;">
+                <strong>🆔 Booking ID:</strong> ${appointment.id}
+              </div>
+            </div>
+            
+            <div style="background: #ecfdf5; padding: 20px; border-radius: 8px; border-left: 4px solid #10b981; margin-bottom: 20px;">
+              <h3 style="color: #059669; margin: 0 0 10px 0; font-size: 16px;">💡 Next Steps:</h3>
+              <ul style="color: #374151; margin: 0; padding-left: 20px; line-height: 1.6;">
+                <li>The client has been sent a confirmation email</li>
+                <li>A Google Calendar event has been ${googleEventId ? 'created' : 'attempted (check calendar connection)'}</li>
+                <li>Consider reaching out to confirm any special requirements</li>
+                <li>The appointment is visible in your dashboard</li>
+              </ul>
+            </div>
+            
+            <div style="text-align: center; padding: 20px; background: #f1f5f9; border-radius: 8px;">
+              <a href="${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/dashboard" 
+                 style="display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500;">
+                📊 View in Dashboard
+              </a>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+              <p style="color: #6b7280; font-size: 14px; margin: 0;">
+                This notification was sent from your Fitness Booking System
+              </p>
+              <p style="color: #6b7280; font-size: 12px; margin: 10px 0 0 0;">
+                Booking time: ${new Date().toLocaleString()}
+              </p>
+            </div>
+          </div>
+        `
+      })
+
+      console.log('✅ Trainer notification email sent:', trainerNotificationEmail.data?.id)
+
     } catch (emailError) {
-      console.error('Failed to send confirmation email:', emailError)
+      console.error('❌ Failed to send confirmation emails:', emailError)
       // Don't fail the appointment creation if email fails
     }
 
