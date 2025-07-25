@@ -260,7 +260,17 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ 
+        minHeight: '100vh', 
+        backgroundColor: '#f9fafb',
+        backgroundImage: 'linear-gradient(rgba(249, 250, 251, 0.92), rgba(249, 250, 251, 0.92)), url("https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80")',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center' 
+      }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ 
             width: '20px', 
@@ -289,10 +299,18 @@ export default function DashboardPage() {
   const uniqueClients = new Set(upcomingAppointments.map(apt => apt.clientEmail)).size
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+    <div style={{ 
+      minHeight: '100vh', 
+      backgroundColor: '#f9fafb',
+      backgroundImage: 'linear-gradient(rgba(249, 250, 251, 0.92), rgba(249, 250, 251, 0.92)), url("https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80")',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed'
+    }}>
       {/* Top Header */}
       <header style={{ 
-        backgroundColor: 'white', 
+        backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+        backdropFilter: 'blur(10px)',
         borderBottom: '1px solid #e5e7eb',
         boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
       }}>
@@ -689,7 +707,8 @@ export default function DashboardPage() {
           marginBottom: '32px'
         }}>
           <div style={{ 
-            backgroundColor: 'white',
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(10px)',
             border: '1px solid #e5e7eb',
             borderRadius: '12px',
             padding: '20px',
@@ -719,7 +738,8 @@ export default function DashboardPage() {
           </div>
 
           <div style={{ 
-            backgroundColor: 'white',
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(10px)',
             border: '1px solid #e5e7eb',
             borderRadius: '12px',
             padding: '20px',
@@ -749,7 +769,8 @@ export default function DashboardPage() {
           </div>
 
           <div style={{ 
-            backgroundColor: 'white',
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(10px)',
             border: '1px solid #e5e7eb',
             borderRadius: '12px',
             padding: '20px',
@@ -788,7 +809,8 @@ export default function DashboardPage() {
           
           {/* Main Sessions Area */}
           <div style={{ 
-            backgroundColor: 'white',
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(10px)',
             border: '1px solid #e5e7eb',
             borderRadius: '16px',
             overflow: 'hidden'
@@ -944,7 +966,8 @@ export default function DashboardPage() {
             
             {/* Quick Actions */}
             <div style={{ 
-              backgroundColor: 'white',
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(10px)',
               border: '1px solid #e5e7eb',
               borderRadius: '12px',
               padding: '20px'
@@ -1031,7 +1054,8 @@ export default function DashboardPage() {
 
             {/* Profile Card */}
             <div style={{ 
-              backgroundColor: 'white',
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(10px)',
               border: '1px solid #e5e7eb',
               borderRadius: '12px',
               padding: '20px'
@@ -1095,7 +1119,8 @@ export default function DashboardPage() {
           padding: '16px'
         }}>
           <div style={{
-            backgroundColor: 'white',
+            backgroundColor: 'rgba(255, 255, 255, 0.98)',
+            backdropFilter: 'blur(20px)',
             borderRadius: '16px',
             maxWidth: '600px',
             width: '100%',
