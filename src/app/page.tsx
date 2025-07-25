@@ -465,6 +465,128 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* Testimonial Section */}
+        <section 
+          className="fade-in-section"
+          style={{ 
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            padding: '80px 0',
+            position: 'relative',
+            overflow: 'hidden'
+          }}
+        >
+          {/* Background Pattern */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+            opacity: 0.3
+          }}></div>
+          
+          <div className="container" style={{ position: 'relative', zIndex: 1 }}>
+            <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+              <h3 style={{ 
+                fontSize: '32px', 
+                fontWeight: '700', 
+                color: 'white', 
+                margin: '0 0 16px 0' 
+              }}>
+                {t('what_trainers_say')}
+              </h3>
+            </div>
+            
+            <div style={{
+              maxWidth: '900px',
+              margin: '0 auto',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: '20px',
+              padding: '50px',
+              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.2)',
+              border: '1px solid rgba(255, 255, 255, 0.3)'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '40px',
+                flexDirection: 'row'
+              }}
+              className="testimonial-layout"
+              >
+                {/* Trainer Image */}
+                <div style={{
+                  flexShrink: 0,
+                  textAlign: 'center'
+                }}>
+                  <img 
+                    src="https://i.imgur.com/l3GaDww.jpeg" 
+                    alt="Yaron Hochman - MVMNT Factory Akko"
+                    style={{
+                      width: '150px',
+                      height: '150px',
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      margin: '0 auto 20px',
+                      boxShadow: '0 15px 35px rgba(59, 130, 246, 0.3)',
+                      border: '4px solid rgba(255, 255, 255, 0.8)',
+                      display: 'block'
+                    }}
+                  />
+                </div>
+                
+                {/* Testimonial Content */}
+                <div style={{ flex: 1 }}>
+                  {/* Quote Icon */}
+                  <div style={{
+                    fontSize: '40px',
+                    color: '#3b82f6',
+                    marginBottom: '20px',
+                    lineHeight: 1
+                  }}>
+                    "
+                  </div>
+                  
+                  {/* Testimonial Text */}
+                  <p style={{
+                    fontSize: '18px',
+                    lineHeight: '1.7',
+                    color: '#374151',
+                    margin: '0 0 30px 0',
+                    fontStyle: 'italic'
+                  }}>
+                    {t('testimonial_text')}
+                  </p>
+                  
+                  {/* Author Info */}
+                  <div>
+                    <div style={{
+                      fontSize: '18px',
+                      fontWeight: '600',
+                      color: '#1f2937',
+                      marginBottom: '5px'
+                    }}>
+                      {t('testimonial_name')}
+                    </div>
+                    <div style={{
+                      fontSize: '14px',
+                      color: '#6b7280',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      <span>⭐⭐⭐⭐⭐</span>
+                      <span>{t('testimonial_title')}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Stats Section */}
         <section 
           ref={statsRef}
@@ -1238,6 +1360,14 @@ export default function HomePage() {
         .fade-in-section.animate-in {
           opacity: 1;
           transform: translateY(0);
+        }
+
+        /* Testimonial Responsive */
+        @media (max-width: 768px) {
+          .testimonial-layout {
+            flex-direction: column !important;
+            text-align: center;
+          }
         }
 
         @media (max-width: 768px) {

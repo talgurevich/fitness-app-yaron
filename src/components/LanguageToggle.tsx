@@ -122,6 +122,12 @@ const translations = {
     'join_now_free': 'הצטרפו עכשיו - בחינם',
     'copyright_2024': '© 2024 FitnessPro. כל הזכויות שמורות.',
     
+    // Testimonial translations
+    'what_trainers_say': 'מה המאמנים אומרים',
+    'testimonial_text': 'המערכת הזו שינתה לי את החיים! הלקוחות שלי יכולים להזמין אימונים ישירות דרך הקישור, הכל מתעדכן באלקטרוניקה שלי, וזה חוסך לי שעות של תיאום. הכי פשוט ויעיל שיש!',
+    'testimonial_name': 'ירון הוכמן',
+    'testimonial_title': 'מאמן כושר, MVMNT Factory עכו',
+    
     // Login page translations
     'continue_google': 'המשך עם Google',
     'secure_login': 'התחברות מאובטחת',
@@ -286,6 +292,12 @@ const translations = {
     'join_many_trainers': 'Join many trainers who are already using the system and managing their business with maximum efficiency',
     'join_now_free': 'Join Now - Free',
     'copyright_2024': '© 2024 FitnessPro. All rights reserved.',
+    
+    // Testimonial translations
+    'what_trainers_say': 'What Trainers Say',
+    'testimonial_text': 'This system has been a game-changer for my business! My clients can book sessions directly through my link, everything syncs with my calendar automatically, and it saves me hours of coordination. It\'s simply the best and most efficient solution out there!',
+    'testimonial_name': 'Yaron Hochman',
+    'testimonial_title': 'Fitness Trainer, MVMNT Factory Akko',
     
     // Login page translations
     'continue_google': 'Continue with Google',
