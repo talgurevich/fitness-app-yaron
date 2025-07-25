@@ -368,54 +368,6 @@ export default function DashboardPage() {
             </button>
             
             <Link
-              href="/availability"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 12px',
-                fontSize: '13px',
-                fontWeight: '500',
-                color: '#374151',
-                backgroundColor: '#f3f4f6',
-                border: 'none',
-                borderRadius: '6px',
-                textDecoration: 'none',
-                transition: 'all 0.2s'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
-              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-            >
-              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
-              </svg>
-              {t('set_availability')}
-            </Link>
-            <Link
-              href="/clients"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 12px',
-                fontSize: '13px',
-                fontWeight: '500',
-                color: '#374151',
-                backgroundColor: '#f3f4f6',
-                border: 'none',
-                borderRadius: '6px',
-                textDecoration: 'none',
-                transition: 'all 0.2s'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
-              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-            >
-              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-              </svg>
-              {t('view_clients')}
-            </Link>
-            <Link
               href={`/book/${session?.user?.email?.split('@')[0]?.replace(/[^a-zA-Z0-9]/g, '-')}`}
               target="_blank"
               style={{
@@ -839,15 +791,12 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Desktop Layout - Rest of the content remains the same... */}
+        {/* Main Layout - Responsive Grid */}
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: 'minmax(0, 1fr) 300px',
-          gap: '32px',
-          '@media (max-width: 1024px)': {
-            gridTemplateColumns: '1fr'
-          }
-        }} className="desktop-layout">
+          gridTemplateColumns: '1fr',
+          gap: '32px'
+        }} className="main-layout">
           
           {/* Main Sessions Area */}
           <div style={{ 
@@ -1150,21 +1099,24 @@ export default function DashboardPage() {
           to { transform: rotate(360deg); }
         }
         
-        @media (max-width: 1024px) {
-          .desktop-layout {
-            display: none !important;
-          }
-          .mobile-layout {
-            display: flex !important;
+        @media (min-width: 1025px) {
+          .main-layout {
+            grid-template-columns: minmax(0, 1fr) 300px !important;
           }
         }
         
-        @media (min-width: 1025px) {
-          .desktop-layout {
-            display: grid !important;
+        @media (max-width: 1024px) {
+          .main-layout {
+            grid-template-columns: 1fr !important;
           }
-          .mobile-layout {
-            display: none !important;
+          
+          /* On mobile, show quick actions after the main content */
+          .main-layout > div:nth-child(2) {
+            order: 2;
+          }
+          
+          .main-layout > div:first-child {
+            order: 1;
           }
         }
       `}</style>
