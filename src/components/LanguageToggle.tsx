@@ -67,7 +67,7 @@ const translations = {
     // Homepage translations
     'fitness_booking_system': 'מערכת הזמנות למאמני כושר',
     'login': 'התחברות',
-    'advanced_booking_system': 'מערכת הזמנות מתקדמת',
+    'advanced_booking_system': 'מערכת הזמנות פשוטה',
     'for_fitness_trainers': 'למאמני כושר',
     'homepage_description': 'פלטפורמה מקצועית לניהול הזמנות עם חיבור ליומן Google ומעקב אחר לקוחות. הפכו את ניהול האימונים שלכם לפשוט ויעיל יותר מתמיד.',
     'why_choose_our_system': 'למה לבחור במערכת שלנו?',
@@ -196,7 +196,7 @@ const translations = {
     // Homepage translations
     'fitness_booking_system': 'Fitness Trainer Booking System',
     'login': 'Login',
-    'advanced_booking_system': 'Advanced Booking System',
+    'advanced_booking_system': 'Simple Booking System',
     'for_fitness_trainers': 'For Fitness Trainers',
     'homepage_description': 'Professional platform for managing appointments with Google Calendar integration and client tracking. Make your training management simpler and more efficient than ever.',
     'why_choose_our_system': 'Why Choose Our System?',

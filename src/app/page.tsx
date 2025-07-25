@@ -360,7 +360,7 @@ export default function HomePage() {
               מערכת פשוטה למאמני כושר אישיים
             </div>
             <h2 className="hero-title">
-              {t('advanced_booking_system') || 'מערכת הזמנות מתקדמת'}
+              {t('advanced_booking_system') || 'מערכת הזמנות פשוטה'}
             </h2>
             <h3 className="hero-subtitle">
               {t('for_fitness_trainers') || 'למאמני כושר'} 💪
