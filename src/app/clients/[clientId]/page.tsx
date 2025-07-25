@@ -77,6 +77,7 @@ export default function ClientProfilePage() {
 
   const [editForm, setEditForm] = useState({
     name: '',
+    email: '',
     phone: '',
     notes: '',
     goals: '',
@@ -120,6 +121,7 @@ export default function ClientProfilePage() {
         setClient(data.client)
         setEditForm({
           name: data.client.name || '',
+          email: data.client.email || '',
           phone: data.client.phone || '',
           notes: data.client.notes || '',
           goals: data.client.goals || '',
@@ -1000,6 +1002,140 @@ export default function ClientProfilePage() {
           </div>
         )}
 
+        {/* Basic Information */}
+        <div style={{ 
+          backgroundColor: 'white',
+          border: '1px solid #e5e7eb',
+          borderRadius: '16px',
+          padding: '24px',
+          marginBottom: '32px'
+        }}>
+          <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: '0 0 16px 0' }}>
+            Basic Information
+          </h3>
+          
+          {editing ? (
+            <div style={{ 
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: '20px',
+              marginBottom: '20px'
+            }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    color: '#111827',
+                    backgroundColor: 'white'
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={editForm.email}
+                  onChange={(e) => setEditForm({...editForm, email: e.target.value})}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    color: '#111827',
+                    backgroundColor: 'white'
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
+                  Phone
+                </label>
+                <input
+                  type="tel"
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm({...editForm, phone: e.target.value})}
+                  placeholder="050-1234567"
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    color: '#111827',
+                    backgroundColor: 'white'
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
+                  Session Price (₪)
+                </label>
+                <input
+                  type="number"
+                  value={editForm.sessionPrice}
+                  onChange={(e) => setEditForm({...editForm, sessionPrice: parseInt(e.target.value) || 180})}
+                  min="50"
+                  max="1000"
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    color: '#111827',
+                    backgroundColor: 'white'
+                  }}
+                />
+              </div>
+            </div>
+          ) : (
+            <div style={{ 
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '24px',
+              marginBottom: '20px'
+            }}>
+              <div>
+                <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Email
+                </p>
+                <p style={{ fontSize: '14px', color: '#111827', margin: 0 }}>
+                  {client.email}
+                </p>
+              </div>
+              <div>
+                <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Session Price
+                </p>
+                <p style={{ fontSize: '14px', fontWeight: '600', color: '#ea580c', margin: 0 }}>
+                  ₪{sessionPrice} per hour
+                </p>
+              </div>
+              <div>
+                <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Phone
+                </p>
+                <p style={{ fontSize: '14px', color: '#111827', margin: 0 }}>
+                  {client.phone || 'Not provided'}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Appointments Section - Enhanced with Past/Future and Delete */}
         <div style={{ 
           backgroundColor: 'white',
@@ -1375,100 +1511,6 @@ export default function ClientProfilePage() {
               </div>
             )}
           </div>
-        </div>
-
-        {/* Basic Information */}
-        <div style={{ 
-          backgroundColor: 'white',
-          border: '1px solid #e5e7eb',
-          borderRadius: '16px',
-          padding: '24px'
-        }}>
-          <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: '0 0 16px 0' }}>
-            Basic Information
-          </h3>
-          
-          {editing ? (
-            <div style={{ 
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-              gap: '20px',
-              marginBottom: '20px'
-            }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  value={editForm.name}
-                  onChange={(e) => setEditForm({...editForm, name: e.target.value})}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    color: '#111827',
-                    backgroundColor: 'white'
-                  }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 8px 0' }}>
-                  Session Price (₪)
-                </label>
-                <input
-                  type="number"
-                  value={editForm.sessionPrice}
-                  onChange={(e) => setEditForm({...editForm, sessionPrice: parseInt(e.target.value) || 180})}
-                  min="50"
-                  max="1000"
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    color: '#111827',
-                    backgroundColor: 'white'
-                  }}
-                />
-              </div>
-            </div>
-          ) : (
-            <div style={{ 
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '24px',
-              marginBottom: '20px'
-            }}>
-              <div>
-                <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Email
-                </p>
-                <p style={{ fontSize: '14px', color: '#111827', margin: 0 }}>
-                  {client.email}
-                </p>
-              </div>
-              <div>
-                <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Session Price
-                </p>
-                <p style={{ fontSize: '14px', fontWeight: '600', color: '#ea580c', margin: 0 }}>
-                  ₪{sessionPrice} per hour
-                </p>
-              </div>
-              <div>
-                <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Phone
-                </p>
-                <p style={{ fontSize: '14px', color: '#111827', margin: 0 }}>
-                  {client.phone || 'Not provided'}
-                </p>
-              </div>
-            </div>
-          )}
         </div>
 
       </main>

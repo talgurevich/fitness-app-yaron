@@ -173,6 +173,7 @@ export async function PUT(
       where: { id: clientId },
       data: {
         name: body.name,
+        email: body.email,
         phone: body.phone || null,
         notes: body.notes || null,
         goals: body.goals || null,

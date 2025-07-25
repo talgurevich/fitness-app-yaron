@@ -324,7 +324,7 @@ export default function HomePage() {
           
           <div className="hero-content">
             <div className="hero-badge">
-              מערכת פשוטה למאמני כושר אישיים
+              {t('simple_system_for_trainers')}
             </div>
             <h2 className="hero-title">
               {t('advanced_booking_system') || 'מערכת הזמנות פשוטה'}

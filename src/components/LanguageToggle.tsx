@@ -102,6 +102,7 @@ const translations = {
     
     // Homepage translations
     'fitness_booking_system': 'מערכת הזמנות למאמני כושר',
+    'simple_system_for_trainers': 'מערכת פשוטה למאמני כושר אישיים',
     'login': 'התחברות',
     'advanced_booking_system': 'מערכת הזמנות פשוטה',
     'for_fitness_trainers': 'למאמני כושר',
@@ -273,6 +274,7 @@ const translations = {
     
     // Homepage translations
     'fitness_booking_system': 'Fitness Trainer Booking System',
+    'simple_system_for_trainers': 'Simple System for Personal Trainers',
     'login': 'Login',
     'advanced_booking_system': 'Simple Booking System',
     'for_fitness_trainers': 'For Fitness Trainers',
