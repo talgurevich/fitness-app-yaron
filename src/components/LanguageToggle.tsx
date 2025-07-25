@@ -1,6 +1,6 @@
 // src/components/LanguageToggle.tsx
 'use client'
-import { useState, createContext, useContext, ReactNode } from 'react'
+import { useState, createContext, useContext, ReactNode, useEffect } from 'react'
 
 type Language = 'he' | 'en'
 
@@ -45,6 +45,24 @@ const translations = {
     'cancelled': 'בוטל',
     'privacy_policy': 'מדיניות פרטיות',
     'terms_of_service': 'תנאי שימוש',
+    'login_for_trainers': 'התחברות למאמנים',
+    'join_now': 'הצטרפו עכשיו',
+    'want_to_register': 'רוצה להירשם',
+    
+    // Onboarding translations
+    'welcome_to_system': 'ברוכים הבאים למערכת!',
+    'lets_get_started': 'בואו נתחיל',
+    'onboarding_intro': 'בכמה צעדים פשוטים תוכלו להתחיל לקבל הזמנות מלקוחות',
+    'step': 'שלב',
+    'set_your_availability': 'הגדירו את הזמינות שלכם',
+    'set_availability_desc': 'הגדירו באילו ימים ושעות אתם זמינים לאימונים. המערכת תאפשר ללקוחות להזמין רק בזמנים אלו.',
+    'test_calendar_connection': 'בדקו את החיבור ליומן',
+    'test_calendar_desc': 'וודאו שהחיבור ליומן Google שלכם עובד כראוי. כל הזמנה תתווסף אוטומטית ליומן.',
+    'share_your_link': 'שתפו את הקישור שלכם',
+    'share_link_desc': 'שתפו את הקישור האישי שלכם עם לקוחות והם יוכלו להזמין אימונים ישירות.',
+    'got_it': 'הבנתי!',
+    'start_setup': 'התחל הגדרות',
+    'skip_tutorial': 'דלג על ההדרכה',
     
     // Homepage translations
     'fitness_booking_system': 'מערכת הזמנות למאמני כושר',
@@ -52,7 +70,6 @@ const translations = {
     'advanced_booking_system': 'מערכת הזמנות מתקדמת',
     'for_fitness_trainers': 'למאמני כושר',
     'homepage_description': 'פלטפורמה מקצועית לניהול הזמנות עם חיבור ליומן Google ומעקב אחר לקוחות. הפכו את ניהול האימונים שלכם לפשוט ויעיל יותר מתמיד.',
-    'login_for_trainers': 'התחברות למאמנים',
     'why_choose_our_system': 'למה לבחור במערכת שלנו?',
     'everything_trainer_needs': 'כל מה שמאמן כושר צריך במקום אחד',
     'google_calendar_integration': 'חיבור ליומן Google',
@@ -157,6 +174,24 @@ const translations = {
     'cancelled': 'Cancelled',
     'privacy_policy': 'Privacy Policy',
     'terms_of_service': 'Terms of Service',
+    'login_for_trainers': 'Login for Trainers',
+    'join_now': 'Join Now',
+    'want_to_register': 'Want to Register',
+    
+    // Onboarding translations
+    'welcome_to_system': 'Welcome to the System!',
+    'lets_get_started': 'Let\'s Get Started',
+    'onboarding_intro': 'In a few simple steps, you\'ll be ready to receive bookings from clients',
+    'step': 'Step',
+    'set_your_availability': 'Set Your Availability',
+    'set_availability_desc': 'Define which days and hours you\'re available for training. The system will only allow clients to book during these times.',
+    'test_calendar_connection': 'Test Calendar Connection',
+    'test_calendar_desc': 'Make sure your Google Calendar connection is working properly. Every booking will be automatically added to your calendar.',
+    'share_your_link': 'Share Your Link',
+    'share_link_desc': 'Share your personal link with clients and they can book sessions directly.',
+    'got_it': 'Got it!',
+    'start_setup': 'Start Setup',
+    'skip_tutorial': 'Skip Tutorial',
     
     // Homepage translations
     'fitness_booking_system': 'Fitness Trainer Booking System',
@@ -164,7 +199,6 @@ const translations = {
     'advanced_booking_system': 'Advanced Booking System',
     'for_fitness_trainers': 'For Fitness Trainers',
     'homepage_description': 'Professional platform for managing appointments with Google Calendar integration and client tracking. Make your training management simpler and more efficient than ever.',
-    'login_for_trainers': 'Login for Trainers',
     'why_choose_our_system': 'Why Choose Our System?',
     'everything_trainer_needs': 'Everything a fitness trainer needs in one place',
     'google_calendar_integration': 'Google Calendar Integration',
@@ -241,13 +275,39 @@ const translations = {
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState<Language>('he')
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+    // Load language from localStorage on client side
+    const savedLanguage = localStorage.getItem('language') as Language
+    if (savedLanguage && (savedLanguage === 'he' || savedLanguage === 'en')) {
+      setLanguage(savedLanguage)
+    }
+  }, [])
+
+  const handleSetLanguage = (lang: Language) => {
+    setLanguage(lang)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('language', lang)
+    }
+  }
 
   const t = (key: string): string => {
-    return translations[language][key as keyof typeof translations[typeof language]] || key
+    const translation = translations[language][key as keyof typeof translations[typeof language]]
+    // Debug specific keys
+    if (key === 'login' || key === 'join_now' || key === 'want_to_register' || key === 'login_for_trainers') {
+      console.log(`Translation for ${key} in ${language}:`, translation)
+    }
+    if (!translation) {
+      console.warn(`Missing translation for key: ${key} in language: ${language}`)
+      return key
+    }
+    return translation
   }
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   )
@@ -264,9 +324,15 @@ export function useTranslations() {
 export default function LanguageToggle() {
   const { language, setLanguage } = useTranslations()
 
+  const handleToggle = () => {
+    const newLang = language === 'he' ? 'en' : 'he'
+    console.log('Language toggle clicked:', language, '->', newLang)
+    setLanguage(newLang)
+  }
+
   return (
     <button
-      onClick={() => setLanguage(language === 'he' ? 'en' : 'he')}
+      onClick={handleToggle}
       style={{
         display: 'inline-flex',
         alignItems: 'center',

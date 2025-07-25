@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 import LanguageToggle, { useTranslations } from '@/components/LanguageToggle'
 
 export default function HomePage() {
-  const { t } = useTranslations()
+  const { t, language } = useTranslations()
   const [showRegistrationModal, setShowRegistrationModal] = useState(false)
   const [scrollY, setScrollY] = useState(0)
   const [formData, setFormData] = useState({
@@ -87,7 +87,7 @@ export default function HomePage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0f172a', position: 'relative', overflow: 'hidden' }}>
+    <div key={language} style={{ minHeight: '100vh', backgroundColor: '#0f172a', position: 'relative', overflow: 'hidden' }}>
       {/* Animated Background Elements */}
       <div className="parallax-bg">
         <div className="floating-shape shape-1" style={{
@@ -187,7 +187,7 @@ export default function HomePage() {
               <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
-              התחברות
+              {t('login')}
             </Link>
 
             <button
@@ -221,7 +221,7 @@ export default function HomePage() {
               <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
               </svg>
-              רוצה להירשם
+              {t('want_to_register')}
             </button>
           </div>
         </div>
@@ -401,7 +401,7 @@ export default function HomePage() {
                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
-                התחברות למאמנים
+                {t('login_for_trainers')}
               </Link>
               <button
                 onClick={() => setShowRegistrationModal(true)}
@@ -434,7 +434,7 @@ export default function HomePage() {
                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                 </svg>
-                הצטרפו עכשיו
+                {t('join_now')}
               </button>
             </div>
           </div>

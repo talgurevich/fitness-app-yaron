@@ -35,6 +35,8 @@ export default function DashboardPage() {
   const [calendarTesting, setCalendarTesting] = useState(false)
   const [calendarConnecting, setCalendarConnecting] = useState(false)
   const [calendarMessage, setCalendarMessage] = useState<string | null>(null)
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false)
 
   useEffect(() => {
     if (status === 'loading') return
@@ -60,6 +62,12 @@ export default function DashboardPage() {
       
       // STEP 3: Check calendar connection status
       await checkCalendarStatus()
+      
+      // STEP 4: Check if user has seen onboarding
+      const seenOnboarding = localStorage.getItem(`onboarding_seen_${session?.user?.email}`)
+      if (!seenOnboarding) {
+        setShowOnboarding(true)
+      }
       
     } catch (error) {
       console.error('Error loading dashboard:', error)
@@ -140,6 +148,16 @@ export default function DashboardPage() {
   // 🆕 Manual refresh function
   const handleRefresh = async () => {
     await fetchDashboardData()
+  }
+
+  const handleOnboardingClose = () => {
+    setShowOnboarding(false)
+    localStorage.setItem(`onboarding_seen_${session?.user?.email}`, 'true')
+  }
+
+  const handleStartSetup = () => {
+    handleOnboardingClose()
+    router.push('/availability')
   }
 
   // 🆕 Connect Calendar function
@@ -1090,6 +1108,291 @@ export default function DashboardPage() {
         </div>
 
       </main>
+
+      {/* Onboarding Modal */}
+      {showOnboarding && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '16px'
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '16px',
+            maxWidth: '600px',
+            width: '100%',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            padding: '32px',
+            position: 'relative'
+          }}>
+            {/* Close button */}
+            <button
+              onClick={handleOnboardingClose}
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                background: 'none',
+                border: 'none',
+                fontSize: '24px',
+                color: '#6b7280',
+                cursor: 'pointer',
+                padding: '8px',
+                borderRadius: '8px',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            >
+              ×
+            </button>
+
+            {/* Modal Content */}
+            <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+              <div style={{
+                width: '80px',
+                height: '80px',
+                background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 24px',
+                fontSize: '36px'
+              }}>
+                🚀
+              </div>
+              <h2 style={{
+                fontSize: '28px',
+                fontWeight: '700',
+                color: '#111827',
+                margin: '0 0 8px 0'
+              }}>
+                {t('welcome_to_system')}
+              </h2>
+              <p style={{
+                fontSize: '16px',
+                color: '#6b7280',
+                margin: 0
+              }}>
+                {t('lets_get_started')}
+              </p>
+            </div>
+
+            <p style={{
+              fontSize: '16px',
+              color: '#4b5563',
+              textAlign: 'center',
+              marginBottom: '32px',
+              lineHeight: 1.6
+            }}>
+              {t('onboarding_intro')}
+            </p>
+
+            {/* Steps */}
+            <div style={{ marginBottom: '32px' }}>
+              {/* Step 1 */}
+              <div style={{
+                display: 'flex',
+                gap: '16px',
+                marginBottom: '24px',
+                padding: '16px',
+                backgroundColor: '#f9fafb',
+                borderRadius: '12px',
+                border: '1px solid #e5e7eb'
+              }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  backgroundColor: '#eff6ff',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  fontSize: '20px',
+                  fontWeight: '600',
+                  color: '#3b82f6'
+                }}>
+                  1
+                </div>
+                <div style={{ flex: 1 }}>
+                  <h3 style={{
+                    fontSize: '18px',
+                    fontWeight: '600',
+                    color: '#111827',
+                    margin: '0 0 4px 0'
+                  }}>
+                    {t('set_your_availability')}
+                  </h3>
+                  <p style={{
+                    fontSize: '14px',
+                    color: '#6b7280',
+                    margin: 0,
+                    lineHeight: 1.5
+                  }}>
+                    {t('set_availability_desc')}
+                  </p>
+                </div>
+              </div>
+
+              {/* Step 2 */}
+              <div style={{
+                display: 'flex',
+                gap: '16px',
+                marginBottom: '24px',
+                padding: '16px',
+                backgroundColor: '#f9fafb',
+                borderRadius: '12px',
+                border: '1px solid #e5e7eb'
+              }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  backgroundColor: '#f0fdf4',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  fontSize: '20px',
+                  fontWeight: '600',
+                  color: '#16a34a'
+                }}>
+                  2
+                </div>
+                <div style={{ flex: 1 }}>
+                  <h3 style={{
+                    fontSize: '18px',
+                    fontWeight: '600',
+                    color: '#111827',
+                    margin: '0 0 4px 0'
+                  }}>
+                    {t('test_calendar_connection')}
+                  </h3>
+                  <p style={{
+                    fontSize: '14px',
+                    color: '#6b7280',
+                    margin: 0,
+                    lineHeight: 1.5
+                  }}>
+                    {t('test_calendar_desc')}
+                  </p>
+                </div>
+              </div>
+
+              {/* Step 3 */}
+              <div style={{
+                display: 'flex',
+                gap: '16px',
+                padding: '16px',
+                backgroundColor: '#f9fafb',
+                borderRadius: '12px',
+                border: '1px solid #e5e7eb'
+              }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  backgroundColor: '#faf5ff',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  fontSize: '20px',
+                  fontWeight: '600',
+                  color: '#9333ea'
+                }}>
+                  3
+                </div>
+                <div style={{ flex: 1 }}>
+                  <h3 style={{
+                    fontSize: '18px',
+                    fontWeight: '600',
+                    color: '#111827',
+                    margin: '0 0 4px 0'
+                  }}>
+                    {t('share_your_link')}
+                  </h3>
+                  <p style={{
+                    fontSize: '14px',
+                    color: '#6b7280',
+                    margin: 0,
+                    lineHeight: 1.5
+                  }}>
+                    {t('share_link_desc')}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div style={{
+              display: 'flex',
+              gap: '12px',
+              justifyContent: 'center'
+            }}>
+              <button
+                onClick={handleStartSetup}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#3b82f6'}
+              >
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+                {t('start_setup')}
+              </button>
+              <button
+                onClick={handleOnboardingClose}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: 'transparent',
+                  color: '#6b7280',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.backgroundColor = '#f9fafb'
+                  e.currentTarget.style.color = '#4b5563'
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent'
+                  e.currentTarget.style.color = '#6b7280'
+                }}
+              >
+                {t('skip_tutorial')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 🆕 WhatsApp Help Component - Floating Button */}
       <WhatsAppHelp />
