@@ -570,6 +570,23 @@ export default function HomePage() {
               <Link 
                 href="/privacy" 
                 className="footer-link"
+                style={{
+                  color: '#93c5fd',
+                  textDecoration: 'none',
+                  fontWeight: '500',
+                  transition: 'all 0.2s',
+                  opacity: 0.9
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.color = '#60a5fa'
+                  e.currentTarget.style.textDecoration = 'underline'
+                  e.currentTarget.style.opacity = '1'
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.color = '#93c5fd'
+                  e.currentTarget.style.textDecoration = 'none'
+                  e.currentTarget.style.opacity = '0.9'
+                }}
               >
                 מדיניות פרטיות
               </Link>
@@ -577,6 +594,23 @@ export default function HomePage() {
               <Link 
                 href="/terms" 
                 className="footer-link"
+                style={{
+                  color: '#93c5fd',
+                  textDecoration: 'none',
+                  fontWeight: '500',
+                  transition: 'all 0.2s',
+                  opacity: 0.9
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.color = '#60a5fa'
+                  e.currentTarget.style.textDecoration = 'underline'
+                  e.currentTarget.style.opacity = '1'
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.color = '#93c5fd'
+                  e.currentTarget.style.textDecoration = 'none'
+                  e.currentTarget.style.opacity = '0.9'
+                }}
               >
                 תנאי שימוש
               </Link>
@@ -1235,15 +1269,17 @@ export default function HomePage() {
         }
 
         .footer-link {
-          color: #3b82f6;
+          color: #93c5fd;
           text-decoration: none;
           font-weight: 500;
           transition: all 0.2s;
+          opacity: 0.9;
         }
 
         .footer-link:hover {
           color: #60a5fa;
           text-decoration: underline;
+          opacity: 1;
         }
 
         .fade-in-section {
