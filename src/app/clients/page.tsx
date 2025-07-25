@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import LanguageToggle, { useTranslations } from '@/components/LanguageToggle'
 
 interface Client {
   id: string
@@ -26,6 +27,7 @@ interface Client {
 export default function ClientsPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const { t } = useTranslations()
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -74,20 +76,20 @@ export default function ClientsPage() {
   const getStatusInfo = (client: Client) => {
     if (client.upcomingAppointments > 0) {
       return {
-        text: 'Active',
+        text: t('active'),
         color: '#16a34a',
         backgroundColor: '#dcfce7'
       }
     }
     if (client.completedSessions > 0) {
       return {
-        text: 'Existing',
+        text: t('existing'),
         color: '#2563eb',
         backgroundColor: '#dbeafe'
       }
     }
     return {
-      text: 'New',
+      text: t('new'),
       color: '#6b7280',
       backgroundColor: '#f3f4f6'
     }
@@ -106,7 +108,7 @@ export default function ClientsPage() {
             animation: 'spin 1s linear infinite',
             margin: '0 auto 16px'
           }}></div>
-          <p style={{ color: '#6b7280', fontSize: '14px' }}>Loading clients...</p>
+          <p style={{ color: '#6b7280', fontSize: '14px' }}>{t('loading_clients')}</p>
         </div>
       </div>
     )
@@ -149,21 +151,22 @@ export default function ClientsPage() {
             </div>
             <div>
               <h1 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>
-                Client Management
+                {t('client_management')}
               </h1>
               <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>
-                {clients.length} clients
+                {clients.length} {t('clients_count')}
               </p>
             </div>
           </div>
 
           {/* Just breadcrumb navigation */}
-          <nav style={{ fontSize: '12px', color: '#6b7280' }}>
+          <nav style={{ fontSize: '12px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <Link href="/dashboard" style={{ color: '#3b82f6', textDecoration: 'none' }}>
-              Dashboard
+              {t('dashboard')}
             </Link>
             <span style={{ margin: '0 8px' }}>›</span>
-            <span>Clients</span>
+            <span>{t('clients')}</span>
+            <LanguageToggle />
           </nav>
         </div>
       </header>
@@ -203,14 +206,14 @@ export default function ClientsPage() {
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Back to Dashboard
+            {t('navigation.backToDashboard')}
           </Link>
 
           {/* Action Buttons */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <button
               onClick={() => {
-                alert('Scheduling feature coming soon! For now, you can set your availability and share your booking link with clients.')
+                alert(t('scheduling_feature_coming_soon'))
               }}
               style={{
                 display: 'inline-flex',
@@ -232,7 +235,7 @@ export default function ClientsPage() {
               <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
-              Schedule Session
+              {t('schedule_session')}
             </button>
 
             <Link
@@ -257,7 +260,7 @@ export default function ClientsPage() {
               <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
               </svg>
-              Set Availability
+              {t('set_availability')}
             </Link>
 
             <Link
@@ -283,7 +286,7 @@ export default function ClientsPage() {
               <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
               </svg>
-              Share Booking Link
+              {t('share_booking_link')}
             </Link>
           </div>
         </div>
@@ -305,25 +308,25 @@ export default function ClientsPage() {
           }}>
             <div>
               <h2 style={{ fontSize: '28px', fontWeight: '700', margin: '0 0 8px 0' }}>
-                Your Clients 👥
+                {t('your_clients')}
               </h2>
               <p style={{ fontSize: '16px', opacity: 0.9, margin: '0 0 24px 0' }}>
-                Manage your client relationships and track their progress
+                {t('manage_client_relationships')}
               </p>
               
               {/* Stats Row */}
               <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
                 <div>
                   <p style={{ fontSize: '24px', fontWeight: '700', margin: 0 }}>{clients.length}</p>
-                  <p style={{ fontSize: '14px', opacity: 0.8, margin: 0 }}>Total Clients</p>
+                  <p style={{ fontSize: '14px', opacity: 0.8, margin: 0 }}>{t('total_clients')}</p>
                 </div>
                 <div>
                   <p style={{ fontSize: '24px', fontWeight: '700', margin: 0 }}>{activeClients}</p>
-                  <p style={{ fontSize: '14px', opacity: 0.8, margin: 0 }}>Active This Month</p>
+                  <p style={{ fontSize: '14px', opacity: 0.8, margin: 0 }}>{t('active_this_month')}</p>
                 </div>
                 <div>
                   <p style={{ fontSize: '24px', fontWeight: '700', margin: 0 }}>{totalSessions}</p>
-                  <p style={{ fontSize: '14px', opacity: 0.8, margin: 0 }}>Total Sessions</p>
+                  <p style={{ fontSize: '14px', opacity: 0.8, margin: 0 }}>{t('total_sessions')}</p>
                 </div>
               </div>
             </div>
@@ -361,10 +364,10 @@ export default function ClientsPage() {
           }}>
             <div>
               <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: '0 0 4px 0' }}>
-                Client Directory
+                {t('client_directory')}
               </h3>
               <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
-                Find and manage your clients
+                {t('find_manage_clients')}
               </p>
             </div>
             
@@ -372,7 +375,7 @@ export default function ClientsPage() {
             <div style={{ position: 'relative', minWidth: '280px' }}>
               <input
                 type="text"
-                placeholder="Search clients by name or email..."
+                placeholder={t('search_clients')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={{
@@ -426,12 +429,12 @@ export default function ClientsPage() {
               </svg>
             </div>
             <h3 style={{ fontSize: '20px', fontWeight: '600', color: '#111827', margin: '0 0 8px 0' }}>
-              {searchTerm ? 'No clients found' : 'No clients yet'}
+              {searchTerm ? t('no_clients_found') : t('no_clients_yet')}
             </h3>
             <p style={{ fontSize: '16px', color: '#6b7280', margin: '0 0 24px 0' }}>
               {searchTerm 
-                ? `No clients match "${searchTerm}". Try a different search term.`
-                : 'Clients will be automatically added when they book sessions'
+                ? t('no_clients_match_search').replace('{searchTerm}', searchTerm)
+                : t('clients_added_automatically')
               }
             </p>
           </div>
@@ -523,7 +526,7 @@ export default function ClientsPage() {
                       <p style={{ fontSize: '16px', fontWeight: '600', color: '#111827', margin: 0 }}>
                         {client.totalAppointments}
                       </p>
-                      <p style={{ fontSize: '10px', color: '#6b7280', margin: 0 }}>Total</p>
+                      <p style={{ fontSize: '10px', color: '#6b7280', margin: 0 }}>{t('total')}</p>
                     </div>
                     <div style={{ 
                       backgroundColor: '#f0fdf4',
@@ -534,7 +537,7 @@ export default function ClientsPage() {
                       <p style={{ fontSize: '16px', fontWeight: '600', color: '#16a34a', margin: 0 }}>
                         {client.completedSessions}
                       </p>
-                      <p style={{ fontSize: '10px', color: '#6b7280', margin: 0 }}>Done</p>
+                      <p style={{ fontSize: '10px', color: '#6b7280', margin: 0 }}>{t('done')}</p>
                     </div>
                     <div style={{ 
                       backgroundColor: '#eff6ff',
@@ -545,7 +548,7 @@ export default function ClientsPage() {
                       <p style={{ fontSize: '16px', fontWeight: '600', color: '#2563eb', margin: 0 }}>
                         {client.upcomingAppointments}
                       </p>
-                      <p style={{ fontSize: '10px', color: '#6b7280', margin: 0 }}>Upcoming</p>
+                      <p style={{ fontSize: '10px', color: '#6b7280', margin: 0 }}>{t('upcoming')}</p>
                     </div>
                   </div>
 
@@ -561,9 +564,9 @@ export default function ClientsPage() {
                       fontSize: '12px',
                       color: '#6b7280'
                     }}>
-                      <span>Joined {formatDate(client.joinedDate)}</span>
+                      <span>{t('joined')} {formatDate(client.joinedDate)}</span>
                       {client.lastSessionDate && (
-                        <span>Last: {formatDate(client.lastSessionDate)}</span>
+                        <span>{t('last')} {formatDate(client.lastSessionDate)}</span>
                       )}
                     </div>
                     
@@ -580,7 +583,7 @@ export default function ClientsPage() {
                           margin: 0,
                           fontWeight: '500'
                         }}>
-                          Goals: {client.goals.substring(0, 60)}...
+                          {t('goals')} {client.goals.substring(0, 60)}...
                         </p>
                       </div>
                     )}
