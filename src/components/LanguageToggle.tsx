@@ -43,6 +43,8 @@ const translations = {
     'completed': 'הושלם',
     'scheduled_status': 'מתוזמן',
     'cancelled': 'בוטל',
+    'privacy_policy': 'מדיניות פרטיות',
+    'terms_of_service': 'תנאי שימוש',
     
     // Homepage translations
     'fitness_booking_system': 'מערכת הזמנות למאמני כושר',
@@ -153,6 +155,8 @@ const translations = {
     'completed': 'Completed',
     'scheduled_status': 'Scheduled',
     'cancelled': 'Cancelled',
+    'privacy_policy': 'Privacy Policy',
+    'terms_of_service': 'Terms of Service',
     
     // Homepage translations
     'fitness_booking_system': 'Fitness Trainer Booking System',

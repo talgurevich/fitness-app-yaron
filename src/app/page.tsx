@@ -588,7 +588,7 @@ export default function HomePage() {
                   e.currentTarget.style.opacity = '0.9'
                 }}
               >
-                מדיניות פרטיות
+                {t('privacy_policy')}
               </Link>
               <span className="footer-separator">•</span>
               <Link 
@@ -612,7 +612,7 @@ export default function HomePage() {
                   e.currentTarget.style.opacity = '0.9'
                 }}
               >
-                תנאי שימוש
+                {t('terms_of_service')}
               </Link>
             </div>
 
