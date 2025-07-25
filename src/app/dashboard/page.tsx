@@ -233,9 +233,9 @@ export default function DashboardPage() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'completed': return 'Completed'
-      case 'booked': return 'Scheduled'
-      case 'cancelled': return 'Cancelled'
+      case 'completed': return t('completed')
+      case 'booked': return t('scheduled_status')
+      case 'cancelled': return t('cancelled')
       default: return status
     }
   }
@@ -355,14 +355,14 @@ export default function DashboardPage() {
                     borderRadius: '50%',
                     animation: 'spin 1s linear infinite'
                   }}></div>
-                  Updating...
+                  {t('updating')}
                 </>
               ) : (
                 <>
                   <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
-                  Refresh
+                  {t('refresh')}
                 </>
               )}
             </button>
@@ -722,7 +722,7 @@ export default function DashboardPage() {
                 </svg>
               </div>
               <div>
-                <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>Today's Sessions</p>
+                <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>{t('todays_sessions')}</p>
                 <p style={{ fontSize: '24px', fontWeight: '700', color: '#111827', margin: 0 }}>
                   {todaySessions}
                 </p>
@@ -752,7 +752,7 @@ export default function DashboardPage() {
                 </svg>
               </div>
               <div>
-                <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>This Week</p>
+                <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>{t('this_week')}</p>
                 <p style={{ fontSize: '24px', fontWeight: '700', color: '#111827', margin: 0 }}>
                   {weekSessions}
                 </p>
@@ -782,7 +782,7 @@ export default function DashboardPage() {
                 </svg>
               </div>
               <div>
-                <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>Active Clients</p>
+                <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>{t('active_clients')}</p>
                 <p style={{ fontSize: '24px', fontWeight: '700', color: '#111827', margin: 0 }}>
                   {uniqueClients}
                 </p>
@@ -814,10 +814,10 @@ export default function DashboardPage() {
             }}>
               <div>
                 <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>
-                  Upcoming Sessions
+                  {t('upcoming_sessions')}
                 </h3>
                 <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0 0 0' }}>
-                  {upcomingAppointments.length} scheduled
+                  {upcomingAppointments.length} {t('scheduled')}
                 </p>
               </div>
             </div>
@@ -840,10 +840,10 @@ export default function DashboardPage() {
                     </svg>
                   </div>
                   <h4 style={{ fontSize: '16px', fontWeight: '600', color: '#111827', margin: '0 0 8px 0' }}>
-                    No upcoming sessions
+                    {t('no_upcoming_sessions')}
                   </h4>
                   <p style={{ fontSize: '14px', color: '#6b7280', margin: '0 0 20px 0' }}>
-                    New appointments will appear here when clients book
+                    {t('new_appointments_appear_here')}
                   </p>
                   <Link
                     href={`/book/${session?.user?.email?.split('@')[0]?.replace(/[^a-zA-Z0-9]/g, '-')}`}
@@ -866,7 +866,7 @@ export default function DashboardPage() {
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
-                    Share booking link
+                    {t('share_booking_link')}
                   </Link>
                 </div>
               ) : (
@@ -962,7 +962,7 @@ export default function DashboardPage() {
               padding: '20px'
             }}>
               <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#111827', margin: '0 0 16px 0' }}>
-                Quick Actions
+                {t('quick_actions')}
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <Link
@@ -987,7 +987,7 @@ export default function DashboardPage() {
                   <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
                   </svg>
-                  Set Availability
+                  {t('set_availability')}
                 </Link>
                 <Link
                   href="/clients"
@@ -1011,7 +1011,7 @@ export default function DashboardPage() {
                   <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                   </svg>
-                  Manage Clients
+                  {t('manage_clients')}
                 </Link>
                 <Link
                   href={`/book/${session?.user?.email?.split('@')[0]?.replace(/[^a-zA-Z0-9]/g, '-')}`}
@@ -1036,7 +1036,7 @@ export default function DashboardPage() {
                   <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>
-                  Share Link
+                  {t('share_link')}
                 </Link>
               </div>
             </div>
@@ -1049,20 +1049,20 @@ export default function DashboardPage() {
               padding: '20px'
             }}>
               <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#111827', margin: '0 0 16px 0' }}>
-                Profile Info
+                {t('profile_info')}
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div>
                   <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 2px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Name
+                    {t('name').toUpperCase()}
                   </p>
                   <p style={{ fontSize: '13px', color: '#111827', margin: 0 }}>
-                    {session?.user?.name || 'Not set'}
+                    {session?.user?.name || t('not_set')}
                   </p>
                 </div>
                 <div>
                   <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 2px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Email
+                    {t('email').toUpperCase()}
                   </p>
                   <p style={{ fontSize: '13px', color: '#111827', margin: 0 }}>
                     {session?.user?.email}
@@ -1070,7 +1070,7 @@ export default function DashboardPage() {
                 </div>
                 <div>
                   <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 2px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Booking URL
+                    {t('booking_url').toUpperCase()}
                   </p>
                   <code style={{ 
                     fontSize: '11px', 
