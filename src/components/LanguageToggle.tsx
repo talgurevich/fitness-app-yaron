@@ -295,10 +295,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const t = (key: string): string => {
     const translation = translations[language][key as keyof typeof translations[typeof language]]
-    // Debug specific keys
-    if (key === 'login' || key === 'join_now' || key === 'want_to_register' || key === 'login_for_trainers') {
-      console.log(`Translation for ${key} in ${language}:`, translation)
-    }
     if (!translation) {
       console.warn(`Missing translation for key: ${key} in language: ${language}`)
       return key
@@ -326,7 +322,6 @@ export default function LanguageToggle() {
 
   const handleToggle = () => {
     const newLang = language === 'he' ? 'en' : 'he'
-    console.log('Language toggle clicked:', language, '->', newLang)
     setLanguage(newLang)
   }
 

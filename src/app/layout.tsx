@@ -1,17 +1,22 @@
 // src/app/layout.tsx
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import Providers from './providers'
 
 const inter = Inter({ subsets: ['latin'] })
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+}
+
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXTAUTH_URL || 'http://localhost:3000'),
   title: 'FitnessPro - מערכת הזמנות למאמני כושר',
   description: 'פלטפורמה מקצועית לניהול הזמנות עם חיבור ליומן Google ומעקב אחר לקוחות',
   keywords: 'מאמן כושר, הזמנות, יומן Google, ניהול לקוחות, אימונים',
   authors: [{ name: 'FitnessPro' }],
-  viewport: 'width=device-width, initial-scale=1',
   robots: 'index, follow',
   openGraph: {
     title: 'FitnessPro - מערכת הזמנות למאמני כושר',
