@@ -190,39 +190,6 @@ export default function HomePage() {
               {t('login')}
             </Link>
 
-            <button
-              onClick={() => setShowRegistrationModal(true)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 12px',
-                fontSize: '13px',
-                fontWeight: '500',
-                color: 'white',
-                background: 'rgba(30, 41, 59, 0.9)',
-                border: '1px solid rgba(59, 130, 246, 0.3)',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                backdropFilter: 'blur(10px)'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.background = 'rgba(30, 41, 59, 1)'
-                e.currentTarget.style.transform = 'translateY(-2px)'
-                e.currentTarget.style.borderColor = 'rgba(59, 130, 246, 0.5)'
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.background = 'rgba(30, 41, 59, 0.9)'
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.borderColor = 'rgba(59, 130, 246, 0.3)'
-              }}
-            >
-              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-              </svg>
-              {t('want_to_register')}
-            </button>
           </div>
         </div>
       </header>
@@ -403,39 +370,6 @@ export default function HomePage() {
                 </svg>
                 {t('login_for_trainers')}
               </Link>
-              <button
-                onClick={() => setShowRegistrationModal(true)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '16px 32px',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  color: 'white',
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  backdropFilter: 'blur(10px)'
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1))'
-                  e.currentTarget.style.transform = 'translateY(-3px)'
-                  e.currentTarget.style.boxShadow = '0 10px 30px rgba(255, 255, 255, 0.2)'
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))'
-                  e.currentTarget.style.transform = 'translateY(0)'
-                  e.currentTarget.style.boxShadow = 'none'
-                }}
-              >
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                </svg>
-                {t('join_now')}
-              </button>
             </div>
           </div>
         </section>
@@ -528,28 +462,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section 
-          ref={ctaRef}
-          className="fade-in-section cta-section"
-        >
-          <div className="container">
-            <div className="cta-content">
-              <h3 className="cta-title">
-                {t('start_today') || 'התחילו עוד היום!'} 🚀
-              </h3>
-              <p className="cta-description">
-                {t('join_many_trainers') || 'הצטרפו למאמנים רבים שכבר משתמשים במערכת ומנהלים את העסק שלהם ביעילות מקסימלית'}
-              </p>
-              <Link href="/login" className="cta-button primary large">
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                {t('join_now_free') || 'הצטרפו עכשיו - בחינם'}
-              </Link>
-            </div>
-          </div>
-        </section>
       </main>
 
       {/* Footer */}
