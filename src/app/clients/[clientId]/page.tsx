@@ -2021,10 +2021,44 @@ export default function ClientProfilePage() {
                                 )}
                               </div>
                               
-                              {/* Delete Button for Future Appointments */}
-                              {appointment.status !== 'cancelled' && (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                {/* SMS Reminder Button */}
                                 <button
-                                  onClick={() => handleDeleteAppointment(appointment.id)}
+                                  onClick={() => alert('📱 SMS Reminder Feature\n\nThis feature will send SMS reminders to clients about upcoming appointments.\n\nComing soon!')}
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    padding: '8px 12px',
+                                    fontSize: '12px',
+                                    fontWeight: '500',
+                                    color: '#059669',
+                                    backgroundColor: '#f0fdf4',
+                                    border: '1px solid #bbf7d0',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                  }}
+                                  onMouseOver={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#dcfce7'
+                                    e.currentTarget.style.borderColor = '#86efac'
+                                  }}
+                                  onMouseOut={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#f0fdf4'
+                                    e.currentTarget.style.borderColor = '#bbf7d0'
+                                  }}
+                                  title="Send SMS reminder to client"
+                                >
+                                  <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                  </svg>
+                                  📱 SMS
+                                </button>
+                                
+                                {/* Delete Button for Future Appointments */}
+                                {appointment.status !== 'cancelled' && (
+                                  <button
+                                    onClick={() => handleDeleteAppointment(appointment.id)}
                                   disabled={deletingAppointment === appointment.id}
                                   style={{
                                     display: 'inline-flex',
@@ -2076,7 +2110,8 @@ export default function ClientProfilePage() {
                                     </>
                                   )}
                                 </button>
-                              )}
+                                )}
+                              </div>
                             </div>
                           ))}
                         </div>

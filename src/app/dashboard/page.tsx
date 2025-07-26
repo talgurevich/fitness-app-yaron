@@ -916,42 +916,77 @@ export default function DashboardPage() {
                             </p>
                           </div>
                         </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <p style={{ fontSize: '13px', fontWeight: '500', color: '#111827', margin: 0 }}>
-                            {date}
-                          </p>
-                          <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>
-                            {time}
-                          </p>
-                          <span style={{ 
-                            display: 'inline-block',
-                            padding: '2px 8px',
-                            fontSize: '11px',
-                            fontWeight: '500',
-                            borderRadius: '12px',
-                            marginTop: '4px',
-                            ...getStatusColor(appointment.status).split(' ').reduce((acc, cls) => {
-                              if (cls.startsWith('bg-')) {
-                                acc.backgroundColor = {
-                                  'bg-green-100': '#dcfce7',
-                                  'bg-blue-100': '#dbeafe',
-                                  'bg-red-100': '#fee2e2',
-                                  'bg-gray-100': '#f3f4f6'
-                                }[cls] || '#f3f4f6'
-                              }
-                              if (cls.startsWith('text-')) {
-                                acc.color = {
-                                  'text-green-800': '#166534',
-                                  'text-blue-800': '#1e40af',
-                                  'text-red-800': '#991b1b',
-                                  'text-gray-800': '#1f2937'
-                                }[cls] || '#1f2937'
-                              }
-                              return acc
-                            }, {})
-                          }}>
-                            {getStatusText(appointment.status)}
-                          </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ textAlign: 'right' }}>
+                            <p style={{ fontSize: '13px', fontWeight: '500', color: '#111827', margin: 0 }}>
+                              {date}
+                            </p>
+                            <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>
+                              {time}
+                            </p>
+                            <span style={{ 
+                              display: 'inline-block',
+                              padding: '2px 8px',
+                              fontSize: '11px',
+                              fontWeight: '500',
+                              borderRadius: '12px',
+                              marginTop: '4px',
+                              ...getStatusColor(appointment.status).split(' ').reduce((acc, cls) => {
+                                if (cls.startsWith('bg-')) {
+                                  acc.backgroundColor = {
+                                    'bg-green-100': '#dcfce7',
+                                    'bg-blue-100': '#dbeafe',
+                                    'bg-red-100': '#fee2e2',
+                                    'bg-gray-100': '#f3f4f6'
+                                  }[cls] || '#f3f4f6'
+                                }
+                                if (cls.startsWith('text-')) {
+                                  acc.color = {
+                                    'text-green-800': '#166534',
+                                    'text-blue-800': '#1e40af',
+                                    'text-red-800': '#991b1b',
+                                    'text-gray-800': '#1f2937'
+                                  }[cls] || '#1f2937'
+                                }
+                                return acc
+                              }, {})
+                            }}>
+                              {getStatusText(appointment.status)}
+                            </span>
+                          </div>
+                          
+                          {/* SMS Reminder Button */}
+                          <button
+                            onClick={() => alert('📱 SMS Reminder Feature\n\nThis feature will send SMS reminders to clients about upcoming appointments.\n\nComing soon!')}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              padding: '6px 10px',
+                              fontSize: '11px',
+                              fontWeight: '500',
+                              color: '#059669',
+                              backgroundColor: '#f0fdf4',
+                              border: '1px solid #bbf7d0',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseOver={(e) => {
+                              e.currentTarget.style.backgroundColor = '#dcfce7'
+                              e.currentTarget.style.borderColor = '#86efac'
+                            }}
+                            onMouseOut={(e) => {
+                              e.currentTarget.style.backgroundColor = '#f0fdf4'
+                              e.currentTarget.style.borderColor = '#bbf7d0'
+                            }}
+                            title="Send SMS reminder to client"
+                          >
+                            <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                            📱
+                          </button>
                         </div>
                       </div>
                     )
