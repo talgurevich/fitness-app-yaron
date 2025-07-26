@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Analytics Test</title>
+</head>
+<body>
+    <h1>Testing Google Analytics Integration</h1>
+    <div id="results"></div>
+    
+    <script>
+        // Test if Google Analytics is loaded on the homepage
+        fetch('http://localhost:3001')
+            .then(response => response.text())
+            .then(html => {
+                const results = document.getElementById('results');
+                
+                // Check for Google Analytics script
+                const hasGtagScript = html.includes('googletagmanager.com/gtag/js?id=G-X6PPGMRH81');
+                const hasDataLayer = html.includes('window.dataLayer = window.dataLayer || [];');
+                const hasGtagConfig = html.includes("gtag('config', 'G-X6PPGMRH81');");
+                
+                results.innerHTML = `
+                    <h2>Google Analytics Check Results:</h2>
+                    <p>✅ Google Tag Manager Script: ${hasGtagScript ? 'FOUND' : 'MISSING'}</p>
+                    <p>✅ DataLayer Initialization: ${hasDataLayer ? 'FOUND' : 'MISSING'}</p>
+                    <p>✅ Analytics Configuration: ${hasGtagConfig ? 'FOUND' : 'MISSING'}</p>
+                    <p><strong>Overall Status: ${hasGtagScript && hasDataLayer && hasGtagConfig ? '🟢 WORKING' : '🔴 ISSUES FOUND'}</strong></p>
+                    
+                    <h3>Next Steps:</h3>
+                    <ul>
+                        <li>Visit your homepage at <a href="http://localhost:3001" target="_blank">http://localhost:3001</a></li>
+                        <li>Open browser dev tools (F12)</li>
+                        <li>Check Network tab for requests to googletagmanager.com</li>
+                        <li>Check Console for gtag function availability</li>
+                        <li>Test contact form submission to verify event tracking</li>
+                    </ul>
+                `;
+            })
+            .catch(error => {
+                document.getElementById('results').innerHTML = `
+                    <h2>Error testing analytics:</h2>
+                    <p>${error.message}</p>
+                    <p>Make sure the dev server is running on port 3001</p>
+                `;
+            });
+    </script>
+</body>
+</html>

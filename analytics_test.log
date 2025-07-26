@@ -1,0 +1,12 @@
+
+> fitness-booking@0.1.0 dev
+> next dev
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+   ▲ Next.js 14.0.3
+   - Local:        http://localhost:3001
+   - Environments: .env.local, .env
+
+ ✓ Ready in 1314ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1511ms (598 modules)

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
 import LanguageToggle, { useTranslations } from '@/components/LanguageToggle'
+import { trackPageView, trackContactFormSubmission, trackEvent } from '@/lib/analytics'
 
 export default function HomePage() {
   const { t, language } = useTranslations()
@@ -20,6 +21,12 @@ export default function HomePage() {
   const featuresRef = useRef<HTMLDivElement>(null)
   const statsRef = useRef<HTMLDivElement>(null)
   const ctaRef = useRef<HTMLDivElement>(null)
+
+  // Track page view on component mount
+  useEffect(() => {
+    trackPageView(window.location.href, 'Homepage - FitnessPro')
+    trackEvent('page_view', 'engagement', 'homepage')
+  }, [])
 
   // Parallax scroll effect
   useEffect(() => {
@@ -67,6 +74,9 @@ export default function HomePage() {
         throw new Error('Contact form submission failed')
       }
 
+      // Track successful contact form submission
+      trackContactFormSubmission(formData.email)
+      
       setShowRegistrationModal(false)
       setFormData({ name: '', email: '', phone: '' })
       alert(t('contact_success_message'))
@@ -372,7 +382,10 @@ export default function HomePage() {
               </Link>
               
               <button
-                onClick={() => setShowRegistrationModal(true)}
+                onClick={() => {
+                  trackEvent('button_click', 'engagement', 'get_started_hero')
+                  setShowRegistrationModal(true)
+                }}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
