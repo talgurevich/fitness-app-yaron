@@ -1,4 +1,3 @@
-// prisma/schema.prisma - Add Payment model
 generator client {
   provider = "prisma-client-js"
 }
@@ -21,8 +20,7 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -41,8 +39,8 @@ model User {
   email         String    @unique
   emailVerified DateTime?
   image         String?
-  password      String?   // For email/password authentication
   role          String    @default("trainer")
+  password      String?
   accounts      Account[]
   sessions      Session[]
   trainer       Trainer?
@@ -53,86 +51,92 @@ model Trainer {
   userId           String        @unique
   bookingSlug      String        @unique
   googleCalendarId String?
-  workingHours     String?       // JSON string
+  workingHours     String?
   timezone         String        @default("Asia/Jerusalem")
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
-  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   appointments     Appointment[]
   clients          Client[]
-  payments         Payment[]     // NEW: Track payments received
+  payments         Payment[]
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Client {
   id               String        @id @default(cuid())
   trainerId        String
-  email            String        // Primary identifier
+  email            String
   name             String
   phone            String?
-  
-  // Enhanced profile information
-  notes            String?       // Trainer's notes about the client
-  goals            String?       // Fitness goals
-  medicalNotes     String?       // Medical conditions/restrictions
-  emergencyContact String?       // Emergency contact info
-  birthDate        DateTime?     // Age calculation
+  notes            String?
+  goals            String?
+  medicalNotes     String?
+  emergencyContact String?
+  birthDate        DateTime?
   joinedDate       DateTime      @default(now())
-  lastSessionDate  DateTime?     // Auto-updated from appointments
-  
-  // Preferences
-  preferredDays    String?       // JSON array of preferred days
-  preferredTimes   String?       // JSON array of preferred time slots
-  sessionDuration  Int?          // Preferred session length in minutes
-  
-  // Pricing
-  sessionPrice     Int           @default(180) // Price in NIS for 1-hour session
-  
+  lastSessionDate  DateTime?
+  preferredDays    String?
+  preferredTimes   String?
+  sessionDuration  Int?
+  sessionPrice     Int           @default(180)
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
-  
-  // Relationships
-  trainer          Trainer       @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+  nutritionPlan    String?
   appointments     Appointment[]
-  payments         Payment[]     // NEW: Track payments made by client
-  
-  @@unique([trainerId, email]) // Unique client per trainer
+  trainer          Trainer       @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+  measurements     Measurement[]
+  payments         Payment[]
+
+  @@unique([trainerId, email])
 }
 
 model Appointment {
-  id              String   @id @default(cuid())
-  trainerId       String
-  clientId        String?  // Link to Client model
-  clientName      String
-  clientEmail     String
-  clientPhone     String?
-  datetime        DateTime
-  duration        Int      @default(60) // minutes
-  status          String   @default("booked") // booked, cancelled, completed
-  googleEventId   String?
-  sessionNotes    String?  // Post-session notes
-  sessionPrice    Int?     // Price charged for this specific session (copied from client at booking time)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  trainer         Trainer  @relation(fields: [trainerId], references: [id], onDelete: Cascade)
-  client          Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
-  payments        Payment[] // NEW: Link payments to specific sessions
+  id            String    @id @default(cuid())
+  trainerId     String
+  clientId      String?
+  clientName    String
+  clientEmail   String
+  clientPhone   String?
+  datetime      DateTime
+  duration      Int       @default(60)
+  status        String    @default("booked")
+  googleEventId String?
+  sessionNotes  String?
+  sessionPrice  Int?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  client        Client?   @relation(fields: [clientId], references: [id])
+  trainer       Trainer   @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+  payments      Payment[]
 }
 
-// NEW: Payment tracking model
 model Payment {
-  id              String      @id @default(cuid())
-  trainerId       String
-  clientId        String
-  appointmentId   String?     // Optional - link to specific appointment
-  amount          Int         // Amount paid in NIS (can be partial payments)
-  paymentDate     DateTime    @default(now())
-  paymentMethod   String      @default("cash") // cash, bank_transfer, credit_card, paypal, etc
-  notes           String?     // Optional notes about the payment
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  
-  // Relationships
-  trainer         Trainer     @relation(fields: [trainerId], references: [id], onDelete: Cascade)
-  client          Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  appointment     Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  id            String       @id @default(cuid())
+  trainerId     String
+  clientId      String
+  appointmentId String?
+  amount        Int
+  paymentDate   DateTime     @default(now())
+  paymentMethod String       @default("cash")
+  notes         String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+  client        Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  trainer       Trainer      @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+}
+
+model Measurement {
+  id        String   @id @default(cuid())
+  clientId  String
+  date      DateTime @default(now())
+  weight    Float?
+  chest     Float?
+  waist     Float?
+  hips      Float?
+  arms      Float?
+  thighs    Float?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
 }

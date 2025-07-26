@@ -182,6 +182,10 @@ export async function POST(request: NextRequest) {
       include: { trainer: true }
     })
 
+    console.log('📍 User found:', user ? 'YES' : 'NO')
+    console.log('📍 User email:', session.user.email)
+    console.log('📍 User has trainer:', user?.trainer ? 'YES' : 'NO')
+
     if (!user) {
       return NextResponse.json({ 
         success: false, 
@@ -197,8 +201,10 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date().toISOString()
     }
 
+    console.log('📍 About to upsert trainer with data:', availabilityData)
+
     // Update trainer record
-    await prisma.trainer.upsert({
+    const trainerResult = await prisma.trainer.upsert({
       where: { userId: user.id },
       update: {
         workingHours: JSON.stringify(availabilityData)
@@ -211,6 +217,8 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    console.log('✅ Trainer upsert successful:', trainerResult.id)
+
     console.log('✅ Availability saved successfully')
 
     return NextResponse.json({
@@ -220,9 +228,14 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Error saving availability:', error)
+    console.error('❌ Full error details:', {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      cause: error instanceof Error ? error.cause : undefined
+    })
     return NextResponse.json({ 
       success: false, 
-      error: 'שגיאה בשמירת הגדרות הזמינות' 
+      error: `שגיאה בשמירת הגדרות הזמינות: ${error instanceof Error ? error.message : String(error)}` 
     }, { status: 500 })
   }
 }

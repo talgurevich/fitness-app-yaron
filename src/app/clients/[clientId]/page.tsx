@@ -15,12 +15,25 @@ interface Payment {
   appointmentId?: string
 }
 
+interface Measurement {
+  id: string
+  date: string
+  weight?: number
+  chest?: number
+  waist?: number
+  hips?: number
+  arms?: number
+  thighs?: number
+  notes?: string
+}
+
 interface Client {
   id: string
   name: string
   email: string
   phone?: string
   notes?: string
+  nutritionPlan?: string
   goals?: string
   medicalNotes?: string
   emergencyContact?: string
@@ -45,6 +58,7 @@ interface Client {
     sessionPrice?: number
   }>
   payments?: Payment[]
+  measurements?: Measurement[]
 }
 
 export default function ClientProfilePage() {
@@ -62,7 +76,21 @@ export default function ClientProfilePage() {
   const [client, setClient] = useState<Client | null>(null)
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
+  const [editingNotes, setEditingNotes] = useState(false)
+  const [editingNutrition, setEditingNutrition] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [showMeasurementForm, setShowMeasurementForm] = useState(false)
+  const [showCharts, setShowCharts] = useState(false)
+  const [measurementForm, setMeasurementForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    weight: '',
+    chest: '',
+    waist: '',
+    hips: '',
+    arms: '',
+    thighs: '',
+    notes: ''
+  })
   const [deletingAppointment, setDeletingAppointment] = useState<string | null>(null)
   
   // Payment form state
@@ -80,6 +108,7 @@ export default function ClientProfilePage() {
     email: '',
     phone: '',
     notes: '',
+    nutritionPlan: '',
     goals: '',
     medicalNotes: '',
     emergencyContact: '',
@@ -124,6 +153,7 @@ export default function ClientProfilePage() {
           email: data.client.email || '',
           phone: data.client.phone || '',
           notes: data.client.notes || '',
+          nutritionPlan: data.client.nutritionPlan || '',
           goals: data.client.goals || '',
           medicalNotes: data.client.medicalNotes || '',
           emergencyContact: data.client.emergencyContact || '',
@@ -1132,6 +1162,756 @@ export default function ClientProfilePage() {
                   {client.phone || t('not_provided')}
                 </p>
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* Client Notes Section */}
+        <div style={{ 
+          backgroundColor: 'white',
+          border: '1px solid #e5e7eb',
+          borderRadius: '16px',
+          padding: '24px',
+          marginBottom: '32px'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>
+              {t('client_notes')}
+            </h3>
+            <button
+              onClick={() => setEditingNotes(!editingNotes)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 16px',
+                fontSize: '14px',
+                fontWeight: '500',
+                color: editingNotes ? '#dc2626' : '#3b82f6',
+                backgroundColor: editingNotes ? '#fef2f2' : '#eff6ff',
+                border: editingNotes ? '1px solid #fecaca' : '1px solid #bfdbfe',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              {editingNotes ? t('cancel') : t('edit_notes')}
+            </button>
+          </div>
+          
+          {editingNotes ? (
+            <div>
+              <textarea
+                value={editForm.notes}
+                onChange={(e) => setEditForm({...editForm, notes: e.target.value})}
+                placeholder={t('notes_placeholder')}
+                rows={6}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  color: '#111827',
+                  backgroundColor: 'white',
+                  resize: 'vertical',
+                  fontFamily: 'inherit',
+                  marginBottom: '12px'
+                }}
+              />
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  onClick={async () => {
+                    setSaving(true)
+                    try {
+                      const response = await fetch(`/api/trainer/clients/${client?.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ notes: editForm.notes })
+                      })
+                      const data = await response.json()
+                      if (data.success) {
+                        setClient({...client!, notes: editForm.notes})
+                        setEditingNotes(false)
+                      }
+                    } catch (error) {
+                      console.error('Error saving notes:', error)
+                    }
+                    setSaving(false)
+                  }}
+                  disabled={saving}
+                  style={{
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: 'white',
+                    backgroundColor: '#3b82f6',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: saving ? 'not-allowed' : 'pointer',
+                    opacity: saving ? 0.7 : 1
+                  }}
+                >
+                  {saving ? t('saving') : t('save_changes')}
+                </button>
+                <button
+                  onClick={() => {
+                    setEditForm({...editForm, notes: client?.notes || ''})
+                    setEditingNotes(false)
+                  }}
+                  style={{
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#6b7280',
+                    backgroundColor: '#f9fafb',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {t('cancel')}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div style={{ 
+              minHeight: '80px',
+              padding: '16px',
+              backgroundColor: '#f9fafb',
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px',
+              fontSize: '14px',
+              color: '#374151',
+              lineHeight: '1.6'
+            }}>
+              {client?.notes ? (
+                <div style={{ whiteSpace: 'pre-wrap' }}>{client.notes}</div>
+              ) : (
+                <div style={{ color: '#9ca3af', fontStyle: 'italic', textAlign: 'center' }}>
+                  <p style={{ margin: '0 0 8px 0' }}>{t('no_notes_added')}</p>
+                  <p style={{ margin: 0, fontSize: '12px' }}>{t('click_to_add_notes')}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Nutrition Plan Section */}
+        <div style={{ 
+          backgroundColor: 'white',
+          border: '1px solid #e5e7eb',
+          borderRadius: '16px',
+          padding: '24px',
+          marginBottom: '32px'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>
+              {t('nutrition_plan')}
+            </h3>
+            <button
+              onClick={() => setEditingNutrition(!editingNutrition)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 16px',
+                fontSize: '14px',
+                fontWeight: '500',
+                color: editingNutrition ? '#dc2626' : '#059669',
+                backgroundColor: editingNutrition ? '#fef2f2' : '#ecfdf5',
+                border: editingNutrition ? '1px solid #fecaca' : '1px solid #a7f3d0',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              {editingNutrition ? t('cancel') : t('edit_nutrition_plan')}
+            </button>
+          </div>
+          
+          {editingNutrition ? (
+            <div>
+              <textarea
+                value={editForm.nutritionPlan}
+                onChange={(e) => setEditForm({...editForm, nutritionPlan: e.target.value})}
+                placeholder={t('nutrition_plan_placeholder')}
+                rows={8}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  color: '#111827',
+                  backgroundColor: 'white',
+                  resize: 'vertical',
+                  fontFamily: 'inherit',
+                  marginBottom: '12px'
+                }}
+              />
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  onClick={async () => {
+                    setSaving(true)
+                    try {
+                      const response = await fetch(`/api/trainer/clients/${client?.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nutritionPlan: editForm.nutritionPlan })
+                      })
+                      const data = await response.json()
+                      if (data.success) {
+                        setClient({...client!, nutritionPlan: editForm.nutritionPlan})
+                        setEditingNutrition(false)
+                      }
+                    } catch (error) {
+                      console.error('Error saving nutrition plan:', error)
+                    }
+                    setSaving(false)
+                  }}
+                  disabled={saving}
+                  style={{
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: 'white',
+                    backgroundColor: '#059669',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: saving ? 'not-allowed' : 'pointer',
+                    opacity: saving ? 0.7 : 1
+                  }}
+                >
+                  {saving ? t('saving') : t('save_changes')}
+                </button>
+                <button
+                  onClick={() => {
+                    setEditForm({...editForm, nutritionPlan: client?.nutritionPlan || ''})
+                    setEditingNutrition(false)
+                  }}
+                  style={{
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#6b7280',
+                    backgroundColor: '#f9fafb',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {t('cancel')}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div style={{ 
+              minHeight: '100px',
+              padding: '16px',
+              backgroundColor: '#f0fdf4',
+              border: '1px solid #bbf7d0',
+              borderRadius: '8px',
+              fontSize: '14px',
+              color: '#374151',
+              lineHeight: '1.6'
+            }}>
+              {client?.nutritionPlan ? (
+                <div style={{ whiteSpace: 'pre-wrap' }}>{client.nutritionPlan}</div>
+              ) : (
+                <div style={{ color: '#9ca3af', fontStyle: 'italic', textAlign: 'center' }}>
+                  <p style={{ margin: '0 0 8px 0' }}>{t('no_nutrition_plan')}</p>
+                  <p style={{ margin: 0, fontSize: '12px' }}>{t('click_to_add_nutrition_plan')}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Progress Tracking Section */}
+        <div style={{ 
+          backgroundColor: 'white',
+          border: '1px solid #e5e7eb',
+          borderRadius: '16px',
+          padding: '24px',
+          marginBottom: '32px'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>
+              {t('progress_tracking')}
+            </h3>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => setShowCharts(!showCharts)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 16px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#6b40e3',
+                  backgroundColor: '#f3f0ff',
+                  border: '1px solid #ddd6fe',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                {showCharts ? t('view_table') : t('view_charts')}
+              </button>
+              <button
+                onClick={() => setShowMeasurementForm(!showMeasurementForm)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 16px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: showMeasurementForm ? '#dc2626' : '#7c3aed',
+                  backgroundColor: showMeasurementForm ? '#fef2f2' : '#f5f3ff',
+                  border: showMeasurementForm ? '1px solid #fecaca' : '1px solid #c4b5fd',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                {showMeasurementForm ? t('cancel') : t('add_measurement')}
+              </button>
+            </div>
+          </div>
+          
+          {/* Measurement Form */}
+          {showMeasurementForm && (
+            <div style={{
+              marginBottom: '24px',
+              padding: '20px',
+              backgroundColor: '#f9fafb',
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px'
+            }}>
+              <h4 style={{ fontSize: '16px', fontWeight: '600', color: '#111827', margin: '0 0 16px 0' }}>
+                {t('add_new_measurement')}
+              </h4>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                gap: '16px',
+                marginBottom: '16px'
+              }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 6px 0' }}>
+                    {t('measurement_date')}
+                  </label>
+                  <input
+                    type="date"
+                    value={measurementForm.date}
+                    onChange={(e) => setMeasurementForm({...measurementForm, date: e.target.value})}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      color: '#111827',
+                      backgroundColor: 'white'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 6px 0' }}>
+                    {t('weight_kg')}
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={measurementForm.weight}
+                    onChange={(e) => setMeasurementForm({...measurementForm, weight: e.target.value})}
+                    placeholder="70.5"
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      color: '#111827',
+                      backgroundColor: 'white'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 6px 0' }}>
+                    {t('chest_cm')}
+                  </label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    value={measurementForm.chest}
+                    onChange={(e) => setMeasurementForm({...measurementForm, chest: e.target.value})}
+                    placeholder="95"
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      color: '#111827',
+                      backgroundColor: 'white'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 6px 0' }}>
+                    {t('waist_cm')}
+                  </label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    value={measurementForm.waist}
+                    onChange={(e) => setMeasurementForm({...measurementForm, waist: e.target.value})}
+                    placeholder="80"
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      color: '#111827',
+                      backgroundColor: 'white'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 6px 0' }}>
+                    {t('hips_cm')}
+                  </label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    value={measurementForm.hips}
+                    onChange={(e) => setMeasurementForm({...measurementForm, hips: e.target.value})}
+                    placeholder="95"
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      color: '#111827',
+                      backgroundColor: 'white'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 6px 0' }}>
+                    {t('arms_cm')}
+                  </label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    value={measurementForm.arms}
+                    onChange={(e) => setMeasurementForm({...measurementForm, arms: e.target.value})}
+                    placeholder="35"
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      color: '#111827',
+                      backgroundColor: 'white'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 6px 0' }}>
+                    {t('thighs_cm')}
+                  </label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    value={measurementForm.thighs}
+                    onChange={(e) => setMeasurementForm({...measurementForm, thighs: e.target.value})}
+                    placeholder="55"
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      color: '#111827',
+                      backgroundColor: 'white'
+                    }}
+                  />
+                </div>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#374151', margin: '0 0 6px 0' }}>
+                  {t('notes_optional')}
+                </label>
+                <textarea
+                  value={measurementForm.notes}
+                  onChange={(e) => setMeasurementForm({...measurementForm, notes: e.target.value})}
+                  placeholder={t('notes_placeholder')}
+                  rows={2}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    color: '#111827',
+                    backgroundColor: 'white',
+                    resize: 'vertical',
+                    fontFamily: 'inherit',
+                    marginBottom: '16px'
+                  }}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  onClick={async () => {
+                    setSaving(true)
+                    try {
+                      const response = await fetch(`/api/trainer/clients/${client?.id}/measurements`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          date: measurementForm.date,
+                          weight: measurementForm.weight ? parseFloat(measurementForm.weight) : null,
+                          chest: measurementForm.chest ? parseFloat(measurementForm.chest) : null,
+                          waist: measurementForm.waist ? parseFloat(measurementForm.waist) : null,
+                          hips: measurementForm.hips ? parseFloat(measurementForm.hips) : null,
+                          arms: measurementForm.arms ? parseFloat(measurementForm.arms) : null,
+                          thighs: measurementForm.thighs ? parseFloat(measurementForm.thighs) : null,
+                          notes: measurementForm.notes || null
+                        })
+                      })
+                      const data = await response.json()
+                      if (data.success) {
+                        const newMeasurements = [...(client?.measurements || []), data.measurement]
+                          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                        setClient({...client!, measurements: newMeasurements})
+                        setShowMeasurementForm(false)
+                        setMeasurementForm({
+                          date: new Date().toISOString().split('T')[0],
+                          weight: '',
+                          chest: '',
+                          waist: '',
+                          hips: '',
+                          arms: '',
+                          thighs: '',
+                          notes: ''
+                        })
+                      }
+                    } catch (error) {
+                      console.error('Error saving measurement:', error)
+                    }
+                    setSaving(false)
+                  }}
+                  disabled={saving || (!measurementForm.weight && !measurementForm.chest && !measurementForm.waist && !measurementForm.hips && !measurementForm.arms && !measurementForm.thighs)}
+                  style={{
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: 'white',
+                    backgroundColor: '#7c3aed',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: saving ? 'not-allowed' : 'pointer',
+                    opacity: saving || (!measurementForm.weight && !measurementForm.chest && !measurementForm.waist && !measurementForm.hips && !measurementForm.arms && !measurementForm.thighs) ? 0.7 : 1
+                  }}
+                >
+                  {saving ? t('saving') : t('save_measurement')}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowMeasurementForm(false)
+                    setMeasurementForm({
+                      date: new Date().toISOString().split('T')[0],
+                      weight: '',
+                      chest: '',
+                      waist: '',
+                      hips: '',
+                      arms: '',
+                      thighs: '',
+                      notes: ''
+                    })
+                  }}
+                  style={{
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#6b7280',
+                    backgroundColor: '#f9fafb',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {t('cancel')}
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {/* Measurements Display */}
+          {client?.measurements && client.measurements.length > 0 ? (
+            showCharts ? (
+              // Simple Chart View (using CSS to create visual bars)
+              <div>
+                <div style={{ marginBottom: '24px' }}>
+                  <h4 style={{ fontSize: '16px', fontWeight: '600', color: '#111827', margin: '0 0 12px 0' }}>
+                    {t('weight_progress')}
+                  </h4>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'flex-end', 
+                    height: '200px',
+                    backgroundColor: '#f9fafb',
+                    padding: '20px',
+                    borderRadius: '8px',
+                    gap: '8px',
+                    overflowX: 'auto'
+                  }}>
+                    {client.measurements
+                      .filter(m => m.weight)
+                      .slice(-10)
+                      .map((measurement, index) => {
+                        const maxWeight = Math.max(...client.measurements.filter(m => m.weight).map(m => m.weight!))
+                        const minWeight = Math.min(...client.measurements.filter(m => m.weight).map(m => m.weight!))
+                        const range = maxWeight - minWeight || 1
+                        const height = ((measurement.weight! - minWeight) / range) * 150 + 20
+                        
+                        return (
+                          <div key={measurement.id} style={{ 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            alignItems: 'center',
+                            flex: '1',
+                            minWidth: '60px'
+                          }}>
+                            <div style={{
+                              width: '100%',
+                              maxWidth: '40px',
+                              height: `${height}px`,
+                              backgroundColor: '#7c3aed',
+                              borderRadius: '4px 4px 0 0',
+                              marginBottom: '8px',
+                              position: 'relative',
+                              cursor: 'pointer'
+                            }}>
+                              <span style={{
+                                position: 'absolute',
+                                top: '-20px',
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                fontSize: '12px',
+                                fontWeight: '600',
+                                color: '#111827',
+                                whiteSpace: 'nowrap'
+                              }}>
+                                {measurement.weight} kg
+                              </span>
+                            </div>
+                            <span style={{ fontSize: '10px', color: '#6b7280', textAlign: 'center' }}>
+                              {new Date(measurement.date).toLocaleDateString()}
+                            </span>
+                          </div>
+                        )
+                      })}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              // Table View
+              <div style={{ overflow: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                      <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280' }}>{t('date')}</th>
+                      <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#6b7280' }}>{t('weight')}</th>
+                      <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#6b7280' }}>{t('chest')}</th>
+                      <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#6b7280' }}>{t('waist')}</th>
+                      <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#6b7280' }}>{t('hips')}</th>
+                      <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#6b7280' }}>{t('arms')}</th>
+                      <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#6b7280' }}>{t('thighs')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {client.measurements.slice(0, 10).map((measurement, index) => {
+                      const prevMeasurement = client.measurements[index + 1]
+                      return (
+                        <tr key={measurement.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                          <td style={{ padding: '12px 8px', fontSize: '14px', color: '#111827' }}>
+                            {new Date(measurement.date).toLocaleDateString()}
+                          </td>
+                          <td style={{ padding: '12px 8px', textAlign: 'center', fontSize: '14px' }}>
+                            {measurement.weight ? (
+                              <div>
+                                <span style={{ color: '#111827', fontWeight: '500' }}>{measurement.weight} kg</span>
+                                {prevMeasurement?.weight && (
+                                  <span style={{ 
+                                    display: 'block', 
+                                    fontSize: '11px', 
+                                    color: measurement.weight < prevMeasurement.weight ? '#10b981' : measurement.weight > prevMeasurement.weight ? '#ef4444' : '#6b7280'
+                                  }}>
+                                    {measurement.weight < prevMeasurement.weight ? '↓' : measurement.weight > prevMeasurement.weight ? '↑' : '='} 
+                                    {Math.abs(measurement.weight - prevMeasurement.weight).toFixed(1)}
+                                  </span>
+                                )}
+                              </div>
+                            ) : '-'}
+                          </td>
+                          <td style={{ padding: '12px 8px', textAlign: 'center', fontSize: '14px', color: '#111827' }}>
+                            {measurement.chest ? `${measurement.chest} cm` : '-'}
+                          </td>
+                          <td style={{ padding: '12px 8px', textAlign: 'center', fontSize: '14px', color: '#111827' }}>
+                            {measurement.waist ? `${measurement.waist} cm` : '-'}
+                          </td>
+                          <td style={{ padding: '12px 8px', textAlign: 'center', fontSize: '14px', color: '#111827' }}>
+                            {measurement.hips ? `${measurement.hips} cm` : '-'}
+                          </td>
+                          <td style={{ padding: '12px 8px', textAlign: 'center', fontSize: '14px', color: '#111827' }}>
+                            {measurement.arms ? `${measurement.arms} cm` : '-'}
+                          </td>
+                          <td style={{ padding: '12px 8px', textAlign: 'center', fontSize: '14px', color: '#111827' }}>
+                            {measurement.thighs ? `${measurement.thighs} cm` : '-'}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )
+          ) : (
+            <div style={{ 
+              minHeight: '120px',
+              padding: '32px',
+              backgroundColor: '#f5f3ff',
+              border: '1px solid #ddd6fe',
+              borderRadius: '8px',
+              textAlign: 'center'
+            }}>
+              <svg width="48" height="48" fill="none" stroke="#7c3aed" viewBox="0 0 24 24" style={{ margin: '0 auto 16px' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              <p style={{ margin: '0 0 8px 0', color: '#6b40e3', fontSize: '16px', fontWeight: '500' }}>{t('no_measurements_yet')}</p>
+              <p style={{ margin: 0, fontSize: '14px', color: '#7c3aed' }}>{t('start_tracking_progress')}</p>
             </div>
           )}
         </div>

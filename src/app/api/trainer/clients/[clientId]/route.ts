@@ -65,6 +65,20 @@ export async function GET(
             appointmentId: true
           }
         },
+        measurements: {
+          orderBy: { date: 'desc' },
+          select: {
+            id: true,
+            date: true,
+            weight: true,
+            chest: true,
+            waist: true,
+            hips: true,
+            arms: true,
+            thighs: true,
+            notes: true
+          }
+        },
         _count: {
           select: {
             appointments: {
@@ -176,6 +190,7 @@ export async function PUT(
         email: body.email,
         phone: body.phone || null,
         notes: body.notes || null,
+        nutritionPlan: body.nutritionPlan || null,
         goals: body.goals || null,
         medicalNotes: body.medicalNotes || null,
         emergencyContact: body.emergencyContact || null,
@@ -206,6 +221,20 @@ export async function PUT(
             paymentMethod: true,
             notes: true,
             appointmentId: true
+          }
+        },
+        measurements: {
+          orderBy: { date: 'desc' },
+          select: {
+            id: true,
+            date: true,
+            weight: true,
+            chest: true,
+            waist: true,
+            hips: true,
+            arms: true,
+            thighs: true,
+            notes: true
           }
         },
         _count: {
