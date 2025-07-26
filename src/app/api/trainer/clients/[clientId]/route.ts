@@ -182,22 +182,26 @@ export async function PUT(
       }, { status: 404 })
     }
 
+    // Build update data object with only provided fields
+    const updateData: any = {}
+    
+    // Only update fields that are provided in the request
+    if (body.name !== undefined) updateData.name = body.name
+    if (body.email !== undefined) updateData.email = body.email
+    if (body.phone !== undefined) updateData.phone = body.phone || null
+    if (body.notes !== undefined) updateData.notes = body.notes || null
+    if (body.nutritionPlan !== undefined) updateData.nutritionPlan = body.nutritionPlan || null
+    if (body.goals !== undefined) updateData.goals = body.goals || null
+    if (body.medicalNotes !== undefined) updateData.medicalNotes = body.medicalNotes || null
+    if (body.emergencyContact !== undefined) updateData.emergencyContact = body.emergencyContact || null
+    if (body.birthDate !== undefined) updateData.birthDate = body.birthDate ? new Date(body.birthDate) : null
+    if (body.sessionDuration !== undefined) updateData.sessionDuration = body.sessionDuration || 60
+    if (body.sessionPrice !== undefined) updateData.sessionPrice = body.sessionPrice || 180
+
     // Update client
     const updatedClient = await prisma.client.update({
       where: { id: clientId },
-      data: {
-        name: body.name,
-        email: body.email,
-        phone: body.phone || null,
-        notes: body.notes || null,
-        nutritionPlan: body.nutritionPlan || null,
-        goals: body.goals || null,
-        medicalNotes: body.medicalNotes || null,
-        emergencyContact: body.emergencyContact || null,
-        birthDate: body.birthDate ? new Date(body.birthDate) : null,
-        sessionDuration: body.sessionDuration || 60,
-        sessionPrice: body.sessionPrice || 180
-      },
+      data: updateData,
       include: {
         appointments: {
           orderBy: { datetime: 'desc' },
