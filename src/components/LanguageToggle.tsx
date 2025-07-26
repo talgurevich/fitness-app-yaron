@@ -102,13 +102,13 @@ const translations = {
     
     // Homepage translations
     'fitness_booking_system': 'מערכת הזמנות למאמני כושר',
-    'simple_system_for_trainers': 'מערכת פשוטה למאמני כושר אישיים',
+    'simple_system_for_trainers': 'מערכת פשוטה לכושר ובריאות',
     'login': 'התחברות',
     'advanced_booking_system': 'מערכת הזמנות פשוטה',
-    'for_fitness_trainers': 'למאמני כושר',
+    'for_fitness_trainers': 'לכושר ובריאות',
     'homepage_description': 'פלטפורמה מקצועית לניהול הזמנות עם חיבור ליומן Google ומעקב אחר לקוחות. הפכו את ניהול האימונים שלכם לפשוט ויעיל יותר מתמיד.',
     'why_choose_our_system': 'למה לבחור במערכת שלנו?',
-    'everything_trainer_needs': 'כל מה שמאמן כושר צריך במקום אחד',
+    'everything_trainer_needs': 'כל מה שאתם צריכים לכושר ובריאות במקום אחד',
     'google_calendar_integration': 'חיבור ליומן Google',
     'google_calendar_description': 'סנכרון אוטומטי עם יומן Google שלכם. כל הזמנה חדשה תופיע מיד ביומן הפרטי שלכם עם כל הפרטים הרלוונטיים.',
     'personal_booking_link': 'קישור הזמנה אישי',
@@ -410,13 +410,13 @@ const translations = {
     
     // Homepage translations
     'fitness_booking_system': 'Fitness Trainer Booking System',
-    'simple_system_for_trainers': 'Simple System for Personal Trainers',
+    'simple_system_for_trainers': 'Simple System for Fitness and Wellbeing',
     'login': 'Login',
     'advanced_booking_system': 'Simple Booking System',
-    'for_fitness_trainers': 'For Fitness Trainers',
+    'for_fitness_trainers': 'For Fitness and Wellbeing',
     'homepage_description': 'Professional platform for managing appointments with Google Calendar integration and client tracking. Make your training management simpler and more efficient than ever.',
     'why_choose_our_system': 'Why Choose Our System?',
-    'everything_trainer_needs': 'Everything a fitness trainer needs in one place',
+    'everything_trainer_needs': 'Everything you need for fitness and wellbeing in one place',
     'google_calendar_integration': 'Google Calendar Integration',
     'google_calendar_description': 'Automatic sync with your Google Calendar. Every new appointment appears instantly in your personal calendar with all relevant details.',
     'personal_booking_link': 'Personal Booking Link',
