@@ -40,6 +40,16 @@ export default function HomePage() {
 
   // Intersection Observer for fade-in animations
   useEffect(() => {
+    // Check if we're on mobile
+    const isMobile = window.innerWidth <= 768
+    
+    // On mobile, make sections visible immediately
+    if (isMobile) {
+      const elements = document.querySelectorAll('.fade-in-section')
+      elements.forEach((el) => el.classList.add('animate-in'))
+      return
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -48,13 +58,25 @@ export default function HomePage() {
           }
         })
       },
-      { threshold: 0.1 }
+      { 
+        threshold: 0.05, // Lower threshold for better mobile detection
+        rootMargin: '50px' // Trigger earlier
+      }
     )
 
     const elements = document.querySelectorAll('.fade-in-section')
     elements.forEach((el) => observer.observe(el))
 
-    return () => observer.disconnect()
+    // Fallback: Make all sections visible after 3 seconds regardless
+    const fallbackTimer = setTimeout(() => {
+      const hiddenElements = document.querySelectorAll('.fade-in-section:not(.animate-in)')
+      hiddenElements.forEach((el) => el.classList.add('animate-in'))
+    }, 3000)
+
+    return () => {
+      observer.disconnect()
+      clearTimeout(fallbackTimer)
+    }
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -1373,6 +1395,14 @@ export default function HomePage() {
         .fade-in-section.animate-in {
           opacity: 1;
           transform: translateY(0);
+        }
+
+        /* Mobile fallback - ensure sections are visible */
+        @media (max-width: 768px) {
+          .fade-in-section {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+          }
         }
 
         /* Testimonial Responsive */
