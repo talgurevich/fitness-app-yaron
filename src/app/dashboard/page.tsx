@@ -23,6 +23,22 @@ interface CalendarStatus {
   error?: string
 }
 
+interface GrowthData {
+  weeks: Array<{
+    week: string
+    appointments: number
+    startDate: string
+    endDate: string
+  }>
+  metrics: {
+    currentWeek: number
+    previousWeek: number
+    growthPercentage: number
+    totalAppointments: number
+    averagePerWeek: number
+  }
+}
+
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -37,6 +53,8 @@ export default function DashboardPage() {
   const [calendarMessage, setCalendarMessage] = useState<string | null>(null)
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false)
+  const [growthData, setGrowthData] = useState<GrowthData | null>(null)
+  const [growthLoading, setGrowthLoading] = useState(false)
 
   useEffect(() => {
     if (status === 'loading') return
@@ -63,7 +81,10 @@ export default function DashboardPage() {
       // STEP 3: Check calendar connection status
       await checkCalendarStatus()
       
-      // STEP 4: Check if user has seen onboarding
+      // STEP 4: Fetch growth analytics data
+      await fetchGrowthData()
+      
+      // STEP 5: Check if user has seen onboarding
       const seenOnboarding = localStorage.getItem(`onboarding_seen_${session?.user?.email}`)
       if (!seenOnboarding) {
         setShowOnboarding(true)
@@ -221,6 +242,26 @@ export default function DashboardPage() {
       setTimeout(() => setCalendarMessage(null), 5000)
     } finally {
       setCalendarTesting(false)
+    }
+  }
+
+  // Fetch Growth Analytics Data
+  const fetchGrowthData = async () => {
+    try {
+      setGrowthLoading(true)
+      
+      const response = await fetch('/api/analytics/growth')
+      const data = await response.json()
+      
+      if (data.success) {
+        setGrowthData(data.data)
+      } else {
+        console.error('Growth data fetch failed:', data.error)
+      }
+    } catch (error) {
+      console.error('Error fetching growth data:', error)
+    } finally {
+      setGrowthLoading(false)
     }
   }
 
@@ -797,6 +838,206 @@ export default function DashboardPage() {
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Growth Analytics Chart */}
+        <div style={{ 
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid #e5e7eb',
+          borderRadius: '16px',
+          overflow: 'hidden',
+          marginBottom: '32px'
+        }}>
+          <div style={{ 
+            padding: '24px',
+            borderBottom: '1px solid #e5e7eb',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <div>
+              <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>
+                {t('appointment_growth') || 'צמיחת האימונים'}
+              </h3>
+              <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0 0 0' }}>
+                {t('last_8_weeks') || '8 השבועות האחרונים'}
+              </p>
+            </div>
+            {growthData && (
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  gap: '6px',
+                  padding: '6px 12px',
+                  borderRadius: '20px',
+                  backgroundColor: growthData.metrics.growthPercentage >= 0 ? '#ecfdf5' : '#fef2f2',
+                  color: growthData.metrics.growthPercentage >= 0 ? '#059669' : '#dc2626',
+                  fontSize: '14px',
+                  fontWeight: '600'
+                }}>
+                  {growthData.metrics.growthPercentage >= 0 ? '📈' : '📉'}
+                  {growthData.metrics.growthPercentage >= 0 ? '+' : ''}{growthData.metrics.growthPercentage}%
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <div style={{ padding: '24px' }}>
+            {growthLoading ? (
+              <div style={{ textAlign: 'center', padding: '48px 24px' }}>
+                <div style={{ 
+                  width: '32px', 
+                  height: '32px', 
+                  border: '3px solid #f3f4f6', 
+                  borderTop: '3px solid #3b82f6',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite',
+                  margin: '0 auto 16px'
+                }}></div>
+                <p style={{ color: '#6b7280', margin: 0 }}>
+                  {t('loading_analytics') || 'טוען נתוני אנליטיקה...'}
+                </p>
+              </div>
+            ) : growthData ? (
+              <div>
+                {/* Growth Metrics */}
+                <div style={{ 
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                  gap: '16px',
+                  marginBottom: '32px'
+                }}>
+                  <div style={{ textAlign: 'center', padding: '16px', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
+                    <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 4px 0' }}>
+                      {t('this_week') || 'השבוע'}
+                    </p>
+                    <p style={{ fontSize: '20px', fontWeight: '700', color: '#111827', margin: 0 }}>
+                      {growthData.metrics.currentWeek}
+                    </p>
+                  </div>
+                  <div style={{ textAlign: 'center', padding: '16px', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
+                    <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 4px 0' }}>
+                      {t('average_per_week') || 'ממוצע שבועי'}
+                    </p>
+                    <p style={{ fontSize: '20px', fontWeight: '700', color: '#111827', margin: 0 }}>
+                      {growthData.metrics.averagePerWeek}
+                    </p>
+                  </div>
+                  <div style={{ textAlign: 'center', padding: '16px', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
+                    <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 4px 0' }}>
+                      {t('total_8_weeks') || 'סה"כ 8 שבועות'}
+                    </p>
+                    <p style={{ fontSize: '20px', fontWeight: '700', color: '#111827', margin: 0 }}>
+                      {growthData.metrics.totalAppointments}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Simple Bar Chart */}
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'end', 
+                  gap: '8px', 
+                  height: '200px',
+                  padding: '0 0 20px 0',
+                  borderBottom: '2px solid #e5e7eb'
+                }}>
+                  {growthData.weeks.map((week, index) => {
+                    const maxAppointments = Math.max(...growthData.weeks.map(w => w.appointments), 1)
+                    const height = (week.appointments / maxAppointments) * 160
+                    const isCurrentWeek = index === growthData.weeks.length - 1
+                    
+                    return (
+                      <div key={week.week} style={{ 
+                        flex: 1, 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}>
+                        <div style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'flex-end',
+                          height: '160px'
+                        }}>
+                          <span style={{ 
+                            fontSize: '12px', 
+                            fontWeight: '600', 
+                            color: '#374151',
+                            marginBottom: '4px'
+                          }}>
+                            {week.appointments}
+                          </span>
+                          <div style={{
+                            width: '100%',
+                            height: `${height}px`,
+                            backgroundColor: isCurrentWeek ? '#3b82f6' : '#94a3b8',
+                            borderRadius: '4px 4px 0 0',
+                            transition: 'all 0.3s ease',
+                            minHeight: week.appointments > 0 ? '4px' : '0px'
+                          }}></div>
+                        </div>
+                        <span style={{ 
+                          fontSize: '11px', 
+                          color: '#6b7280',
+                          transform: 'rotate(-45deg)',
+                          whiteSpace: 'nowrap',
+                          transformOrigin: 'center'
+                        }}>
+                          {week.week}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+                
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  marginTop: '16px',
+                  gap: '20px',
+                  fontSize: '12px',
+                  color: '#6b7280'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ width: '12px', height: '12px', backgroundColor: '#94a3b8', borderRadius: '2px' }}></div>
+                    {t('previous_weeks') || 'שבועות קודמים'}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ width: '12px', height: '12px', backgroundColor: '#3b82f6', borderRadius: '2px' }}></div>
+                    {t('current_week') || 'השבוע הנוכחי'}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '48px 24px' }}>
+                <div style={{ 
+                  width: '64px', 
+                  height: '64px', 
+                  backgroundColor: '#f3f4f6', 
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 16px'
+                }}>
+                  <svg width="24" height="24" fill="none" stroke="#9ca3af" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <h4 style={{ fontSize: '16px', fontWeight: '600', color: '#111827', margin: '0 0 8px 0' }}>
+                  {t('no_analytics_data') || 'אין נתוני אנליטיקה'}
+                </h4>
+                <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
+                  {t('analytics_data_will_appear') || 'נתוני צמיחה יופיעו כאן לאחר קיום אימונים'}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 

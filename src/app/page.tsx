@@ -496,6 +496,68 @@ export default function HomePage() {
                   {t('advanced_management_description') || 'לוח בקרה מקצועי עם מעקב אחר כל ההזמנות, פרטי לקוחות, וניהול זמינות. הכל במקום אחד ונגיש.'}
                 </p>
               </div>
+
+              <div className="feature-card">
+                <div className="feature-icon sms">
+                  💬
+                </div>
+                <h4 className="feature-title">
+                  {t('sms_reminders') || 'תזכורות SMS'}
+                </h4>
+                <p className="feature-description">
+                  {t('sms_reminders_description') || 'שלחו תזכורות SMS אוטומטיות ללקוחות שלכם לפני האימונים. הפחיתו ביטולים ושפרו את חווית הלקוח.'}
+                </p>
+              </div>
+
+              <div className="feature-card" style={{ position: 'relative' }}>
+                <div style={{
+                  position: 'absolute',
+                  top: '10px',
+                  right: '10px',
+                  background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                  color: 'white',
+                  padding: '4px 12px',
+                  borderRadius: '20px',
+                  fontSize: '12px',
+                  fontWeight: '600'
+                }}>
+                  {t('coming_soon') || 'בקרוב'}
+                </div>
+                <div className="feature-icon mobile">
+                  📱
+                </div>
+                <h4 className="feature-title">
+                  {t('mobile_app') || 'אפליקציית מובייל'}
+                </h4>
+                <p className="feature-description">
+                  {t('mobile_app_description') || 'אפליקציה ייעודית למאמנים וללקוחות עם התראות push, גישה אופליין ותיעוד מהיר של אימונים.'}
+                </p>
+              </div>
+
+              <div className="feature-card" style={{ position: 'relative' }}>
+                <div style={{
+                  position: 'absolute',
+                  top: '10px',
+                  right: '10px',
+                  background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                  color: 'white',
+                  padding: '4px 12px',
+                  borderRadius: '20px',
+                  fontSize: '12px',
+                  fontWeight: '600'
+                }}>
+                  {t('coming_soon') || 'בקרוב'}
+                </div>
+                <div className="feature-icon payment">
+                  💳
+                </div>
+                <h4 className="feature-title">
+                  {t('payment_integration') || 'מערכת תשלומים'}
+                </h4>
+                <p className="feature-description">
+                  {t('payment_integration_description') || 'קבלת תשלומים מובנית, חיוב אוטומטי, ניהול מנויים וחבילות, ודוחות פיננסיים מפורטים.'}
+                </p>
+              </div>
             </div>
           </div>
         </section>
