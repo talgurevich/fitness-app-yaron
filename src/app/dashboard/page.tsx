@@ -957,7 +957,34 @@ export default function DashboardPage() {
                           
                           {/* SMS Reminder Button */}
                           <button
-                            onClick={() => alert('📱 SMS Reminder Feature\n\nThis feature will send SMS reminders to clients about upcoming appointments.\n\nComing soon!')}
+                            onClick={async () => {
+                              if (!appointment.clientPhone) {
+                                alert('❌ ללקוח אין מספר טלפון רשום\n\nאנא הוסיפו מספר טלפון בפרטי הלקוח כדי לשלוח תזכורות SMS.')
+                                return
+                              }
+                              
+                              const confirmed = confirm(`📱 שלח תזכורת SMS ל${appointment.clientName}?\n\nהתזכורת תישלח למספר: ${appointment.clientPhone}`)
+                              if (!confirmed) return
+                              
+                              try {
+                                const response = await fetch('/api/sms/reminder', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ appointmentId: appointment.id })
+                                })
+                                
+                                const data = await response.json()
+                                
+                                if (data.success) {
+                                  alert('✅ תזכורת SMS נשלחה בהצלחה!')
+                                } else {
+                                  alert(`❌ שגיאה: ${data.error}`)
+                                }
+                              } catch (error) {
+                                console.error('SMS error:', error)
+                                alert('❌ שגיאה בשליחת SMS')
+                              }
+                            }}
                             style={{
                               display: 'inline-flex',
                               alignItems: 'center',
