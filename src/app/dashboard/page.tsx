@@ -696,7 +696,7 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              {/* Other Action Buttons */}
+              {/* Action Buttons */}
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <Link
                   href="/availability"
@@ -721,6 +721,57 @@ export default function DashboardPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
                   </svg>
                   {t('set_availability')}
+                </Link>
+                
+                <Link
+                  href="/clients"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '12px 20px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    color: '#667eea',
+                    backgroundColor: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
+                  onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                >
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                  </svg>
+                  {t('manage_clients')}
+                </Link>
+                
+                <Link
+                  href={`/book/${session?.user?.email?.split('@')[0]?.replace(/[^a-zA-Z0-9]/g, '-')}`}
+                  target="_blank"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '12px 20px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    color: '#667eea',
+                    backgroundColor: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
+                  onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                >
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                  {t('share_link')}
                 </Link>
               </div>
             </div>
@@ -1263,148 +1314,268 @@ export default function DashboardPage() {
               )}
             </div>
           </div>
+        </div>
 
-          {/* Sidebar - Quick Actions */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            
-            {/* Quick Actions */}
-            <div style={{ 
-              backgroundColor: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid #e5e7eb',
-              borderRadius: '12px',
-              padding: '20px'
-            }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#111827', margin: '0 0 16px 0' }}>
-                {t('quick_actions')}
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <Link
-                  href="/availability"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '10px 12px',
-                    fontSize: '13px',
-                    fontWeight: '500',
-                    color: 'white',
-                    backgroundColor: '#3b82f6',
-                    border: 'none',
-                    borderRadius: '6px',
-                    textDecoration: 'none',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#3b82f6'}
-                >
-                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
-                  </svg>
-                  {t('set_availability')}
-                </Link>
-                <Link
-                  href="/clients"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '10px 12px',
-                    fontSize: '13px',
-                    fontWeight: '500',
-                    color: '#374151',
-                    backgroundColor: '#f9fafb',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '6px',
-                    textDecoration: 'none',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
-                >
-                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                  </svg>
-                  {t('manage_clients')}
-                </Link>
-                <Link
-                  href={`/book/${session?.user?.email?.split('@')[0]?.replace(/[^a-zA-Z0-9]/g, '-')}`}
-                  target="_blank"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '10px 12px',
-                    fontSize: '13px',
-                    fontWeight: '500',
-                    color: '#2563eb',
-                    backgroundColor: '#eff6ff',
-                    border: '1px solid #bfdbfe',
-                    borderRadius: '6px',
-                    textDecoration: 'none',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#dbeafe'}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#eff6ff'}
-                >
-                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                  {t('share_link')}
-                </Link>
-              </div>
+        {/* Trainer Information Section */}
+        <div style={{ 
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid #e5e7eb',
+          borderRadius: '16px',
+          padding: '24px',
+          marginBottom: '32px',
+          marginTop: '64px'
+        }}>
+          <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: '0 0 20px 0' }}>
+            {t('profile_info') || 'פרטי פרופיל'}
+          </h3>
+          <div style={{ 
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+            gap: '20px'
+          }}>
+            <div>
+              <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                {t('name') || 'שם'}
+              </p>
+              <p style={{ fontSize: '14px', color: '#111827', margin: 0, fontWeight: '500' }}>
+                {session?.user?.name || t('not_set') || 'לא מוגדר'}
+              </p>
             </div>
-
-            {/* Profile Card */}
-            <div style={{ 
-              backgroundColor: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid #e5e7eb',
-              borderRadius: '12px',
-              padding: '20px'
-            }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#111827', margin: '0 0 16px 0' }}>
-                {t('profile_info')}
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div>
-                  <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 2px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    {t('name').toUpperCase()}
-                  </p>
-                  <p style={{ fontSize: '13px', color: '#111827', margin: 0 }}>
-                    {session?.user?.name || t('not_set')}
-                  </p>
-                </div>
-                <div>
-                  <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 2px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    {t('email').toUpperCase()}
-                  </p>
-                  <p style={{ fontSize: '13px', color: '#111827', margin: 0 }}>
-                    {session?.user?.email}
-                  </p>
-                </div>
-                <div>
-                  <p style={{ fontSize: '11px', color: '#6b7280', margin: '0 0 2px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    {t('booking_url').toUpperCase()}
-                  </p>
-                  <code style={{ 
-                    fontSize: '11px', 
-                    color: '#6b7280', 
-                    backgroundColor: '#f9fafb',
-                    padding: '4px 6px',
-                    borderRadius: '4px',
-                    display: 'block',
-                    wordBreak: 'break-all'
-                  }}>
-                    /book/{session?.user?.email?.split('@')[0]?.replace(/[^a-zA-Z0-9]/g, '-')}
-                  </code>
-                </div>
+            <div>
+              <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                {t('email') || 'אימייל'}
+              </p>
+              <p style={{ fontSize: '14px', color: '#111827', margin: 0, fontWeight: '500' }}>
+                {session?.user?.email}
+              </p>
+            </div>
+            <div>
+              <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                {t('phone') || 'טלפון'}
+              </p>
+              <p style={{ fontSize: '14px', color: '#111827', margin: 0, fontWeight: '500' }}>
+                {t('not_set') || 'לא מוגדר'} <span style={{ fontSize: '12px', color: '#6b7280' }}>({t('coming_soon') || 'בקרוב'})</span>
+              </p>
+            </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 8px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                {t('booking_url') || 'קישור הזמנה'}
+              </p>
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '12px',
+                padding: '12px',
+                backgroundColor: '#f8fafc',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0'
+              }}>
+                <code style={{ 
+                  fontSize: '13px', 
+                  color: '#475569', 
+                  backgroundColor: 'transparent',
+                  flex: 1,
+                  wordBreak: 'break-all'
+                }}>
+                  {typeof window !== 'undefined' ? window.location.origin : ''}/book/{session?.user?.email?.split('@')[0]?.replace(/[^a-zA-Z0-9]/g, '-')}
+                </code>
+                <button
+                  onClick={() => {
+                    const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/book/${session?.user?.email?.split('@')[0]?.replace(/[^a-zA-Z0-9]/g, '-')}`
+                    navigator.clipboard.writeText(url)
+                  }}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '12px',
+                    fontWeight: '500',
+                    color: '#3b82f6',
+                    backgroundColor: 'white',
+                    border: '1px solid #3b82f6',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = '#3b82f6'
+                    e.currentTarget.style.color = 'white'
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = 'white'
+                    e.currentTarget.style.color = '#3b82f6'
+                  }}
+                >
+                  {t('copy') || 'העתק'}
+                </button>
               </div>
             </div>
           </div>
         </div>
 
       </main>
+
+      {/* Footer */}
+      <footer style={{
+        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+        backdropFilter: 'blur(10px)',
+        borderTop: '1px solid #334155',
+        color: 'white',
+        padding: '32px 0',
+        marginTop: '64px'
+      }}>
+        <div style={{
+          maxWidth: '1280px',
+          margin: '0 auto',
+          padding: '0 24px'
+        }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+            gap: '32px',
+            marginBottom: '32px'
+          }}>
+            {/* Brand Section */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                <div style={{ 
+                  width: '32px', 
+                  height: '32px', 
+                  backgroundColor: '#3b82f6', 
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <svg width="18" height="18" fill="white" viewBox="0 0 24 24">
+                    <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                  </svg>
+                </div>
+                <h4 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>
+                  Trainer-Booking
+                </h4>
+              </div>
+              <p style={{ fontSize: '14px', color: '#94a3b8', lineHeight: 1.6, margin: 0 }}>
+                {t('footer_description') || 'מערכת ניהול מתקדמת למאמני כושר. הפכו את ניהול האימונים שלכם לפשוט ויעיל יותר מתמיד.'}
+              </p>
+            </div>
+
+            {/* Quick Links */}
+            <div>
+              <h5 style={{ fontSize: '16px', fontWeight: '600', margin: '0 0 16px 0' }}>
+                {t('quick_links') || 'קישורים מהירים'}
+              </h5>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <Link
+                  href="/availability"
+                  style={{
+                    fontSize: '14px',
+                    color: '#94a3b8',
+                    textDecoration: 'none',
+                    transition: 'color 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.color = '#3b82f6'}
+                  onMouseOut={(e) => e.currentTarget.style.color = '#94a3b8'}
+                >
+                  {t('set_availability') || 'קביעת זמינות'}
+                </Link>
+                <Link
+                  href="/clients"
+                  style={{
+                    fontSize: '14px',
+                    color: '#94a3b8',
+                    textDecoration: 'none',
+                    transition: 'color 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.color = '#3b82f6'}
+                  onMouseOut={(e) => e.currentTarget.style.color = '#94a3b8'}
+                >
+                  {t('manage_clients') || 'ניהול לקוחות'}
+                </Link>
+                <Link
+                  href={`/book/${session?.user?.email?.split('@')[0]?.replace(/[^a-zA-Z0-9]/g, '-')}`}
+                  target="_blank"
+                  style={{
+                    fontSize: '14px',
+                    color: '#94a3b8',
+                    textDecoration: 'none',
+                    transition: 'color 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.color = '#3b82f6'}
+                  onMouseOut={(e) => e.currentTarget.style.color = '#94a3b8'}
+                >
+                  {t('booking_page') || 'עמוד הזמנות'}
+                </Link>
+              </div>
+            </div>
+
+            {/* Legal Links */}
+            <div>
+              <h5 style={{ fontSize: '16px', fontWeight: '600', margin: '0 0 16px 0' }}>
+                {t('legal') || 'משפטי'}
+              </h5>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <Link
+                  href="/terms"
+                  style={{
+                    fontSize: '14px',
+                    color: '#94a3b8',
+                    textDecoration: 'none',
+                    transition: 'color 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.color = '#3b82f6'}
+                  onMouseOut={(e) => e.currentTarget.style.color = '#94a3b8'}
+                >
+                  {t('terms_of_service') || 'תנאי שימוש'}
+                </Link>
+                <Link
+                  href="/privacy"
+                  style={{
+                    fontSize: '14px',
+                    color: '#94a3b8',
+                    textDecoration: 'none',
+                    transition: 'color 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.color = '#3b82f6'}
+                  onMouseOut={(e) => e.currentTarget.style.color = '#94a3b8'}
+                >
+                  {t('privacy_policy') || 'מדיניות פרטיות'}
+                </Link>
+                <a
+                  href="mailto:tal.gurevich2@gmail.com"
+                  style={{
+                    fontSize: '14px',
+                    color: '#94a3b8',
+                    textDecoration: 'none',
+                    transition: 'color 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.color = '#3b82f6'}
+                  onMouseOut={(e) => e.currentTarget.style.color = '#94a3b8'}
+                >
+                  {t('contact_support') || 'תמיכה'}
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Bar */}
+          <div style={{
+            paddingTop: '24px',
+            borderTop: '1px solid #334155',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '16px'
+          }}>
+            <p style={{ fontSize: '14px', color: '#64748b', margin: 0 }}>
+              © 2024 Trainer-Booking. {t('all_rights_reserved') || 'כל הזכויות שמורות.'}
+            </p>
+            <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+              {t('developed_by') || 'פותח על ידי'} <span style={{ color: '#3b82f6', fontWeight: '500' }}>Tal Gurevich</span>
+            </p>
+          </div>
+        </div>
+      </footer>
 
       {/* Onboarding Modal */}
       {showOnboarding && (
