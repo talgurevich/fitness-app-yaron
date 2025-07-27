@@ -55,6 +55,10 @@ export default function DashboardPage() {
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false)
   const [growthData, setGrowthData] = useState<GrowthData | null>(null)
   const [growthLoading, setGrowthLoading] = useState(false)
+  const [trainerData, setTrainerData] = useState<any>(null)
+  const [showPhoneModal, setShowPhoneModal] = useState(false)
+  const [phoneInput, setPhoneInput] = useState('')
+  const [phoneSubmitting, setPhoneSubmitting] = useState(false)
 
   useEffect(() => {
     if (status === 'loading') return
@@ -84,7 +88,10 @@ export default function DashboardPage() {
       // STEP 4: Fetch growth analytics data
       await fetchGrowthData()
       
-      // STEP 5: Check if user has seen onboarding
+      // STEP 5: Fetch trainer profile data
+      await fetchTrainerProfile()
+      
+      // STEP 6: Check if user has seen onboarding
       const seenOnboarding = localStorage.getItem(`onboarding_seen_${session?.user?.email}`)
       if (!seenOnboarding) {
         setShowOnboarding(true)
@@ -262,6 +269,63 @@ export default function DashboardPage() {
       console.error('Error fetching growth data:', error)
     } finally {
       setGrowthLoading(false)
+    }
+  }
+
+  // Fetch Trainer Profile Data
+  const fetchTrainerProfile = async () => {
+    try {
+      const response = await fetch('/api/trainer/profile')
+      const data = await response.json()
+      
+      if (data.success) {
+        setTrainerData(data.trainer)
+        
+        // Check if phone number is missing and show modal
+        if (!data.trainer.phone) {
+          setShowPhoneModal(true)
+        }
+      } else {
+        console.error('Trainer profile fetch failed:', data.error)
+      }
+    } catch (error) {
+      console.error('Error fetching trainer profile:', error)
+    }
+  }
+
+  // Handle phone number submission
+  const handlePhoneSubmit = async () => {
+    if (!phoneInput.trim()) {
+      return
+    }
+
+    try {
+      setPhoneSubmitting(true)
+      
+      const response = await fetch('/api/trainer/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phone: phoneInput.trim()
+        })
+      })
+
+      const data = await response.json()
+      
+      if (data.success) {
+        setTrainerData(prev => ({ ...prev, phone: phoneInput.trim() }))
+        setShowPhoneModal(false)
+        setPhoneInput('')
+      } else {
+        alert(data.error || 'שגיאה בשמירת מספר הטלפון')
+      }
+    } catch (error) {
+      console.error('Error updating phone:', error)
+      alert('שגיאה בחיבור לשרת')
+    } finally {
+      setPhoneSubmitting(false)
     }
   }
 
@@ -1339,7 +1403,7 @@ export default function DashboardPage() {
                 {t('name') || 'שם'}
               </p>
               <p style={{ fontSize: '14px', color: '#111827', margin: 0, fontWeight: '500' }}>
-                {session?.user?.name || t('not_set') || 'לא מוגדר'}
+                {trainerData?.name || session?.user?.name || t('not_set') || 'לא מוגדר'}
               </p>
             </div>
             <div>
@@ -1347,7 +1411,7 @@ export default function DashboardPage() {
                 {t('email') || 'אימייל'}
               </p>
               <p style={{ fontSize: '14px', color: '#111827', margin: 0, fontWeight: '500' }}>
-                {session?.user?.email}
+                {trainerData?.email || session?.user?.email}
               </p>
             </div>
             <div>
@@ -1355,7 +1419,7 @@ export default function DashboardPage() {
                 {t('phone') || 'טלפון'}
               </p>
               <p style={{ fontSize: '14px', color: '#111827', margin: 0, fontWeight: '500' }}>
-                {t('not_set') || 'לא מוגדר'} <span style={{ fontSize: '12px', color: '#6b7280' }}>({t('coming_soon') || 'בקרוב'})</span>
+                {trainerData?.phone || t('not_set') || 'לא מוגדר'}
               </p>
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
@@ -1857,6 +1921,164 @@ export default function DashboardPage() {
                 }}
               >
                 {t('skip_tutorial')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Phone Number Prompt Modal */}
+      {showPhoneModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1001,
+          padding: '16px'
+        }}>
+          <div style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.98)',
+            backdropFilter: 'blur(20px)',
+            borderRadius: '16px',
+            maxWidth: '500px',
+            width: '100%',
+            padding: '32px',
+            position: 'relative'
+          }}>
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+              <div style={{
+                width: '64px',
+                height: '64px',
+                background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 16px',
+                color: 'white',
+                fontSize: '24px'
+              }}>
+                📱
+              </div>
+              <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#111827', margin: '0 0 8px 0' }}>
+                {t('add_phone_number') || 'הוספת מספר טלפון'}
+              </h2>
+              <p style={{ fontSize: '14px', color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
+                {t('phone_number_description') || 'להשלמת הפרופיל ולקבלת התראות SMS, אנא הזינו את מספר הטלפון שלכם'}
+              </p>
+            </div>
+
+            {/* Phone Input */}
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ 
+                display: 'block',
+                fontSize: '14px', 
+                fontWeight: '500', 
+                color: '#374151', 
+                marginBottom: '8px' 
+              }}>
+                {t('phone_number') || 'מספר טלפון'}
+              </label>
+              <input
+                type="tel"
+                value={phoneInput}
+                onChange={(e) => setPhoneInput(e.target.value)}
+                placeholder="050-123-4567"
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  fontSize: '16px',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '8px',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  direction: 'ltr'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handlePhoneSubmit()
+                  }
+                }}
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowPhoneModal(false)}
+                style={{
+                  padding: '12px 24px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#6b7280',
+                  backgroundColor: 'transparent',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              >
+                {t('skip') || 'דלג'}
+              </button>
+              <button
+                onClick={handlePhoneSubmit}
+                disabled={phoneSubmitting || !phoneInput.trim()}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '12px 24px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: 'white',
+                  backgroundColor: phoneSubmitting || !phoneInput.trim() ? '#9ca3af' : '#3b82f6',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: phoneSubmitting || !phoneInput.trim() ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => {
+                  if (!phoneSubmitting && phoneInput.trim()) {
+                    e.currentTarget.style.backgroundColor = '#2563eb'
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (!phoneSubmitting && phoneInput.trim()) {
+                    e.currentTarget.style.backgroundColor = '#3b82f6'
+                  }
+                }}
+              >
+                {phoneSubmitting ? (
+                  <>
+                    <div style={{ 
+                      width: '16px', 
+                      height: '16px', 
+                      border: '2px solid white', 
+                      borderTop: '2px solid transparent',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite'
+                    }}></div>
+                    {t('saving') || 'שומר...'}
+                  </>
+                ) : (
+                  <>
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    {t('save') || 'שמור'}
+                  </>
+                )}
               </button>
             </div>
           </div>
