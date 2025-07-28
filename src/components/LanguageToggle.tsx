@@ -100,6 +100,18 @@ const translations = {
     'contact_success_message': 'תודה על פנייתכם! נחזור אליכם תוך 24 שעות.',
     'contact_error_message': 'אירעה שגיאה בשליחת הבקשה. אנא נסו שוב מאוחר יותר.',
     
+    // How It Works Section
+    'how_it_works': 'איך זה עובד?',
+    'simple_booking_process': 'תהליך הזמנה פשוט ומהיר ללקוחות שלכם',
+    'share_your_link': 'שתפו את הקישור שלכם',
+    'share_link_description': 'קבלו קישור אישי ושתפו אותו עם הלקוחות שלכם דרך WhatsApp, Instagram או כל פלטפורמה אחרת',
+    'client_selects_time': 'הלקוח בוחר זמן',
+    'client_time_description': 'הלקוח נכנס לקישור, רואה את הזמנים הפנויים שלכם ובוחר את הזמן המתאים לו',
+    'automatic_confirmation': 'אישור אוטומטי',
+    'confirmation_description': 'ההזמנה נשמרת אוטומטית ביומן שלכם, והלקוח מקבל אישור במייל עם כל הפרטים',
+    'example_link': 'דוגמה לקישור הזמנה:',
+    'link_customizable': '* הקישור מותאם אישית לכל מאמן',
+    
     // Homepage translations
     'fitness_booking_system': 'מערכת הזמנות למאמני כושר',
     'simple_system_for_trainers': 'מערכת פשוטה לכושר ובריאות',
@@ -444,6 +456,18 @@ const translations = {
     'contact_form_description': 'Leave your details and we\'ll get back to you with all the information about the system',
     'contact_success_message': 'Thank you for your inquiry! We\'ll get back to you within 24 hours.',
     'contact_error_message': 'An error occurred while submitting the request. Please try again later.',
+    
+    // How It Works Section
+    'how_it_works': 'How It Works',
+    'simple_booking_process': 'Simple and quick booking process for your clients',
+    'share_your_link': 'Share Your Link',
+    'share_link_description': 'Get a personal link and share it with your clients via WhatsApp, Instagram, or any other platform',
+    'client_selects_time': 'Client Selects Time',
+    'client_time_description': 'The client enters the link, sees your available times and chooses the time that suits them',
+    'automatic_confirmation': 'Automatic Confirmation',
+    'confirmation_description': 'The booking is automatically saved in your calendar, and the client receives a confirmation email with all the details',
+    'example_link': 'Example booking link:',
+    'link_customizable': '* The link is personalized for each trainer',
     
     // Homepage translations
     'fitness_booking_system': 'Fitness Trainer Booking System',

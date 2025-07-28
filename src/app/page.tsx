@@ -562,6 +562,202 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* How It Works Section */}
+        <section 
+          className="fade-in-section section-padding"
+          style={{ 
+            background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.5))',
+            position: 'relative',
+            overflow: 'hidden'
+          }}
+        >
+          {/* Background Pattern */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'url("data:image/svg+xml,%3Csvg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%233b82f6" fill-opacity="0.05"%3E%3Cpath d="M0 20h40v20H0z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+            opacity: 0.3
+          }}></div>
+
+          <div className="container" style={{ position: 'relative', zIndex: 1 }}>
+            <div className="section-header">
+              <h3 className="section-title">
+                {t('how_it_works') || 'איך זה עובד?'}
+              </h3>
+              <p className="section-subtitle">
+                {t('simple_booking_process') || 'תהליך הזמנה פשוט ומהיר ללקוחות שלכם'}
+              </p>
+            </div>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '32px',
+              maxWidth: '1000px',
+              margin: '0 auto'
+            }}>
+              {/* Step 1 */}
+              <div style={{
+                textAlign: 'center',
+                position: 'relative'
+              }}>
+                <div style={{
+                  width: '80px',
+                  height: '80px',
+                  background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 24px',
+                  fontSize: '32px',
+                  fontWeight: '700',
+                  color: 'white',
+                  boxShadow: '0 10px 30px rgba(59, 130, 246, 0.3)',
+                  position: 'relative'
+                }}>
+                  1
+                </div>
+                <h4 style={{
+                  fontSize: '20px',
+                  fontWeight: '600',
+                  color: 'white',
+                  margin: '0 0 12px 0'
+                }}>
+                  {t('share_your_link') || 'שתפו את הקישור שלכם'}
+                </h4>
+                <p style={{
+                  fontSize: '14px',
+                  color: '#cbd5e1',
+                  margin: 0,
+                  lineHeight: 1.6
+                }}>
+                  {t('share_link_description') || 'קבלו קישור אישי ושתפו אותו עם הלקוחות שלכם דרך WhatsApp, Instagram או כל פלטפורמה אחרת'}
+                </p>
+              </div>
+
+              {/* Step 2 */}
+              <div style={{
+                textAlign: 'center',
+                position: 'relative'
+              }}>
+                <div style={{
+                  width: '80px',
+                  height: '80px',
+                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 24px',
+                  fontSize: '32px',
+                  fontWeight: '700',
+                  color: 'white',
+                  boxShadow: '0 10px 30px rgba(16, 185, 129, 0.3)'
+                }}>
+                  2
+                </div>
+                <h4 style={{
+                  fontSize: '20px',
+                  fontWeight: '600',
+                  color: 'white',
+                  margin: '0 0 12px 0'
+                }}>
+                  {t('client_selects_time') || 'הלקוח בוחר זמן'}
+                </h4>
+                <p style={{
+                  fontSize: '14px',
+                  color: '#cbd5e1',
+                  margin: 0,
+                  lineHeight: 1.6
+                }}>
+                  {t('client_time_description') || 'הלקוח נכנס לקישור, רואה את הזמנים הפנויים שלכם ובוחר את הזמן המתאים לו'}
+                </p>
+              </div>
+
+              {/* Step 3 */}
+              <div style={{
+                textAlign: 'center',
+                position: 'relative'
+              }}>
+                <div style={{
+                  width: '80px',
+                  height: '80px',
+                  background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 24px',
+                  fontSize: '32px',
+                  fontWeight: '700',
+                  color: 'white',
+                  boxShadow: '0 10px 30px rgba(139, 92, 246, 0.3)'
+                }}>
+                  3
+                </div>
+                <h4 style={{
+                  fontSize: '20px',
+                  fontWeight: '600',
+                  color: 'white',
+                  margin: '0 0 12px 0'
+                }}>
+                  {t('automatic_confirmation') || 'אישור אוטומטי'}
+                </h4>
+                <p style={{
+                  fontSize: '14px',
+                  color: '#cbd5e1',
+                  margin: 0,
+                  lineHeight: 1.6
+                }}>
+                  {t('confirmation_description') || 'ההזמנה נשמרת אוטומטית ביומן שלכם, והלקוח מקבל אישור במייל עם כל הפרטים'}
+                </p>
+              </div>
+            </div>
+
+            {/* Example Booking Link */}
+            <div style={{
+              maxWidth: '600px',
+              margin: '64px auto 0',
+              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1))',
+              border: '1px solid rgba(59, 130, 246, 0.3)',
+              borderRadius: '12px',
+              padding: '24px',
+              textAlign: 'center'
+            }}>
+              <p style={{
+                fontSize: '14px',
+                color: '#94a3b8',
+                margin: '0 0 12px 0'
+              }}>
+                {t('example_link') || 'דוגמה לקישור הזמנה:'}
+              </p>
+              <div style={{
+                background: 'rgba(15, 23, 42, 0.5)',
+                borderRadius: '8px',
+                padding: '12px',
+                fontFamily: 'monospace',
+                fontSize: '14px',
+                color: '#60a5fa',
+                wordBreak: 'break-all',
+                margin: '0 0 16px 0'
+              }}>
+                www.trainer-booking.com/book/your-name
+              </div>
+              <p style={{
+                fontSize: '12px',
+                color: '#94a3b8',
+                margin: 0
+              }}>
+                {t('link_customizable') || '* הקישור מותאם אישית לכל מאמן'}
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* Testimonial Section */}
         <section 
           className="fade-in-section"
