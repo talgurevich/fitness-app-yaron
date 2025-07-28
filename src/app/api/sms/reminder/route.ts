@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
 
 נתראה בזמן! 💪
 
-${user.trainer.name}`
+${user.name || 'המאמן/ת שלך'}`
 
     // Send SMS via Twilio
     const twilioResponse = await twilioClient.messages.create({
