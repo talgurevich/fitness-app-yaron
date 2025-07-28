@@ -204,6 +204,22 @@ export default function DashboardPage() {
           primaryCalendar: data.calendars?.find(cal => cal.primary)?.name || 'Unknown'
         })
         setCalendarMessage('✅ Calendar connected successfully!')
+        
+        // Automatically set the primary calendar as the trainer's calendar
+        const primaryCalendar = data.calendars?.find(cal => cal.primary)
+        if (primaryCalendar) {
+          const setCalendarResponse = await fetch('/api/calendar/connect', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ calendarId: primaryCalendar.id })
+          })
+          
+          if (setCalendarResponse.ok) {
+            console.log('✅ Primary calendar set for trainer')
+          } else {
+            console.error('Failed to set primary calendar')
+          }
+        }
       } else {
         setCalendarMessage(`❌ ${data.error || 'Calendar connection failed'}`)
         

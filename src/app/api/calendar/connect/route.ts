@@ -4,6 +4,55 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { getGoogleCalendar } from '@/lib/calendar'
 
+// POST - Set the trainer's Google Calendar ID
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+    }
+
+    const { calendarId } = await request.json()
+    
+    if (!calendarId) {
+      return NextResponse.json({ error: 'Calendar ID is required' }, { status: 400 })
+    }
+
+    // Import prisma here to use it
+    const { prisma } = await import('@/lib/prisma')
+    
+    // Update trainer's Google Calendar ID
+    const result = await prisma.trainer.updateMany({
+      where: {
+        user: {
+          email: session.user.email
+        }
+      },
+      data: {
+        googleCalendarId: calendarId
+      }
+    })
+
+    if (result.count === 0) {
+      return NextResponse.json({ error: 'Trainer profile not found' }, { status: 404 })
+    }
+
+    console.log('✅ Updated Google Calendar ID for trainer:', session.user.email)
+
+    return NextResponse.json({ 
+      success: true,
+      message: 'Google Calendar ID updated successfully'
+    })
+
+  } catch (error) {
+    console.error('Error updating calendar ID:', error)
+    return NextResponse.json({ 
+      error: 'Failed to update calendar ID'
+    }, { status: 500 })
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)

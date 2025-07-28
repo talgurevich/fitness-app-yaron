@@ -10,28 +10,6 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.email) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Get trainer info
-    const trainer = await prisma.trainer.findFirst({
-      where: {
-        user: {
-          email: session.user.email
-        }
-      },
-      include: {
-        user: true
-      }
-    })
-
-    if (!trainer) {
-      return NextResponse.json({ success: false, error: 'Trainer not found' }, { status: 404 })
-    }
-
     const body = await request.json()
     const { 
       clientId, 
@@ -41,8 +19,50 @@ export async function POST(request: NextRequest) {
       duration = 60, 
       sessionPrice, 
       notes,
-      clientPhone 
+      clientPhone,
+      trainerSlug // Added to handle public bookings
     } = body
+
+    let trainer;
+    const session = await getServerSession(authOptions)
+    
+    if (session?.user?.email) {
+      // Booking made by logged-in trainer
+      trainer = await prisma.trainer.findFirst({
+        where: {
+          user: {
+            email: session.user.email
+          }
+        },
+        include: {
+          user: {
+            include: {
+              accounts: true // Include accounts to get refresh token
+            }
+          }
+        }
+      })
+    } else if (trainerSlug) {
+      // Public booking via trainer's booking page
+      trainer = await prisma.trainer.findFirst({
+        where: {
+          bookingSlug: trainerSlug
+        },
+        include: {
+          user: {
+            include: {
+              accounts: true // Include accounts to get refresh token
+            }
+          }
+        }
+      })
+    } else {
+      return NextResponse.json({ success: false, error: 'Trainer not found' }, { status: 400 })
+    }
+
+    if (!trainer) {
+      return NextResponse.json({ success: false, error: 'Trainer not found' }, { status: 404 })
+    }
 
     // Validate required fields
     if (!clientName || !clientEmail || !datetime) {
@@ -96,9 +116,32 @@ export async function POST(request: NextRequest) {
 
     // Create Google Calendar event if trainer has calendar access
     let googleEventId = null
-    if (session.accessToken && trainer.googleCalendarId) {
+    
+    // Check if trainer has a Google account with refresh token
+    const googleAccount = trainer.user.accounts?.find(acc => acc.provider === 'google')
+    
+    console.log('🔍 Calendar integration check:', {
+      hasGoogleAccount: !!googleAccount,
+      hasRefreshToken: !!googleAccount?.refresh_token,
+      hasCalendarId: !!trainer.googleCalendarId,
+      calendarId: trainer.googleCalendarId
+    })
+    
+    if (googleAccount?.refresh_token && trainer.googleCalendarId) {
       try {
-        const calendar = getGoogleCalendar(session.accessToken as string)
+        // Use the trainer's refresh token to get a new access token
+        const { google } = await import('googleapis')
+        const oauth2Client = new google.auth.OAuth2(
+          process.env.GOOGLE_CLIENT_ID,
+          process.env.GOOGLE_CLIENT_SECRET,
+          process.env.NEXTAUTH_URL + '/api/auth/callback/google'
+        )
+        
+        oauth2Client.setCredentials({
+          refresh_token: googleAccount.refresh_token
+        })
+        
+        const calendar = google.calendar({ version: 'v3', auth: oauth2Client })
         
         const endTime = new Date(appointmentDate.getTime() + (duration * 60 * 1000))
         
@@ -122,9 +165,13 @@ export async function POST(request: NextRequest) {
         })
         
         googleEventId = event.data.id
-        console.log('Google Calendar event created:', googleEventId)
-      } catch (calendarError) {
-        console.error('Failed to create Google Calendar event:', calendarError)
+        console.log('✅ Google Calendar event created:', googleEventId)
+      } catch (calendarError: any) {
+        console.error('❌ Failed to create Google Calendar event:', {
+          error: calendarError.message,
+          code: calendarError.code,
+          details: calendarError.response?.data
+        })
         // Don't fail the appointment creation if calendar fails
       }
     }
@@ -221,7 +268,7 @@ export async function POST(request: NextRequest) {
       // 2. Send notification email to TRAINER
       const trainerNotificationEmail = await resend.emails.send({
         from: 'Fitness Booking System <onboarding@resend.dev>',
-        to: ['tal.gurevich2@gmail.com'], // Always send to trainer's email
+        to: [trainer.user.email], // Send to the actual trainer's email
         subject: `🆕 New Booking: ${client.name} - ${formatDateTime(appointmentDate)}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
