@@ -1156,21 +1156,15 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Main Layout - Responsive Grid */}
+        {/* Upcoming Sessions - Full Width */}
         <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: '1fr',
-          gap: '32px'
-        }} className="main-layout">
-          
-          {/* Main Sessions Area */}
-          <div style={{ 
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid #e5e7eb',
-            borderRadius: '16px',
-            overflow: 'hidden'
-          }}>
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid #e5e7eb',
+          borderRadius: '16px',
+          overflow: 'hidden',
+          marginBottom: '32px'
+        }}>
             <div style={{ 
               padding: '24px',
               borderBottom: '1px solid #e5e7eb',
@@ -1402,7 +1396,6 @@ export default function DashboardPage() {
               )}
             </div>
           </div>
-        </div>
 
         {/* Trainer Information Section */}
         <div style={{ 
