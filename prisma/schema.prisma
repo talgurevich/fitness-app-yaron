@@ -60,6 +60,7 @@ model Trainer {
   appointments     Appointment[]
   clients          Client[]
   payments         Payment[]
+  smsLogs          SmsLog[]
   user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -110,6 +111,7 @@ model Appointment {
   client        Client?   @relation(fields: [clientId], references: [id])
   trainer       Trainer   @relation(fields: [trainerId], references: [id], onDelete: Cascade)
   payments      Payment[]
+  smsLogs       SmsLog[]
 }
 
 model Payment {
@@ -142,4 +144,17 @@ model Measurement {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+model SmsLog {
+  id            String      @id @default(cuid())
+  appointmentId String
+  trainerId     String
+  clientPhone   String
+  message       String
+  twilioSid     String?
+  status        String      @default("sent")
+  sentAt        DateTime    @default(now())
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  trainer       Trainer     @relation(fields: [trainerId], references: [id], onDelete: Cascade)
 }

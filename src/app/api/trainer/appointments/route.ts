@@ -51,9 +51,15 @@ export async function GET(request: NextRequest) {
         id: true,
         clientName: true,
         clientEmail: true,
+        clientPhone: true,
         datetime: true,
         duration: true,
-        status: true
+        status: true,
+        client: {
+          select: {
+            phone: true
+          }
+        }
       }
     })
 

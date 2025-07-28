@@ -128,17 +128,17 @@ ${user.trainer.name}`
       appointmentId
     })
 
-    // Log the SMS in database (optional - you can add an SMS log table)
-    // await prisma.smsLog.create({
-    //   data: {
-    //     appointmentId,
-    //     trainerId: user.trainer.id,
-    //     clientPhone,
-    //     message: smsMessage,
-    //     twilioSid: twilioResponse.sid,
-    //     status: 'sent'
-    //   }
-    // })
+    // Log the SMS in database
+    await prisma.smsLog.create({
+      data: {
+        appointmentId,
+        trainerId: user.trainer.id,
+        clientPhone,
+        message: smsMessage,
+        twilioSid: twilioResponse.sid,
+        status: 'sent'
+      }
+    })
 
     return NextResponse.json({
       success: true,

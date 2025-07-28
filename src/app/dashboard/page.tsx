@@ -1314,15 +1314,39 @@ export default function DashboardPage() {
                           {/* SMS Reminder Button */}
                           <button
                             onClick={async () => {
-                              if (!appointment.clientPhone) {
+                              const phoneNumber = appointment.clientPhone || appointment.client?.phone
+                              if (!phoneNumber) {
                                 alert('❌ ללקוח אין מספר טלפון רשום\n\nאנא הוסיפו מספר טלפון בפרטי הלקוח כדי לשלוח תזכורות SMS.')
                                 return
                               }
                               
-                              const confirmed = confirm(`📱 שלח תזכורת SMS ל${appointment.clientName}?\n\nהתזכורת תישלח למספר: ${appointment.clientPhone}`)
-                              if (!confirmed) return
-                              
                               try {
+                                // Check if SMS was sent before
+                                const checkResponse = await fetch(`/api/sms/check-last-sent?appointmentId=${appointment.id}`)
+                                const checkData = await checkResponse.json()
+                                
+                                let shouldSend = true
+                                
+                                if (checkData.success && checkData.lastSms) {
+                                  const lastSentDate = new Date(checkData.lastSms.sentAt)
+                                  const formattedDate = lastSentDate.toLocaleDateString('he-IL')
+                                  const formattedTime = lastSentDate.toLocaleTimeString('he-IL', {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })
+                                  
+                                  shouldSend = confirm(
+                                    `⚠️ תזכורת SMS כבר נשלחה לפגישה זו\n\n` +
+                                    `📅 תאריך שליחה אחרונה: ${formattedDate}\n` +
+                                    `⏰ שעה: ${formattedTime}\n\n` +
+                                    `האם לשלוח שוב למספר ${phoneNumber}?`
+                                  )
+                                } else {
+                                  shouldSend = confirm(`📱 שלח תזכורת SMS ל${appointment.clientName}?\n\nהתזכורת תישלח למספר: ${phoneNumber}`)
+                                }
+                                
+                                if (!shouldSend) return
+                                
                                 const response = await fetch('/api/sms/reminder', {
                                   method: 'POST',
                                   headers: { 'Content-Type': 'application/json' },
