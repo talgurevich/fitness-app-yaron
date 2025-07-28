@@ -188,7 +188,15 @@ export async function PUT(
     // Only update fields that are provided in the request
     if (body.name !== undefined) updateData.name = body.name
     if (body.email !== undefined) updateData.email = body.email
-    if (body.phone !== undefined) updateData.phone = body.phone || null
+    if (body.phone !== undefined) {
+      updateData.phone = body.phone || null
+      console.log('📱 Updating phone number:', {
+        clientId,
+        oldPhone: existingClient.phone,
+        newPhone: body.phone,
+        updateData: updateData.phone
+      })
+    }
     if (body.notes !== undefined) updateData.notes = body.notes || null
     if (body.nutritionPlan !== undefined) updateData.nutritionPlan = body.nutritionPlan || null
     if (body.goals !== undefined) updateData.goals = body.goals || null
@@ -270,7 +278,11 @@ export async function PUT(
       outstandingBalance
     }
 
-    console.log('✅ Updated client:', clientId)
+    console.log('✅ Updated client:', {
+      clientId,
+      updatedPhone: updatedClient.phone,
+      updateDataKeys: Object.keys(updateData)
+    })
 
     return NextResponse.json({
       success: true,

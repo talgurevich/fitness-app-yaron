@@ -74,25 +74,39 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    let clientPhone = appointment.clientPhone || appointment.client?.phone
+    // Prefer the client's current phone number over the appointment's stored phone
+    let clientPhone = appointment.client?.phone || appointment.clientPhone
+    
+    console.log('📱 Original phone number:', clientPhone)
     
     // Format phone number to E.164 format (add +972 for Israeli numbers)
     if (clientPhone) {
-      // Remove any non-digit characters
-      clientPhone = clientPhone.replace(/\D/g, '')
+      // Remove any non-digit characters except the leading +
+      const originalPhone = clientPhone
+      clientPhone = clientPhone.replace(/[^\d+]/g, '')
+      
+      // Remove any + signs and keep only digits
+      const digitsOnly = clientPhone.replace(/\+/g, '')
       
       // If it starts with 0, replace with +972
-      if (clientPhone.startsWith('0')) {
-        clientPhone = '+972' + clientPhone.substring(1)
+      if (digitsOnly.startsWith('0')) {
+        clientPhone = '+972' + digitsOnly.substring(1)
       }
-      // If it doesn't start with +, assume it's an Israeli number
-      else if (!clientPhone.startsWith('972')) {
-        clientPhone = '+972' + clientPhone
+      // If it doesn't start with 972, assume it's an Israeli number
+      else if (!digitsOnly.startsWith('972')) {
+        clientPhone = '+972' + digitsOnly
       }
       // If it starts with 972, add the +
-      else if (clientPhone.startsWith('972')) {
-        clientPhone = '+' + clientPhone
+      else if (digitsOnly.startsWith('972')) {
+        clientPhone = '+' + digitsOnly
       }
+      
+      console.log('📱 Formatted phone number:', {
+        original: originalPhone,
+        digitsOnly,
+        formatted: clientPhone,
+        length: digitsOnly.length
+      })
     }
 
     // Format appointment details
