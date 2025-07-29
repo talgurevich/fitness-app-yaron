@@ -405,7 +405,7 @@ export default function ClientsPage() {
           </div>
         </div>
 
-        {/* Clients Grid */}
+        {/* Clients Table */}
         {filteredClients.length === 0 ? (
           <div style={{ 
             backgroundColor: 'white',
@@ -440,157 +440,284 @@ export default function ClientsPage() {
           </div>
         ) : (
           <div style={{ 
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-            gap: '20px'
+            backgroundColor: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '16px',
+            overflow: 'hidden'
           }}>
-            {filteredClients.map((client) => {
-              const statusInfo = getStatusInfo(client)
-              return (
-                <Link 
-                  key={client.id} 
-                  href={`/clients/${client.id}`}
-                  style={{
-                    display: 'block',
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '12px',
-                    padding: '20px',
-                    textDecoration: 'none',
-                    transition: 'all 0.2s',
-                    cursor: 'pointer'
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)'
-                    e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
-                    e.currentTarget.style.borderColor = '#3b82f6'
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)'
-                    e.currentTarget.style.boxShadow = 'none'
-                    e.currentTarget.style.borderColor = '#e5e7eb'
-                  }}
-                >
-                  {/* Client Header */}
-                  <div style={{ 
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
-                    marginBottom: '16px'
+            <table style={{ 
+              width: '100%',
+              borderCollapse: 'collapse'
+            }}>
+              <thead>
+                <tr style={{ backgroundColor: '#f9fafb' }}>
+                  <th style={{ 
+                    padding: '16px 20px',
+                    textAlign: 'left',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    color: '#374151',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    borderBottom: '1px solid #e5e7eb'
                   }}>
-                    <div style={{ flex: 1 }}>
-                      <h3 style={{ 
-                        fontSize: '16px', 
-                        fontWeight: '600', 
-                        color: '#111827', 
-                        margin: '0 0 4px 0',
-                        transition: 'color 0.2s'
-                      }}>
-                        {client.name}
-                      </h3>
-                      <p style={{ fontSize: '13px', color: '#6b7280', margin: '0 0 2px 0' }}>
-                        {client.email}
-                      </p>
-                      {client.phone && (
-                        <p style={{ fontSize: '13px', color: '#9ca3af', margin: 0 }}>
-                          {client.phone}
-                        </p>
-                      )}
-                    </div>
-                    <span style={{ 
-                      padding: '4px 8px',
-                      fontSize: '11px',
-                      fontWeight: '600',
-                      color: statusInfo.color,
-                      backgroundColor: statusInfo.backgroundColor,
-                      borderRadius: '6px',
-                      whiteSpace: 'nowrap'
-                    }}>
-                      {statusInfo.text}
-                    </span>
-                  </div>
+                    Client
+                  </th>
+                  <th style={{ 
+                    padding: '16px 20px',
+                    textAlign: 'left',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    color: '#374151',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    borderBottom: '1px solid #e5e7eb'
+                  }}>
+                    Contact
+                  </th>
+                  <th style={{ 
+                    padding: '16px 20px',
+                    textAlign: 'center',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    color: '#374151',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    borderBottom: '1px solid #e5e7eb'
+                  }}>
+                    Status
+                  </th>
+                  <th style={{ 
+                    padding: '16px 20px',
+                    textAlign: 'center',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    color: '#374151',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    borderBottom: '1px solid #e5e7eb'
+                  }}>
+                    Sessions
+                  </th>
+                  <th style={{ 
+                    padding: '16px 20px',
+                    textAlign: 'center',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    color: '#374151',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    borderBottom: '1px solid #e5e7eb'
+                  }}>
+                    Joined
+                  </th>
+                  <th style={{ 
+                    padding: '16px 20px',
+                    textAlign: 'center',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    color: '#374151',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    borderBottom: '1px solid #e5e7eb'
+                  }}>
+                    Last Session
+                  </th>
+                  <th style={{ 
+                    padding: '16px 20px',
+                    textAlign: 'center',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    color: '#374151',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    borderBottom: '1px solid #e5e7eb',
+                    width: '80px'
+                  }}>
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredClients.map((client, index) => {
+                  const statusInfo = getStatusInfo(client)
+                  return (
+                    <tr 
+                      key={client.id}
+                      style={{ 
+                        borderBottom: index < filteredClients.length - 1 ? '1px solid #f3f4f6' : 'none',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#f9fafb'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent'
+                      }}
+                    >
+                      {/* Client Name and Avatar */}
+                      <td style={{ padding: '16px 20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ 
+                            width: '40px', 
+                            height: '40px', 
+                            backgroundColor: '#eff6ff', 
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0
+                          }}>
+                            <svg width="20" height="20" fill="none" stroke="#3b82f6" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                          </div>
+                          <div>
+                            <p style={{ 
+                              fontSize: '14px', 
+                              fontWeight: '600', 
+                              color: '#111827', 
+                              margin: '0 0 2px 0'
+                            }}>
+                              {client.name}
+                            </p>
+                            {client.goals && (
+                              <p style={{ 
+                                fontSize: '12px', 
+                                color: '#6b7280', 
+                                margin: 0,
+                                maxWidth: '200px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                              }}>
+                                {client.goals}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
 
-                  {/* Stats Grid */}
-                  <div style={{ 
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(3, 1fr)',
-                    gap: '8px',
-                    marginBottom: '16px'
-                  }}>
-                    <div style={{ 
-                      backgroundColor: '#f9fafb',
-                      borderRadius: '8px',
-                      padding: '8px',
-                      textAlign: 'center'
-                    }}>
-                      <p style={{ fontSize: '16px', fontWeight: '600', color: '#111827', margin: 0 }}>
-                        {client.totalAppointments}
-                      </p>
-                      <p style={{ fontSize: '10px', color: '#6b7280', margin: 0 }}>{t('total')}</p>
-                    </div>
-                    <div style={{ 
-                      backgroundColor: '#f0fdf4',
-                      borderRadius: '8px',
-                      padding: '8px',
-                      textAlign: 'center'
-                    }}>
-                      <p style={{ fontSize: '16px', fontWeight: '600', color: '#16a34a', margin: 0 }}>
-                        {client.completedSessions}
-                      </p>
-                      <p style={{ fontSize: '10px', color: '#6b7280', margin: 0 }}>{t('done')}</p>
-                    </div>
-                    <div style={{ 
-                      backgroundColor: '#eff6ff',
-                      borderRadius: '8px',
-                      padding: '8px',
-                      textAlign: 'center'
-                    }}>
-                      <p style={{ fontSize: '16px', fontWeight: '600', color: '#2563eb', margin: 0 }}>
-                        {client.upcomingAppointments}
-                      </p>
-                      <p style={{ fontSize: '10px', color: '#6b7280', margin: 0 }}>{t('upcoming')}</p>
-                    </div>
-                  </div>
+                      {/* Contact Info */}
+                      <td style={{ padding: '16px 20px' }}>
+                        <div>
+                          <p style={{ 
+                            fontSize: '13px', 
+                            color: '#111827', 
+                            margin: '0 0 2px 0'
+                          }}>
+                            {client.email}
+                          </p>
+                          {client.phone && (
+                            <p style={{ 
+                              fontSize: '12px', 
+                              color: '#6b7280', 
+                              margin: 0
+                            }}>
+                              {client.phone}
+                            </p>
+                          )}
+                        </div>
+                      </td>
 
-                  {/* Additional Info */}
-                  <div style={{ 
-                    paddingTop: '12px',
-                    borderTop: '1px solid #f3f4f6'
-                  }}>
-                    <div style={{ 
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      fontSize: '12px',
-                      color: '#6b7280'
-                    }}>
-                      <span>{t('joined')} {formatDate(client.joinedDate)}</span>
-                      {client.lastSessionDate && (
-                        <span>{t('last')} {formatDate(client.lastSessionDate)}</span>
-                      )}
-                    </div>
-                    
-                    {client.goals && (
-                      <div style={{ 
-                        marginTop: '8px',
-                        padding: '8px',
-                        backgroundColor: '#fef3c7',
-                        borderRadius: '6px'
-                      }}>
-                        <p style={{ 
-                          fontSize: '11px', 
-                          color: '#92400e', 
-                          margin: 0,
-                          fontWeight: '500'
+                      {/* Status */}
+                      <td style={{ padding: '16px 20px', textAlign: 'center' }}>
+                        <span style={{ 
+                          padding: '4px 8px',
+                          fontSize: '11px',
+                          fontWeight: '600',
+                          color: statusInfo.color,
+                          backgroundColor: statusInfo.backgroundColor,
+                          borderRadius: '6px',
+                          whiteSpace: 'nowrap'
                         }}>
-                          {t('goals')} {client.goals.substring(0, 60)}...
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </Link>
-              )
-            })}
+                          {statusInfo.text}
+                        </span>
+                      </td>
+
+                      {/* Sessions Stats */}
+                      <td style={{ padding: '16px 20px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '12px' }}>
+                          <span style={{ 
+                            padding: '2px 6px',
+                            backgroundColor: '#f3f4f6',
+                            borderRadius: '4px',
+                            color: '#374151'
+                          }}>
+                            {client.totalAppointments} total
+                          </span>
+                          <span style={{ 
+                            padding: '2px 6px',
+                            backgroundColor: '#dcfce7',
+                            borderRadius: '4px',
+                            color: '#16a34a'
+                          }}>
+                            {client.completedSessions} done
+                          </span>
+                          <span style={{ 
+                            padding: '2px 6px',
+                            backgroundColor: '#dbeafe',
+                            borderRadius: '4px',
+                            color: '#2563eb'
+                          }}>
+                            {client.upcomingAppointments} upcoming
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Joined Date */}
+                      <td style={{ 
+                        padding: '16px 20px', 
+                        textAlign: 'center',
+                        fontSize: '13px',
+                        color: '#6b7280'
+                      }}>
+                        {formatDate(client.joinedDate)}
+                      </td>
+
+                      {/* Last Session */}
+                      <td style={{ 
+                        padding: '16px 20px', 
+                        textAlign: 'center',
+                        fontSize: '13px',
+                        color: '#6b7280'
+                      }}>
+                        {client.lastSessionDate ? formatDate(client.lastSessionDate) : '-'}
+                      </td>
+
+                      {/* Actions */}
+                      <td style={{ padding: '16px 20px', textAlign: 'center' }}>
+                        <Link 
+                          href={`/clients/${client.id}`}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '32px',
+                            height: '32px',
+                            backgroundColor: '#f3f4f6',
+                            borderRadius: '6px',
+                            textDecoration: 'none',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseOver={(e) => {
+                            e.currentTarget.style.backgroundColor = '#e5e7eb'
+                          }}
+                          onMouseOut={(e) => {
+                            e.currentTarget.style.backgroundColor = '#f3f4f6'
+                          }}
+                          title={`View ${client.name}'s profile`}
+                        >
+                          <svg width="16" height="16" fill="none" stroke="#6b7280" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </Link>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </main>
