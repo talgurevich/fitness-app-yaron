@@ -10,6 +10,15 @@ interface BookingForm {
   phone: string
 }
 
+// Helper function to safely format date string without timezone issues
+const formatDateFromString = (dateString: string, locale: string = 'he-IL', options?: Intl.DateTimeFormatOptions) => {
+  // Parse the date components to avoid timezone conversion
+  const [year, month, day] = dateString.split('-').map(num => parseInt(num))
+  // Create date using local timezone components (month is 0-indexed)
+  const date = new Date(year, month - 1, day)
+  return date.toLocaleDateString(locale, options)
+}
+
 export default function BookingPage() {
   const params = useParams()
   const trainerSlug = params.trainerSlug as string
@@ -98,7 +107,9 @@ export default function BookingPage() {
     setIsBooking(true)
 
     try {
-      const datetime = new Date(`${selectedDate}T${selectedTime}:00`)
+      // Create datetime string with explicit timezone offset for Israel (UTC+3 in summer, UTC+2 in winter)
+      // For now, we'll send the local time as-is and handle timezone on the server
+      const datetimeString = `${selectedDate}T${selectedTime}:00`
       
       const response = await fetch('/api/bookings', {
         method: 'POST',
@@ -110,7 +121,7 @@ export default function BookingPage() {
           clientName: bookingForm.name,
           clientEmail: bookingForm.email,
           clientPhone: bookingForm.phone,
-          datetime: datetime.toISOString(),
+          datetime: datetimeString,
         }),
       })
 
@@ -193,7 +204,7 @@ export default function BookingPage() {
             {t('booking_success')} ✅
           </h2>
           <p style={{ fontSize: '16px', color: '#6b7280', margin: '0 0 16px 0', lineHeight: '1.5' }}>
-            {t('booking_success_message')} {new Date(selectedDate).toLocaleDateString('he-IL')} {t('at_time')} {selectedTime} {t('sent_to_trainer')}
+            {t('booking_success_message')} {formatDateFromString(selectedDate)} {t('at_time')} {selectedTime} {t('sent_to_trainer')}
           </p>
           <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0 }}>
             {t('confirmation_email')}: <strong>{bookingForm.email}</strong>
@@ -492,7 +503,7 @@ export default function BookingPage() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <p style={{ fontSize: '14px', color: '#0369a1', margin: 0 }}>
                       <strong>{t('date')}:</strong>{' '}
-                      {new Date(selectedDate).toLocaleDateString('he-IL', { 
+                      {formatDateFromString(selectedDate, 'he-IL', { 
                         weekday: 'long', 
                         year: 'numeric', 
                         month: 'long', 

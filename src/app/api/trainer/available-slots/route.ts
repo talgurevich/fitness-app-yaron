@@ -27,7 +27,12 @@ export async function GET(request: NextRequest) {
       }, { status: 400 })
     }
 
-    console.log('🔍 Getting available slots for:', { trainerSlug, date })
+    console.log('🔍 Getting available slots for:', { 
+      trainerSlug, 
+      date,
+      startOfDayIsrael: new Date(date + 'T00:00:00+03:00').toISOString(),
+      endOfDayIsrael: new Date(date + 'T23:59:59+03:00').toISOString()
+    })
 
     // Find trainer by booking slug
     const trainer = await prisma.trainer.findFirst({
@@ -37,8 +42,9 @@ export async function GET(request: NextRequest) {
         appointments: {
           where: {
             datetime: {
-              gte: new Date(date + 'T00:00:00.000Z'),
-              lt: new Date(date + 'T23:59:59.999Z')
+              // Fix: Use Israel timezone for date boundaries
+              gte: new Date(date + 'T00:00:00+03:00'), // Start of day in Israel
+              lt: new Date(date + 'T23:59:59+03:00')   // End of day in Israel
             },
             status: {
               not: 'cancelled' // Only consider non-cancelled appointments
@@ -153,10 +159,12 @@ export async function GET(request: NextRequest) {
 
     console.log('📅 Debug info:', {
       selectedDate: selectedDate.toISOString(),
+      israelDate: selectedDate.toLocaleDateString('he-IL', { timeZone: 'Asia/Jerusalem' }),
       dayOfWeek,
       daySchedule,
       appointments: trainer.appointments.map(apt => ({
         datetime: apt.datetime.toISOString(),
+        israelDateTime: new Date(apt.datetime).toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' }),
         formattedTime: new Date(apt.datetime).toLocaleTimeString('en-GB', { 
           hour12: false, 
           hour: '2-digit', 

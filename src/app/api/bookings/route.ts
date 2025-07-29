@@ -9,8 +9,20 @@ import { Resend } from 'resend'
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(request: NextRequest) {
+  console.log('🚨 BOOKINGS ROUTE CALLED - REQUEST RECEIVED 🚨')
+  console.log('📍 Current timestamp:', new Date().toISOString())
+  console.log('📍 Request URL:', request.url)
+  console.log('📍 Request method:', request.method)
+  
   try {
     const body = await request.json()
+    console.log('📦 Request body received:', { 
+      keys: Object.keys(body),
+      datetime: body.datetime,
+      clientName: body.clientName,
+      trainerSlug: body.trainerSlug 
+    })
+    
     const { 
       clientId, 
       clientName, 
@@ -72,7 +84,41 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const appointmentDate = new Date(datetime)
+    // Parse datetime - the frontend sends "YYYY-MM-DDTHH:mm:ss" representing Israel local time
+    // We need to interpret this correctly regardless of server timezone
+    
+    // First, parse the date parts
+    const [datePart, timePart] = datetime.split('T')
+    const [year, month, day] = datePart.split('-').map(Number)
+    const [hourStr, minuteStr] = timePart.split(':')
+    const hour = parseInt(hourStr)
+    const minute = parseInt(minuteStr)
+    
+    // CRITICAL FIX: Append Israel timezone offset to ensure correct interpretation
+    // The datetime represents Israel local time, not server local time
+    const israelDatetime = datetime + '+03:00'  // Israel is UTC+3 in summer
+    const appointmentDate = new Date(israelDatetime)
+    
+    // Log what we received vs what the server interpreted
+    console.log('🕐 Timezone Debug:', {
+      receivedTime: `${hourStr}:${minuteStr}`,
+      receivedDatetime: datetime,
+      israelDatetime: israelDatetime,
+      serverTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      parsedUTC: appointmentDate.toISOString(),
+      israelDisplay: appointmentDate.toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' })
+    })
+    
+    console.log('📝 Booking request details:', {
+      trainerEmail: trainer.user.email,
+      clientName,
+      clientEmail,
+      receivedDatetime: datetime,
+      parsedDatetime: appointmentDate.toISOString(),
+      localTime: appointmentDate.toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' }),
+      utcTime: appointmentDate.toUTCString(),
+      trainerSlug: trainerSlug || 'direct-booking'
+    })
 
     // 🔧 FIX: Find or create client by email (the key change!)
     let client = await prisma.client.findUnique({
@@ -117,6 +163,13 @@ export async function POST(request: NextRequest) {
     // Create Google Calendar event if trainer has calendar access
     let googleEventId = null
     
+    console.log('🔍 Calendar integration debug - trainer accounts:', {
+      trainerEmail: trainer.user.email,
+      totalAccounts: trainer.user.accounts?.length || 0,
+      accountProviders: trainer.user.accounts?.map(acc => acc.provider) || [],
+      googleCalendarId: trainer.googleCalendarId
+    })
+    
     // Check if trainer has a Google account with refresh token
     const googleAccount = trainer.user.accounts?.find(acc => acc.provider === 'google')
     
@@ -124,11 +177,22 @@ export async function POST(request: NextRequest) {
       hasGoogleAccount: !!googleAccount,
       hasRefreshToken: !!googleAccount?.refresh_token,
       hasCalendarId: !!trainer.googleCalendarId,
-      calendarId: trainer.googleCalendarId
+      calendarId: trainer.googleCalendarId,
+      refreshTokenPreview: googleAccount?.refresh_token ? googleAccount.refresh_token.substring(0, 20) + '...' : 'none'
     })
     
-    if (googleAccount?.refresh_token && trainer.googleCalendarId) {
+    if (googleAccount?.refresh_token) {
       try {
+        // If no calendar ID is set, use 'primary' as default
+        const calendarId = trainer.googleCalendarId || 'primary'
+        console.log('📅 Using calendar ID:', calendarId)
+        console.log('🕐 Calendar event times:', {
+          originalDatetime: datetime,
+          startTime: datetime,
+          endTime: `${datePart}T${String(hour + Math.floor(duration / 60)).padStart(2, '0')}:${String(minute + (duration % 60)).padStart(2, '0')}:00`,
+          timezone: trainer.timezone || 'Asia/Jerusalem'
+        })
+        
         // Use the trainer's refresh token to get a new access token
         const { google } = await import('googleapis')
         const oauth2Client = new google.auth.OAuth2(
@@ -146,16 +210,16 @@ export async function POST(request: NextRequest) {
         const endTime = new Date(appointmentDate.getTime() + (duration * 60 * 1000))
         
         const event = await calendar.events.insert({
-          calendarId: 'primary',
+          calendarId: calendarId,
           requestBody: {
             summary: `Training Session - ${client.name}`, // Use client's correct name
             description: `Fitness training session with ${client.name}${notes ? `\n\nNotes: ${notes}` : ''}`,
             start: {
-              dateTime: appointmentDate.toISOString(),
+              dateTime: datetime,  // datetime already includes seconds from frontend
               timeZone: trainer.timezone || 'Asia/Jerusalem'
             },
             end: {
-              dateTime: endTime.toISOString(),
+              dateTime: `${datePart}T${String(hour + Math.floor(duration / 60)).padStart(2, '0')}:${String(minute + (duration % 60)).padStart(2, '0')}:00`,
               timeZone: trainer.timezone || 'Asia/Jerusalem'
             },
             attendees: [
@@ -349,6 +413,12 @@ export async function POST(request: NextRequest) {
       // Don't fail the appointment creation if email fails
     }
 
+    console.log('✅ Booking process completed successfully for:', {
+      appointmentId: appointment.id,
+      clientName: client.name,
+      hasGoogleEventId: !!appointment.googleEventId
+    })
+
     return NextResponse.json({
       success: true,
       appointment: {
@@ -367,10 +437,14 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
+    console.error('🚨 BOOKING ERROR - CAUGHT IN MAIN HANDLER 🚨')
     console.error('Booking error:', error)
+    console.error('📍 Error timestamp:', new Date().toISOString())
     return NextResponse.json({ 
       success: false, 
       error: 'Failed to book appointment: ' + error.message 
     }, { status: 500 })
+  } finally {
+    console.log('🚨 BOOKINGS ROUTE COMPLETED 🚨')
   }
 }
