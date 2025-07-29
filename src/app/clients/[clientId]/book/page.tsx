@@ -36,6 +36,12 @@ export default function BookAppointmentPage() {
   const [sessionPrice, setSessionPrice] = useState(180)
   const [notes, setNotes] = useState('')
   
+  // Recurring appointment state
+  const [isRecurring, setIsRecurring] = useState(false)
+  const [recurringWeeks, setRecurringWeeks] = useState(4)
+  const [recurringDays, setRecurringDays] = useState<string[]>([])
+  const [endDate, setEndDate] = useState('')
+  
   // Time slots
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([])
 
@@ -111,41 +117,133 @@ export default function BookAppointmentPage() {
       return
     }
 
+    // Validation for recurring appointments
+    if (isRecurring && recurringDays.length === 0) {
+      alert('Please select at least one day for recurring appointments')
+      return
+    }
+
     setSubmitting(true)
 
     try {
-      const datetime = new Date(`${selectedDate}T${selectedTime}:00`)
-      
-      const response = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          clientId: client?.id,
-          clientName: client?.name,
-          clientEmail: client?.email,
-          datetime: datetime.toISOString(),
-          duration,
-          sessionPrice,
-          notes: notes || null
-        })
-      })
+      if (isRecurring) {
+        // Handle recurring appointments
+        const appointments = generateRecurringAppointments()
+        let successCount = 0
+        let errorCount = 0
+        
+        for (const appointment of appointments) {
+          try {
+            const response = await fetch('/api/bookings', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                clientId: client?.id,
+                clientName: client?.name,
+                clientEmail: client?.email,
+                datetime: appointment.datetime,
+                duration,
+                sessionPrice,
+                notes: notes || null,
+                isRecurring: true
+              })
+            })
 
-      const data = await response.json()
-      
-      if (data.success) {
-        // Success! Redirect back to client page
-        router.push(`/clients/${clientId}?booked=true`)
+            const result = await response.json()
+            if (result.success) {
+              successCount++
+            } else {
+              errorCount++
+              console.error('Failed to book appointment:', result.error)
+            }
+          } catch (error) {
+            errorCount++
+            console.error('Booking error:', error)
+          }
+        }
+
+        if (successCount > 0) {
+          alert(`✅ Successfully booked ${successCount} recurring appointments!${errorCount > 0 ? ` (${errorCount} failed)` : ''}`)
+          router.push(`/clients/${clientId}?booked=true`)
+        } else {
+          alert('❌ Failed to book any appointments. Please try again.')
+        }
       } else {
-        alert('Error booking appointment: ' + (data.error || 'Unknown error'))
+        // Handle single appointment
+        const datetime = new Date(`${selectedDate}T${selectedTime}:00`)
+        
+        const response = await fetch('/api/bookings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            clientId: client?.id,
+            clientName: client?.name,
+            clientEmail: client?.email,
+            datetime: datetime.toISOString(),
+            duration,
+            sessionPrice,
+            notes: notes || null
+          })
+        })
+
+        const data = await response.json()
+        
+        if (data.success) {
+          alert('✅ Appointment booked successfully!')
+          router.push(`/clients/${clientId}?booked=true`)
+        } else {
+          alert('❌ Failed to book appointment: ' + (data.error || 'Unknown error'))
+        }
       }
     } catch (error) {
-      console.error('Error booking appointment:', error)
-      alert('Error booking appointment')
+      console.error('Booking error:', error)
+      alert('❌ An error occurred while booking the appointment')
     } finally {
       setSubmitting(false)
     }
+  }
+
+  const generateRecurringAppointments = () => {
+    const appointments = []
+    const startDate = new Date(selectedDate)
+    const dayMap = {
+      'sunday': 0, 'monday': 1, 'tuesday': 2, 'wednesday': 3,
+      'thursday': 4, 'friday': 5, 'saturday': 6
+    }
+
+    // Calculate end date
+    const calculatedEndDate = endDate ? new Date(endDate) : 
+      new Date(startDate.getTime() + (recurringWeeks * 7 * 24 * 60 * 60 * 1000))
+
+    // Generate appointments for each selected day of the week
+    for (const dayName of recurringDays) {
+      const targetDayIndex = dayMap[dayName]
+      let currentDate = new Date(startDate)
+      
+      // Find the first occurrence of this day of the week
+      while (currentDate.getDay() !== targetDayIndex) {
+        currentDate.setDate(currentDate.getDate() + 1)
+      }
+
+      // Generate weekly appointments until end date
+      while (currentDate <= calculatedEndDate) {
+        const appointmentDatetime = new Date(`${currentDate.toISOString().split('T')[0]}T${selectedTime}:00`)
+        appointments.push({
+          datetime: appointmentDatetime.toISOString(),
+          date: currentDate.toISOString().split('T')[0],
+          dayOfWeek: dayName
+        })
+        
+        // Move to next week
+        currentDate.setDate(currentDate.getDate() + 7)
+      }
+    }
+
+    return appointments.sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime())
   }
 
   const getTodayDate = () => {
@@ -496,6 +594,159 @@ export default function BookAppointmentPage() {
               />
             </div>
 
+            {/* Recurring Appointments */}
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                <input
+                  type="checkbox"
+                  id="recurring"
+                  checked={isRecurring}
+                  onChange={(e) => setIsRecurring(e.target.checked)}
+                  style={{
+                    width: '16px',
+                    height: '16px',
+                    accentColor: '#3b82f6'
+                  }}
+                />
+                <label htmlFor="recurring" style={{ 
+                  fontSize: '14px', 
+                  fontWeight: '600', 
+                  color: '#374151',
+                  cursor: 'pointer'
+                }}>
+                  Create Recurring Appointments
+                </label>
+              </div>
+
+              {isRecurring && (
+                <div style={{ 
+                  backgroundColor: '#f8fafc', 
+                  border: '1px solid #e2e8f0', 
+                  borderRadius: '8px', 
+                  padding: '16px',
+                  marginTop: '12px'
+                }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                    {/* Number of weeks */}
+                    <div>
+                      <label style={{ 
+                        display: 'block', 
+                        fontSize: '13px', 
+                        fontWeight: '600', 
+                        color: '#374151', 
+                        marginBottom: '6px' 
+                      }}>
+                        Number of weeks
+                      </label>
+                      <select
+                        value={recurringWeeks}
+                        onChange={(e) => setRecurringWeeks(parseInt(e.target.value))}
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '6px',
+                          fontSize: '14px',
+                          backgroundColor: 'white'
+                        }}
+                      >
+                        {[...Array(12)].map((_, i) => (
+                          <option key={i + 1} value={i + 1}>{i + 1} week{i > 0 ? 's' : ''}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* End date */}
+                    <div>
+                      <label style={{ 
+                        display: 'block', 
+                        fontSize: '13px', 
+                        fontWeight: '600', 
+                        color: '#374151', 
+                        marginBottom: '6px' 
+                      }}>
+                        End date (optional)
+                      </label>
+                      <input
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        min={selectedDate}
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '6px',
+                          fontSize: '14px',
+                          backgroundColor: 'white'
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Weekly schedule */}
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      fontSize: '13px', 
+                      fontWeight: '600', 
+                      color: '#374151', 
+                      marginBottom: '8px' 
+                    }}>
+                      Repeat on days
+                    </label>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      {[
+                        { value: 'monday', label: 'Mon' },
+                        { value: 'tuesday', label: 'Tue' },
+                        { value: 'wednesday', label: 'Wed' },
+                        { value: 'thursday', label: 'Thu' },
+                        { value: 'friday', label: 'Fri' },
+                        { value: 'saturday', label: 'Sat' },
+                        { value: 'sunday', label: 'Sun' }
+                      ].map((day) => (
+                        <button
+                          key={day.value}
+                          type="button"
+                          onClick={() => {
+                            if (recurringDays.includes(day.value)) {
+                              setRecurringDays(recurringDays.filter(d => d !== day.value))
+                            } else {
+                              setRecurringDays([...recurringDays, day.value])
+                            }
+                          }}
+                          style={{
+                            padding: '6px 12px',
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '6px',
+                            backgroundColor: recurringDays.includes(day.value) ? '#3b82f6' : 'white',
+                            color: recurringDays.includes(day.value) ? 'white' : '#374151',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          {day.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ 
+                    marginTop: '12px', 
+                    padding: '8px 12px', 
+                    backgroundColor: '#eff6ff', 
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    color: '#1e40af'
+                  }}>
+                    💡 This will create {recurringWeeks} appointments, one per week{recurringDays.length > 0 ? ` on ${recurringDays.join(', ')}` : ''} at {selectedTime || '[selected time]'}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Submit Button */}
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <Link
@@ -569,7 +820,7 @@ export default function BookAppointmentPage() {
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
                     </svg>
-                    Book Appointment
+                    {isRecurring ? 'Book Recurring Appointments' : 'Book Appointment'}
                   </>
                 )}
               </button>

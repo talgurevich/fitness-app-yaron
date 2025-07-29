@@ -92,6 +92,12 @@ export default function ClientProfilePage() {
     notes: ''
   })
   const [deletingAppointment, setDeletingAppointment] = useState<string | null>(null)
+  const [editingAppointment, setEditingAppointment] = useState<string | null>(null)
+  const [appointmentEditForm, setAppointmentEditForm] = useState({
+    sessionPrice: '',
+    sessionNotes: '',
+    duration: 60
+  })
   
   // Payment form state
   const [showPaymentForm, setShowPaymentForm] = useState(false)
@@ -265,6 +271,53 @@ export default function ClientProfilePage() {
     } finally {
       setDeletingAppointment(null)
     }
+  }
+
+  const handleEditAppointment = (appointment: any) => {
+    setEditingAppointment(appointment.id)
+    setAppointmentEditForm({
+      sessionPrice: appointment.sessionPrice?.toString() || '',
+      sessionNotes: appointment.sessionNotes || '',
+      duration: appointment.duration || 60
+    })
+  }
+
+  const handleSaveEdit = async (appointmentId: string) => {
+    try {
+      const response = await fetch(`/api/appointments/${appointmentId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          sessionPrice: appointmentEditForm.sessionPrice ? parseInt(appointmentEditForm.sessionPrice) : undefined,
+          sessionNotes: appointmentEditForm.sessionNotes || null,
+          duration: appointmentEditForm.duration
+        })
+      })
+
+      const data = await response.json()
+      
+      if (data.success) {
+        await fetchClient()
+        setEditingAppointment(null)
+        alert('Appointment updated successfully!')
+      } else {
+        alert('Error updating appointment: ' + data.error)
+      }
+    } catch (error) {
+      console.error('Error updating appointment:', error)
+      alert('Error updating appointment')
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setEditingAppointment(null)
+    setAppointmentEditForm({
+      sessionPrice: '',
+      sessionNotes: '',
+      duration: 60
+    })
   }
 
   const formatDate = (dateString: string) => {
@@ -592,6 +645,160 @@ export default function ClientProfilePage() {
                 ) : (
                   t('record_payment')
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Appointment Modal */}
+      {editingAppointment && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '16px',
+            padding: '24px',
+            width: '400px',
+            maxWidth: '90vw'
+          }}>
+            <div style={{ marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: '0 0 8px 0' }}>
+                Edit Appointment
+              </h3>
+              <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
+                Update appointment details
+              </p>
+            </div>
+
+            {/* Session Price */}
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ 
+                display: 'block', 
+                fontSize: '14px', 
+                fontWeight: '600', 
+                color: '#374151', 
+                marginBottom: '6px' 
+              }}>
+                Session Price (₪)
+              </label>
+              <input
+                type="number"
+                value={appointmentEditForm.sessionPrice}
+                onChange={(e) => setAppointmentEditForm({ ...appointmentEditForm, sessionPrice: e.target.value })}
+                placeholder="180"
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  color: '#111827'
+                }}
+              />
+            </div>
+
+            {/* Duration */}
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ 
+                display: 'block', 
+                fontSize: '14px', 
+                fontWeight: '600', 
+                color: '#374151', 
+                marginBottom: '6px' 
+              }}>
+                Duration (minutes)
+              </label>
+              <select
+                value={appointmentEditForm.duration}
+                onChange={(e) => setAppointmentEditForm({ ...appointmentEditForm, duration: parseInt(e.target.value) })}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  color: '#111827',
+                  backgroundColor: 'white'
+                }}
+              >
+                <option value={30}>30 minutes</option>
+                <option value={45}>45 minutes</option>
+                <option value={60}>60 minutes</option>
+                <option value={90}>90 minutes</option>
+                <option value={120}>120 minutes</option>
+              </select>
+            </div>
+
+            {/* Session Notes */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ 
+                display: 'block', 
+                fontSize: '14px', 
+                fontWeight: '600', 
+                color: '#374151', 
+                marginBottom: '6px' 
+              }}>
+                Session Notes
+              </label>
+              <textarea
+                value={appointmentEditForm.sessionNotes}
+                onChange={(e) => setAppointmentEditForm({ ...appointmentEditForm, sessionNotes: e.target.value })}
+                placeholder="Add notes about this session..."
+                rows={3}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  color: '#111827',
+                  resize: 'vertical'
+                }}
+              />
+            </div>
+
+            {/* Buttons */}
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={handleCancelEdit}
+                style={{
+                  padding: '10px 16px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#6b7280',
+                  backgroundColor: '#f9fafb',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleSaveEdit(editingAppointment)}
+                style={{
+                  padding: '10px 16px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: 'white',
+                  backgroundColor: '#3b82f6',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer'
+                }}
+              >
+                Save Changes
               </button>
             </div>
           </div>
@@ -2082,6 +2289,40 @@ export default function ClientProfilePage() {
                                   📱 SMS
                                 </button>
                                 
+                                {/* Edit Button for Future Appointments */}
+                                <button
+                                  onClick={() => handleEditAppointment(appointment)}
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    padding: '8px 12px',
+                                    fontSize: '12px',
+                                    fontWeight: '500',
+                                    color: '#3b82f6',
+                                    backgroundColor: '#eff6ff',
+                                    border: '1px solid #bfdbfe',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    marginLeft: '12px'
+                                  }}
+                                  onMouseOver={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#dbeafe'
+                                    e.currentTarget.style.borderColor = '#93c5fd'
+                                  }}
+                                  onMouseOut={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#eff6ff'
+                                    e.currentTarget.style.borderColor = '#bfdbfe'
+                                  }}
+                                  title="Edit appointment details"
+                                >
+                                  <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                  Edit
+                                </button>
+
                                 {/* Delete Button for Future Appointments */}
                                 {appointment.status !== 'cancelled' && (
                                   <button
