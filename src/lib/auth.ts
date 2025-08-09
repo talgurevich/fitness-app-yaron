@@ -16,8 +16,7 @@ export const authOptions: NextAuthOptions = {
             'openid',
             'email',
             'profile',
-            'https://www.googleapis.com/auth/calendar',        // Read/write calendar access
-            'https://www.googleapis.com/auth/calendar.events'   // Events access
+            'https://www.googleapis.com/auth/calendar'        // Full read/write calendar access
           ].join(' '),
           access_type: 'offline',  // Get refresh token
           prompt: 'consent',       // Force consent screen to get refresh token
