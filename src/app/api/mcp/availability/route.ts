@@ -109,29 +109,30 @@ export async function GET(request: NextRequest) {
 
     const totalSlotTime = sessionDuration + breakBetweenSessions
 
-    for (let hour = startHour; hour < endHour; hour++) {
-      for (let minute = (hour === startHour ? startMinute : 0); minute < 60; minute += totalSlotTime) {
-        const slotEndMinute = minute + sessionDuration
-        if (hour === endHour - 1 && slotEndMinute > endMinute) break
-        if (slotEndMinute >= 60) continue
-
-        const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+    // Generate slots by hour intervals  
+    const startTime = startHour * 60 + startMinute // Convert to minutes
+    const endTime = endHour * 60 + endMinute
+    
+    for (let timeMinutes = startTime; timeMinutes + sessionDuration <= endTime; timeMinutes += totalSlotTime) {
+      const hour = Math.floor(timeMinutes / 60)
+      const minute = timeMinutes % 60
+      
+      const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+      
+      // Check if this slot conflicts with existing appointments
+      const slotDateTime = new Date(targetDate)
+      slotDateTime.setHours(hour, minute, 0, 0)
+      
+      const hasConflict = trainer.appointments?.some(apt => {
+        const aptTime = new Date(apt.datetime)
+        const aptEndTime = new Date(aptTime.getTime() + (apt.duration * 60000))
+        const slotEndTime = new Date(slotDateTime.getTime() + (sessionDuration * 60000))
         
-        // Check if this slot conflicts with existing appointments
-        const slotDateTime = new Date(targetDate)
-        slotDateTime.setHours(hour, minute, 0, 0)
-        
-        const hasConflict = trainer.appointments?.some(apt => {
-          const aptTime = new Date(apt.datetime)
-          const aptEndTime = new Date(aptTime.getTime() + (apt.duration * 60000))
-          const slotEndTime = new Date(slotDateTime.getTime() + (sessionDuration * 60000))
-          
-          return (slotDateTime < aptEndTime && slotEndTime > aptTime)
-        })
+        return (slotDateTime < aptEndTime && slotEndTime > aptTime)
+      })
 
-        if (!hasConflict) {
-          slots.push(timeStr)
-        }
+      if (!hasConflict) {
+        slots.push(timeStr)
       }
     }
 
