@@ -334,7 +334,7 @@ export default function HomePage() {
           style={{
             transform: `translateY(${scrollY * 0.3}px)`,
             opacity: Math.max(0, 1 - scrollY / 800),
-            backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.7), rgba(30, 41, 59, 0.8)), url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')`,
+            backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.7), rgba(30, 41, 59, 0.8)), url('https://mtsykipljmffwqikddle.supabase.co/storage/v1/object/public/generated-images/61abb539-4ca0-4569-b382-7351b1b5ec43.jpg')`,
             backgroundSize: `${100 + scrollY * 0.02}%`,
             backgroundPosition: 'center',
             backgroundAttachment: 'fixed'
@@ -448,7 +448,14 @@ export default function HomePage() {
         <section 
           ref={featuresRef}
           className="fade-in-section section-padding"
-          style={{ transform: `translateY(${scrollY * 0.1}px)` }}
+          style={{ 
+            transform: `translateY(${scrollY * 0.1}px)`,
+            backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.85), rgba(30, 41, 59, 0.9)), url('https://mtsykipljmffwqikddle.supabase.co/storage/v1/object/public/generated-images/fc2a5f9a-2eca-4a49-8cdd-199aac96f26a.jpg')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundAttachment: 'fixed',
+            position: 'relative'
+          }}
         >
           <div className="container">
             <div className="section-header">
@@ -460,8 +467,8 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="features-grid">
-              <div className="feature-card">
+            <div className="features-grid" style={{ position: 'relative', zIndex: 2 }}>
+              <div className="feature-card enhanced-card">
                 <div className="feature-icon calendar">
                   📅
                 </div>
@@ -473,7 +480,7 @@ export default function HomePage() {
                 </p>
               </div>
 
-              <div className="feature-card">
+              <div className="feature-card enhanced-card">
                 <div className="feature-icon link">
                   🔗
                 </div>
@@ -485,7 +492,7 @@ export default function HomePage() {
                 </p>
               </div>
 
-              <div className="feature-card">
+              <div className="feature-card enhanced-card">
                 <div className="feature-icon management">
                   📊
                 </div>
@@ -497,7 +504,7 @@ export default function HomePage() {
                 </p>
               </div>
 
-              <div className="feature-card">
+              <div className="feature-card enhanced-card">
                 <div className="feature-icon sms">
                   💬
                 </div>
@@ -762,7 +769,10 @@ export default function HomePage() {
         <section 
           className="fade-in-section"
           style={{ 
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            backgroundImage: `linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9)), url('https://mtsykipljmffwqikddle.supabase.co/storage/v1/object/public/generated-images/20423466-48da-47c2-872e-bd585fe5d4f5.jpg')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundAttachment: 'fixed',
             padding: '80px 0',
             position: 'relative',
             overflow: 'hidden'
@@ -1431,6 +1441,19 @@ export default function HomePage() {
           overflow: hidden;
         }
 
+        .enhanced-card {
+          background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.9)) !important;
+          backdrop-filter: blur(25px) !important;
+          border: 1px solid rgba(59, 130, 246, 0.2) !important;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .enhanced-card:hover {
+          transform: translateY(-15px) scale(1.02) !important;
+          border-color: rgba(59, 130, 246, 0.4) !important;
+          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4), 0 0 30px rgba(59, 130, 246, 0.2) !important;
+        }
+
         .feature-card::before {
           content: '';
           position: absolute;
@@ -1469,6 +1492,18 @@ export default function HomePage() {
 
         .feature-icon.management {
           background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(196, 181, 253, 0.1));
+        }
+
+        .feature-icon.sms {
+          background: linear-gradient(135deg, rgba(244, 63, 94, 0.2), rgba(251, 113, 133, 0.1));
+        }
+
+        .feature-icon.mobile {
+          background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(251, 191, 36, 0.1));
+        }
+
+        .feature-icon.payment {
+          background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(74, 222, 128, 0.1));
         }
 
         .feature-title {
@@ -1654,6 +1689,36 @@ export default function HomePage() {
           opacity: 1;
           transform: translateY(0);
         }
+
+        /* Enhanced header styling */
+        .enhanced-header {
+          position: relative;
+        }
+
+        .enhanced-header::after {
+          content: '';
+          position: absolute;
+          bottom: -10px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 60px;
+          height: 4px;
+          background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+          border-radius: 2px;
+        }
+
+        /* Enhanced background animations */
+        @keyframes subtlePulse {
+          0%, 100% { opacity: 0.9; }
+          50% { opacity: 1; }
+        }
+
+        .enhanced-card:nth-child(1) { animation-delay: 0s; }
+        .enhanced-card:nth-child(2) { animation-delay: 0.5s; }
+        .enhanced-card:nth-child(3) { animation-delay: 1s; }
+        .enhanced-card:nth-child(4) { animation-delay: 1.5s; }
+        .enhanced-card:nth-child(5) { animation-delay: 2s; }
+        .enhanced-card:nth-child(6) { animation-delay: 2.5s; }
 
         /* Mobile fallback - ensure sections are visible */
         @media (max-width: 768px) {
