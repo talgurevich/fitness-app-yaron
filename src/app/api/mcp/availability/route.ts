@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
 
     // Generate available time slots for the date
     const targetDate = new Date(date || new Date().toISOString().split('T')[0])
-    const dayName = targetDate.toLocaleDateString('en-US', { weekday: 'lowercase' })
+    const dayName = targetDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
     const daySchedule = workingHours[dayName]
 
     if (!daySchedule || !daySchedule.enabled) {
