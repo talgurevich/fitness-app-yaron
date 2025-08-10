@@ -61,6 +61,8 @@ model Trainer {
   clients          Client[]
   payments         Payment[]
   smsLogs          SmsLog[]
+  telegramUsers    TelegramUser[]
+  telegramConversations TelegramConversation[]
   user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -89,6 +91,7 @@ model Client {
   trainer          Trainer       @relation(fields: [trainerId], references: [id], onDelete: Cascade)
   measurements     Measurement[]
   payments         Payment[]
+  telegramUsers    TelegramUser[]
 
   @@unique([trainerId, email])
 }
@@ -157,4 +160,39 @@ model SmsLog {
   sentAt        DateTime    @default(now())
   appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
   trainer       Trainer     @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+}
+
+model TelegramUser {
+  id            String   @id @default(cuid())
+  telegramId    BigInt   @unique
+  chatId        BigInt   @unique
+  username      String?
+  firstName     String?
+  lastName      String?
+  languageCode  String?
+  clientId      String?
+  trainerId     String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  client        Client?  @relation(fields: [clientId], references: [id])
+  trainer       Trainer? @relation(fields: [trainerId], references: [id])
+  conversations TelegramConversation[]
+}
+
+model TelegramConversation {
+  id              String   @id @default(cuid())
+  telegramUserId  String
+  trainerId       String?
+  state           String   @default("active")
+  bookingData     Json?
+  messageCount    Int      @default(0)
+  lastMessageAt   DateTime @default(now())
+  createdAt       DateTime @default(now())
+  
+  telegramUser    TelegramUser @relation(fields: [telegramUserId], references: [id])
+  trainer         Trainer? @relation(fields: [trainerId], references: [id])
+  
+  @@index([telegramUserId, state])
 }
